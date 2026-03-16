@@ -755,36 +755,87 @@ tbody tr:hover { background: var(--bg); }
 @media print {
   body > *:not(#print-area) { display: none !important; }
   #print-area { display: block !important; }
+  @page { size: A4; margin: 0; }
 }
 
 #print-area { display: none; }
 
+.print-page {
+  width: 210mm;
+  height: 297mm;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+}
+
 .print-label {
-  width: 62mm;
-  height: 38mm;
-  border: 1.5px solid #000;
-  border-radius: 4px;
-  padding: 5mm;
+  width: 90mm;
+  padding: 10mm 12mm;
+  border: 2px solid #1a1a1a;
+  border-radius: 8px;
   display: flex;
   flex-direction: column;
   align-items: center;
+  gap: 6mm;
+  font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
+  background: #fff;
+}
+
+.print-label-header {
+  display: flex;
+  align-items: center;
+  gap: 3mm;
+  border-bottom: 1.5px solid #e0e0e0;
+  padding-bottom: 5mm;
+  width: 100%;
   justify-content: center;
-  page-break-inside: avoid;
-  font-family: var(--font);
+}
+
+.print-label-logo {
+  font-size: 11px;
+  font-weight: 700;
+  color: #888;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.print-label-qr {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.print-label-qr canvas,
+.print-label-qr img {
+  border-radius: 4px;
 }
 
 .print-label-code {
-  font-size: 16px;
-  font-weight: 800;
-  font-family: monospace;
-  margin-bottom: 4px;
+  font-size: 28px;
+  font-weight: 900;
+  font-family: 'Courier New', monospace;
+  letter-spacing: 2px;
+  color: #1a1a1a;
+  text-align: center;
 }
 
 .print-label-desc {
-  font-size: 8px;
+  font-size: 11px;
   color: #666;
   text-align: center;
-  margin-bottom: 4px;
+  max-width: 70mm;
+  line-height: 1.4;
+}
+
+.print-label-footer {
+  border-top: 1.5px solid #e0e0e0;
+  padding-top: 4mm;
+  width: 100%;
+  text-align: center;
+  font-size: 9px;
+  color: #aaa;
+  letter-spacing: .5px;
 }
 
 /* =============================================
@@ -2114,22 +2165,31 @@ function printQR(posId) {
   const p = allPosizioni.find(x => x.id === posId);
   if (!p) return;
   
+  const count = allFascicoli.filter(f => f.posizione_id === posId).length;
+  const today = new Date().toLocaleDateString('it-IT');
+
   const printArea = document.getElementById('print-area');
-  printArea.innerHTML = `<div class="print-label">
-    <div class="print-label-code">${p.codice}</div>
-    <div class="print-label-desc">${p.descrizione || ''}</div>
-    <div id="print-qr-temp"></div>
-  </div>`;
+  printArea.innerHTML = `
+    <div class="print-page">
+      <div class="print-label">
+        <div class="print-label-header">
+          <span class="print-label-logo">Archivio Pro</span>
+        </div>
+        <div class="print-label-qr" id="print-qr-temp"></div>
+        <div class="print-label-code">${escHtml(p.codice)}</div>
+        ${p.descrizione ? `<div class="print-label-desc">${escHtml(p.descrizione)}</div>` : ''}
+        <div class="print-label-footer">${count} fascicol${count===1?'o':'i'} &nbsp;·&nbsp; Stampato il ${today}</div>
+      </div>
+    </div>`;
   
-  // Generate QR in print area
   const tempDiv = document.getElementById('print-qr-temp');
   new QRCode(tempDiv, {
     text: `ARCHIVIO_POS:${p.codice}`,
-    width: 80, height: 80,
+    width: 160, height: 160,
     correctLevel: QRCode.CorrectLevel.M
   });
   
-  setTimeout(() => window.print(), 300);
+  setTimeout(() => window.print(), 400);
 }
 
 // =============================================
