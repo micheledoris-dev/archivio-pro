@@ -1289,6 +1289,7 @@ tbody tr:hover { background: var(--bg); }
             <strong style="font-size:14px">Fascicoli in questa posizione</strong>
           </div>
           <table>
+            <thead><tr><th>N. Fascicolo</th><th>Anno • RGT</th><th>Note</th><th>Stato</th></tr></thead>
             <tbody id="position-fascicoli-tbody">
               <tr><td colspan="3"><div class="empty-state"><p>Nessun fascicolo</p></div></td></tr>
             </tbody>
@@ -2159,7 +2160,7 @@ function showPositionDetail(posId) {
   // Fascicoli list
   const tbody = document.getElementById('position-fascicoli-tbody');
   if (fascicoli.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="3"><div class="empty-state"><p>Nessun fascicolo in questa posizione</p></div></td></tr>';
+    tbody.innerHTML = '<tr><td colspan="4"><div class="empty-state"><p>Nessun fascicolo in questa posizione</p></div></td></tr>';
     return;
   }
   tbody.innerHTML = fascicoli.map(f => {
@@ -2168,7 +2169,8 @@ function showPositionDetail(posId) {
       : '<span class="badge badge-orange">In prestito</span>';
     return `<tr>
       <td><strong>${escHtml(f.numero)}</strong></td>
-      <td style="color:var(--text3)">Anno ${f.anno} • Richiesta ${escHtml(f.richiesta)}</td>
+      <td style="color:var(--text3)">Anno ${f.anno} • ${escHtml(f.richiesta)}</td>
+      <td style="color:var(--text3);font-size:12px;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${escHtml(f.note || '')}">${escHtml(f.note || '—')}</td>
       <td>${badge}</td>
     </tr>`;
   }).join('');
