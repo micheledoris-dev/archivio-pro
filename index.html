@@ -1234,6 +1234,7 @@ tbody tr:hover { background: var(--bg); }
               <th>RGT</th>
               <th>Posizione</th>
               <th>Stato</th>
+              <th>Note</th>
               <th style="text-align:right">Azioni</th>
             </tr>
           </thead>
@@ -1883,6 +1884,7 @@ function renderFascicoli(list = null) {
       <td>${escHtml(f.richiesta)}</td>
       <td><span class="tag">${escHtml(posCodice)}</span></td>
       <td>${badge}</td>
+      <td style="color:var(--text3);font-size:12px;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${escHtml(f.note || '')}">${escHtml(f.note || '—')}</td>
       <td>
         <div class="actions-cell">
           ${canLoan ? `<button class="btn-icon" onclick="openPrestito('${f.id}')" title="Registra prestito">
