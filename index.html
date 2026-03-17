@@ -1202,6 +1202,24 @@ tbody tr:hover { background: var(--bg); }
           </button>
         </div>
       </div>
+      <!-- Banner Excel di riferimento -->
+      <div id="excel-ref-banner" style="margin-bottom:12px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:12px 16px;display:flex;align-items:center;gap:12px;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--text3)" stroke-width="2" style="flex-shrink:0"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+        <div style="flex:1;min-width:0">
+          <div id="excel-ref-label" style="font-size:13px;color:var(--text3)">Nessun Excel di riferimento caricato</div>
+          <div id="excel-ref-sub" style="font-size:11px;color:var(--text3);margin-top:1px;display:none"></div>
+        </div>
+        <button class="btn btn-secondary btn-sm" onclick="document.getElementById('excel-ref-input').click()">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          Carica Excel
+        </button>
+        <button class="btn btn-ghost btn-sm" id="excel-ref-remove" onclick="removeExcelRef()" style="display:none;color:var(--red)">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          Rimuovi
+        </button>
+        <input type="file" id="excel-ref-input" accept=".xlsx,.xls" style="display:none" onchange="loadExcelRef(this)">
+      </div>
+
       <div class="table-wrap">
         <div class="search-bar">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
@@ -1466,7 +1484,8 @@ tbody tr:hover { background: var(--bg); }
     <input type="hidden" id="fascicolo-edit-id">
     <div class="field">
       <label>Numero Fascicolo *</label>
-      <input type="text" id="f-numero" placeholder="es. 1234">
+      <input type="text" id="f-numero" placeholder="es. 1234" oninput="checkFascicoloRef(this.value)">
+      <div id="fascicolo-ref-check" style="display:none;margin-top:5px;font-size:12px;font-weight:600;display:flex;align-items:center;gap:5px"></div>
     </div>
     <div class="field-row">
       <div class="field">
@@ -1921,6 +1940,7 @@ function closeModal(id) {
 function resetFascicoloForm() {
   document.getElementById('fascicolo-edit-id').value = '';
   document.getElementById('f-numero').value = '';
+  const refCheck = document.getElementById('fascicolo-ref-check'); if(refCheck) refCheck.style.display='none';
   document.getElementById('f-anno').value = '';
   document.getElementById('f-richiesta').value = '';
   document.getElementById('f-posizione').value = '';
@@ -2664,6 +2684,118 @@ document.querySelectorAll('.modal-overlay').forEach(overlay => {
 });
 
 
+
+// =============================================
+// EXCEL DI RIFERIMENTO
+// =============================================
+let excelRefData = []; // array di numeri fascicolo (stringhe)
+
+function loadExcelRef(input) {
+  const file = input.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const wb = XLSX.read(e.target.result, { type: 'binary' });
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json(ws, { header: 1 });
+
+      // Raccogli tutti i valori della prima colonna (saltiamo header se è testo)
+      const valori = [];
+      for (const row of rows) {
+        const val = row[0];
+        if (val !== undefined && val !== null && val !== '') {
+          valori.push(String(val).trim());
+        }
+      }
+
+      // Rimuovi eventuale header testuale (prima riga non numerica)
+      const numeri = valori.filter(v => v !== '' && isNaN(Number(v)) === false || /^[a-zA-Z0-9\-\/]+$/.test(v));
+      excelRefData = valori.slice(valori.length > 0 && isNaN(valori[0]) ? 1 : 0);
+
+      // Salva in localStorage
+      localStorage.setItem('archivio_excel_ref', JSON.stringify(excelRefData));
+      localStorage.setItem('archivio_excel_ref_name', file.name);
+      localStorage.setItem('archivio_excel_ref_count', excelRefData.length);
+
+      updateExcelRefBanner(file.name, excelRefData.length);
+      showToast(`Excel caricato: ${excelRefData.length} fascicoli trovati`, 'success');
+    } catch(err) {
+      showToast('Errore lettura Excel: ' + err.message, 'error');
+    }
+    input.value = '';
+  };
+  reader.readAsBinaryString(file);
+}
+
+function removeExcelRef() {
+  excelRefData = [];
+  localStorage.removeItem('archivio_excel_ref');
+  localStorage.removeItem('archivio_excel_ref_name');
+  localStorage.removeItem('archivio_excel_ref_count');
+  updateExcelRefBanner(null, 0);
+  // Reset check indicator
+  const el = document.getElementById('fascicolo-ref-check');
+  if (el) el.style.display = 'none';
+  showToast('Excel di riferimento rimosso', 'success');
+}
+
+function updateExcelRefBanner(name, count) {
+  const label = document.getElementById('excel-ref-label');
+  const sub = document.getElementById('excel-ref-sub');
+  const removeBtn = document.getElementById('excel-ref-remove');
+  const icon = document.querySelector('#excel-ref-banner svg');
+
+  if (name) {
+    label.innerHTML = `<strong style="color:var(--text)">${escHtml(name)}</strong>`;
+    sub.textContent = `${count} fascicoli caricati — verifica attiva nel form`;
+    sub.style.display = 'block';
+    removeBtn.style.display = 'inline-flex';
+    if (icon) icon.style.stroke = 'var(--green)';
+  } else {
+    label.textContent = 'Nessun Excel di riferimento caricato';
+    sub.style.display = 'none';
+    removeBtn.style.display = 'none';
+    if (icon) icon.style.stroke = 'var(--text3)';
+  }
+}
+
+function restoreExcelRef() {
+  const saved = localStorage.getItem('archivio_excel_ref');
+  const name = localStorage.getItem('archivio_excel_ref_name');
+  const count = localStorage.getItem('archivio_excel_ref_count');
+  if (saved && name) {
+    try {
+      excelRefData = JSON.parse(saved);
+      updateExcelRefBanner(name, count || excelRefData.length);
+    } catch(e) {}
+  }
+}
+
+function checkFascicoloRef(value) {
+  const el = document.getElementById('fascicolo-ref-check');
+  if (!el) return;
+
+  const v = value.trim();
+  if (!v || excelRefData.length === 0) {
+    el.style.display = 'none';
+    return;
+  }
+
+  // Confronto case-insensitive
+  const found = excelRefData.some(x => x.toLowerCase() === v.toLowerCase());
+
+  el.style.display = 'flex';
+  if (found) {
+    el.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+      <span style="color:#1a7f3c">Fascicolo presente nell'elenco</span>`;
+  } else {
+    el.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="3"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      <span style="color:var(--red)">Fascicolo non trovato nell'elenco</span>`;
+  }
+}
+
 // =============================================
 // MANUALE PDF
 // =============================================
@@ -2728,6 +2860,7 @@ function restoreManualePDF() {
 // =============================================
 window.addEventListener('DOMContentLoaded', () => {
   restoreManualePDF();
+  restoreExcelRef();
   const saved = sessionStorage.getItem('archivio_user');
   if (saved) {
     try {
