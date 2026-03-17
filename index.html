@@ -6,6 +6,7 @@
 <title>Archivio Pro</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
 <style>
 /* =============================================
    RESET & BASE
@@ -2438,15 +2439,18 @@ async function startScanner() {
         ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
         const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
         
-        // Try to decode QR using BarcodeDetector if available
+        // BarcodeDetector (Android/Chrome) oppure jsQR (iOS/Safari fallback)
         if ('BarcodeDetector' in window) {
           try {
             const detector = new BarcodeDetector({ formats: ['qr_code'] });
             const codes = await detector.detect(canvas);
-            if (codes.length > 0) {
-              handleQRResult(codes[0].rawValue);
-            }
+            if (codes.length > 0) { handleQRResult(codes[0].rawValue); return; }
           } catch(e) {}
+        }
+        // Fallback jsQR — funziona su iOS Safari
+        if (typeof jsQR !== 'undefined') {
+          const code = jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: 'dontInvert' });
+          if (code) handleQRResult(code.data);
         }
       }
     }, 300);
