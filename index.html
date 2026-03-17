@@ -1205,14 +1205,14 @@ tbody tr:hover { background: var(--bg); }
       <div class="table-wrap">
         <div class="search-bar">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-          <input type="text" id="search-fascicoli" placeholder="Cerca fascicolo, richiesta, note..." oninput="filterFascicoli()">
+          <input type="text" id="search-fascicoli" placeholder="Cerca fascicolo, RGT, note..." oninput="filterFascicoli()">
         </div>
         <table>
           <thead>
             <tr>
               <th>N. Fascicolo</th>
               <th>Anno</th>
-              <th>Richiesta</th>
+              <th>RGT</th>
               <th>Posizione</th>
               <th>Stato</th>
               <th style="text-align:right">Azioni</th>
@@ -1474,7 +1474,7 @@ tbody tr:hover { background: var(--bg); }
         <input type="number" id="f-anno" placeholder="2026" min="1900" max="2100">
       </div>
       <div class="field">
-        <label>N. Richiesta *</label>
+        <label>RGT *</label>
         <input type="text" id="f-richiesta" placeholder="es. 480/24">
       </div>
     </div>
@@ -2001,7 +2001,7 @@ function exportExcel() {
   const data = allFascicoli.map(f => ({
     'N. Fascicolo': f.numero,
     'Anno': f.anno,
-    'N. Richiesta': f.richiesta,
+    'RGT': f.richiesta,
     'Posizione': f.posizioni?.codice || '',
     'Stato': f.stato === 'disponibile' ? 'Disponibile' : 'In prestito',
     'Note': f.note || ''
@@ -2030,7 +2030,7 @@ async function importExcel(input) {
         try {
           const numero = String(row['N. Fascicolo'] || row['numero'] || '').trim();
           const anno = parseInt(row['Anno'] || row['anno']);
-          const richiesta = String(row['N. Richiesta'] || row['richiesta'] || '').trim();
+          const richiesta = String(row['RGT'] || row['richiesta'] || '').trim();
           const posCode = String(row['Posizione'] || row['posizione'] || '').trim().toUpperCase();
           
           if (!numero || !anno || !richiesta) { fail++; continue; }
