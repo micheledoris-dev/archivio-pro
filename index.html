@@ -1729,16 +1729,34 @@ async function hashPassword(password) {
 }
 
 async function verifyPassword(password, hash) {
-  // Gestisce entrambi i formati: bcrypt (admin iniziale) e sha256 (nuovi utenti)
+  if (!hash) return false;
+  // SHA256 (generato dall'app per nuovi utenti)
   if (hash.startsWith('sha256:')) {
     const computed = await hashPassword(password);
     return computed === hash;
   }
-  // Per hash bcrypt (admin default), accetta solo la password nota
-  // admin123 → $2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lHBi
+  // BCrypt (hash iniziale da SQL) — verifica tramite API Supabase con funzione SQL
   if (hash.startsWith('$2')) {
-    // Fallback: confronto diretto per il caso admin iniziale
-    return password === 'admin123';
+    // Verifica via SQL RPC se disponibile, altrimenti fallback diretto
+    try {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/verify_password`, {
+        method: 'POST',
+        headers: {
+          'apikey': SUPABASE_KEY,
+          'Authorization': `Bearer ${SUPABASE_KEY}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ password, hash })
+      });
+      if (res.ok) {
+        const result = await res.json();
+        return result === true;
+      }
+    } catch(e) {}
+    // Fallback locale: accetta admin123 per hash bcrypt noto
+    const knownHash = '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lHBi';
+    if (hash === knownHash) return password === 'admin123';
+    return false;
   }
   return false;
 }
