@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Archivio Pro</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
@@ -1037,18 +1038,34 @@ tbody tr:hover { background: var(--bg); }
     </div>
     <h1 class="login-title">Accedi</h1>
     <p class="login-sub">Inserisci le tue credenziali per continuare</p>
-    <div class="field">
-      <label>Username</label>
-      <input type="text" id="login-user" placeholder="admin" autocomplete="username">
+    <div id="login-form">
+      <div class="field">
+        <label>Email</label>
+        <input type="email" id="login-user" placeholder="nome@email.it" autocomplete="email">
+      </div>
+      <div class="field">
+        <label>Password</label>
+        <input type="password" id="login-pass" placeholder="••••••••" autocomplete="current-password">
+      </div>
+      <div id="login-error" style="display:none; color:var(--red); font-size:12.5px; margin-bottom:8px; padding: 8px 12px; background:var(--red-bg); border-radius:6px;"></div>
+      <button class="btn btn-primary-full" onclick="doLogin()" id="login-btn">Accedi</button>
+      <div style="text-align:center; margin-top:12px">
+        <a href="#" onclick="showForgotPassword()" style="font-size:12.5px; color:var(--blue); text-decoration:none">Password dimenticata?</a>
+      </div>
     </div>
-    <div class="field">
-      <label>Password</label>
-      <input type="password" id="login-pass" placeholder="••••••••" autocomplete="current-password">
+    <div id="forgot-form" style="display:none">
+      <p style="font-size:13px; color:var(--text2); margin-bottom:16px">Inserisci la tua email — ti invieremo un link per reimpostare la password.</p>
+      <div class="field">
+        <label>Email</label>
+        <input type="email" id="forgot-email" placeholder="nome@email.it" autocomplete="email">
+      </div>
+      <div id="forgot-error" style="display:none; color:var(--red); font-size:12.5px; margin-bottom:8px; padding: 8px 12px; background:var(--red-bg); border-radius:6px;"></div>
+      <div id="forgot-success" style="display:none; color:#1a7f3c; font-size:12.5px; margin-bottom:8px; padding: 8px 12px; background:var(--green-bg); border-radius:6px;"></div>
+      <button class="btn btn-primary-full" onclick="doForgotPassword()" id="forgot-btn">Invia link reset</button>
+      <div style="text-align:center; margin-top:12px">
+        <a href="#" onclick="showLoginForm()" style="font-size:12.5px; color:var(--text3); text-decoration:none">← Torna al login</a>
+      </div>
     </div>
-    <div id="login-error" style="display:none; color:var(--red); font-size:12.5px; margin-bottom:8px; padding: 8px 12px; background:var(--red-bg); border-radius:6px;"></div>
-    <button class="btn btn-primary-full" onclick="doLogin()" id="login-btn">
-      Accedi
-    </button>
   </div>
 </div>
 
@@ -1636,10 +1653,6 @@ tbody tr:hover { background: var(--bg); }
     <h2 class="modal-title">Cambia Password</h2>
     <div id="cambia-pw-user-info" style="background:var(--bg);border-radius:var(--radius-sm);padding:10px 12px;margin-bottom:16px;font-size:13px;color:var(--text2)"></div>
     <div class="field">
-      <label>Password Attuale *</label>
-      <input type="password" id="cp-vecchia" placeholder="••••••••" autocomplete="current-password">
-    </div>
-    <div class="field">
       <label>Nuova Password *</label>
       <input type="password" id="cp-nuova" placeholder="Minimo 6 caratteri" autocomplete="new-password">
     </div>
@@ -1669,10 +1682,14 @@ tbody tr:hover { background: var(--bg); }
      ============================================= -->
 <script>
 // =============================================
-// CONFIG SUPABASE
+// CONFIG SUPABASE AUTH
 // =============================================
 const SUPABASE_URL = 'https://ueslicitdmndicwbkmmz.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVlc2xpY2l0ZG1uZGljd2JrbW16Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMzOTg1MjQsImV4cCI6MjA4ODk3NDUyNH0.eYBumuNbwMMCTO886u2yAvGPqay1NbcCZkv1VfqP1ZQ';
+
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+let authToken = null;
 
 const api = async (table, opts = {}) => {
   const { method = 'GET', body, params = '', select = '*' } = opts;
@@ -1680,11 +1697,13 @@ const api = async (table, opts = {}) => {
   if (params) url += `?${params}`;
   else if (method === 'GET') url += `?select=${select}`;
   
+  const token = authToken || SUPABASE_KEY;
+  
   const res = await fetch(url, {
     method,
     headers: {
       'apikey': SUPABASE_KEY,
-      'Authorization': `Bearer ${SUPABASE_KEY}`,
+      'Authorization': `Bearer ${token}`,
       'Content-Type': 'application/json',
       'Prefer': method === 'POST' ? 'return=representation' : 
                 method === 'PATCH' ? 'return=representation' : ''
@@ -1714,91 +1733,39 @@ let scannerStream = null;
 let scannerInterval = null;
 
 // =============================================
-// BCRYPT (simple hash check - using sha256 fallback)
-// =============================================
-// Per semplicità usiamo SHA-256 via SubtleCrypto
-// L'admin iniziale usa bcrypt (verificato lato server tramite API custom)
-// Per nuovi utenti creiamo un hash SHA-256
-
-async function hashPassword(password) {
-  const encoder = new TextEncoder();
-  const data = encoder.encode(password + 'archiviopro_salt_2026');
-  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  return 'sha256:' + hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-}
-
-async function verifyPassword(password, hash) {
-  if (!hash) return false;
-  // SHA256 (generato dall'app per nuovi utenti)
-  if (hash.startsWith('sha256:')) {
-    const computed = await hashPassword(password);
-    return computed === hash;
-  }
-  // BCrypt (hash iniziale da SQL) — verifica tramite API Supabase con funzione SQL
-  if (hash.startsWith('$2')) {
-    // Verifica via SQL RPC se disponibile, altrimenti fallback diretto
-    try {
-      const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/verify_password`, {
-        method: 'POST',
-        headers: {
-          'apikey': SUPABASE_KEY,
-          'Authorization': `Bearer ${SUPABASE_KEY}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ password, hash })
-      });
-      if (res.ok) {
-        const result = await res.json();
-        return result === true;
-      }
-    } catch(e) {}
-    // Fallback locale: accetta admin123 per hash bcrypt noto
-    const knownHash = '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lHBi';
-    if (hash === knownHash) return password === 'admin123';
-    return false;
-  }
-  return false;
-}
-
-// =============================================
-// AUTH
+// AUTH — Supabase Auth nativo
 // =============================================
 async function doLogin() {
-  const username = document.getElementById('login-user').value.trim();
+  const email = document.getElementById('login-user').value.trim();
   const password = document.getElementById('login-pass').value;
   const btn = document.getElementById('login-btn');
   const errEl = document.getElementById('login-error');
-  
-  if (!username || !password) {
-    showLoginError('Inserisci username e password');
-    return;
-  }
-  
+
+  if (!email || !password) { showLoginError('Inserisci email e password'); return; }
+
   btn.innerHTML = '<div class="spinner" style="border-color:#fff3;border-top-color:#fff;width:16px;height:16px"></div>';
   btn.disabled = true;
   errEl.style.display = 'none';
-  
+
   try {
-    const users = await api('utenti', { params: `select=*&username=eq.${encodeURIComponent(username)}` });
-    
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) { showLoginError('Email o password non corretti'); return; }
+
+    authToken = data.session.access_token;
+
+    // Carica profilo dalla tabella utenti tramite email
+    const users = await api('utenti', { params: `select=*&username=eq.${encodeURIComponent(email)}` });
     if (!users || users.length === 0) {
-      showLoginError('Username o password non corretti');
+      showLoginError("Profilo utente non trovato. Contatta l'amministratore.");
+      await supabase.auth.signOut();
       return;
     }
-    
-    const user = users[0];
-    const ok = await verifyPassword(password, user.password_hash);
-    
-    if (!ok) {
-      showLoginError('Username o password non corretti');
-      return;
-    }
-    
-    currentUser = user;
-    sessionStorage.setItem('archivio_user', JSON.stringify(user));
+
+    currentUser = users[0];
+    sessionStorage.setItem('archivio_user', JSON.stringify(currentUser));
+    sessionStorage.setItem('archivio_token', authToken);
     initApp();
-    
+
   } catch(e) {
     showLoginError('Errore di connessione: ' + e.message);
   } finally {
@@ -1813,13 +1780,54 @@ function showLoginError(msg) {
   el.style.display = 'block';
 }
 
+function showForgotPassword() {
+  document.getElementById('login-form').style.display = 'none';
+  document.getElementById('forgot-form').style.display = 'block';
+  document.getElementById('forgot-email').value = document.getElementById('login-user').value || '';
+}
+
+function showLoginForm() {
+  document.getElementById('forgot-form').style.display = 'none';
+  document.getElementById('login-form').style.display = 'block';
+}
+
+async function doForgotPassword() {
+  const email = document.getElementById('forgot-email').value.trim();
+  const btn = document.getElementById('forgot-btn');
+  const errEl = document.getElementById('forgot-error');
+  const okEl = document.getElementById('forgot-success');
+  errEl.style.display = 'none';
+  okEl.style.display = 'none';
+
+  if (!email) { errEl.textContent = 'Inserisci la tua email'; errEl.style.display = 'block'; return; }
+
+  btn.innerHTML = '<div class="spinner" style="border-color:#fff3;border-top-color:#fff;width:16px;height:16px"></div>';
+  btn.disabled = true;
+
+  try {
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: 'https://micheledoris-dev.github.io/archivio-pro/'
+    });
+    if (error) { errEl.textContent = error.message; errEl.style.display = 'block'; }
+    else { okEl.textContent = 'Email inviata! Controlla la tua casella di posta.'; okEl.style.display = 'block'; }
+  } catch(e) {
+    errEl.textContent = 'Errore: ' + e.message; errEl.style.display = 'block';
+  } finally {
+    btn.innerHTML = 'Invia link reset';
+    btn.disabled = false;
+  }
+}
+
 document.getElementById('login-pass').addEventListener('keydown', e => {
   if (e.key === 'Enter') doLogin();
 });
 
-function doLogout() {
+async function doLogout() {
   if (!confirm('Vuoi davvero uscire?')) return;
+  await supabase.auth.signOut();
+  authToken = null;
   sessionStorage.removeItem('archivio_user');
+  sessionStorage.removeItem('archivio_token');
   currentUser = null;
   document.getElementById('app').classList.remove('active');
   document.getElementById('login-screen').style.display = 'flex';
@@ -2690,8 +2698,16 @@ async function saveUtente() {
       await api('utenti', { method: 'PATCH', body: data, params: `id=eq.${editId}` });
       showToast('Utente aggiornato', 'success');
     } else {
-      const hash = await hashPassword(password);
-      await api('utenti', { method: 'POST', body: { username, nome, ruolo, password_hash: hash } });
+      // Crea utente in Supabase Auth
+      const { data: authData, error: authError } = await supabase.auth.admin
+        ? await fetch(`${SUPABASE_URL}/auth/v1/admin/users`, {
+            method: 'POST',
+            headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: username, password, email_confirm: true })
+          }).then(r => r.json()).then(d => ({ data: d, error: d.error || null }))
+        : { data: null, error: null };
+      // Salva profilo nella tabella utenti (username = email)
+      await api('utenti', { method: 'POST', body: { username, nome, ruolo, password_hash: 'supabase_auth' } });
       showToast('Utente creato', 'success');
     }
     closeModal('modal-utente');
@@ -2764,13 +2780,12 @@ document.querySelectorAll('.modal-overlay').forEach(overlay => {
 // CAMBIA PASSWORD
 // =============================================
 async function cambiaPassword() {
-  const vecchia = document.getElementById('cp-vecchia').value;
   const nuova = document.getElementById('cp-nuova').value;
   const conferma = document.getElementById('cp-conferma').value;
   const errEl = document.getElementById('cp-error');
   errEl.style.display = 'none';
 
-  if (!vecchia || !nuova || !conferma) {
+  if (!nuova || !conferma) {
     errEl.textContent = 'Compila tutti i campi'; errEl.style.display = 'block'; return;
   }
   if (nuova.length < 6) {
@@ -2781,28 +2796,8 @@ async function cambiaPassword() {
   }
 
   try {
-    // Ricarica sempre l'utente fresco da Supabase prima di verificare
-    const users = await api('utenti', { params: `select=*&id=eq.${currentUser.id}` });
-    if (!users || users.length === 0) {
-      errEl.textContent = 'Utente non trovato'; errEl.style.display = 'block'; return;
-    }
-    const freshUser = users[0];
-
-    // Verifica password attuale sull'hash aggiornato dal DB
-    const ok = await verifyPassword(vecchia, freshUser.password_hash);
-    if (!ok) {
-      errEl.textContent = 'Password attuale non corretta'; errEl.style.display = 'block'; return;
-    }
-
-    const nuovoHash = await hashPassword(nuova);
-    await api('utenti', {
-      method: 'PATCH',
-      body: { password_hash: nuovoHash },
-      params: `id=eq.${currentUser.id}`
-    });
-    // Aggiorna sessione con hash fresco
-    currentUser.password_hash = nuovoHash;
-    sessionStorage.setItem('archivio_user', JSON.stringify(currentUser));
+    const { error } = await supabase.auth.updateUser({ password: nuova });
+    if (error) { errEl.textContent = error.message; errEl.style.display = 'block'; return; }
     closeModal('modal-cambia-password');
     showToast('Password aggiornata con successo', 'success');
   } catch(e) {
@@ -3004,18 +2999,38 @@ function restoreManualePDF() {
 // =============================================
 // AUTO LOGIN (session restore)
 // =============================================
-window.addEventListener('DOMContentLoaded', () => {
+window.addEventListener('DOMContentLoaded', async () => {
   restoreManualePDF();
   restoreExcelRef();
-  const saved = sessionStorage.getItem('archivio_user');
-  if (saved) {
-    try {
-      currentUser = JSON.parse(saved);
-      initApp();
-    } catch(e) {
-      sessionStorage.removeItem('archivio_user');
+
+  // Controlla se c'è una sessione Supabase Auth attiva (es. dopo reset password)
+  const { data: { session } } = await supabase.auth.getSession();
+  if (session) {
+    authToken = session.access_token;
+    const saved = sessionStorage.getItem('archivio_user');
+    if (saved) {
+      try {
+        currentUser = JSON.parse(saved);
+        sessionStorage.setItem('archivio_token', authToken);
+        initApp();
+        return;
+      } catch(e) {}
     }
+    // Sessione Auth attiva ma no profilo in sessionStorage — carica da DB
+    try {
+      const users = await api('utenti', { params: `select=*&username=eq.${encodeURIComponent(session.user.email)}` });
+      if (users && users.length > 0) {
+        currentUser = users[0];
+        sessionStorage.setItem('archivio_user', JSON.stringify(currentUser));
+        initApp();
+        return;
+      }
+    } catch(e) {}
   }
+
+  // Nessuna sessione — mostra login
+  sessionStorage.removeItem('archivio_user');
+  sessionStorage.removeItem('archivio_token');
 });
 </script>
 </body>
