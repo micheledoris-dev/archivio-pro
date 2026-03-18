@@ -1687,9 +1687,33 @@ tbody tr:hover { background: var(--bg); }
 const SUPABASE_URL = 'https://ueslicitdmndicwbkmmz.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVlc2xpY2l0ZG1uZGljd2JrbW16Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMzOTg1MjQsImV4cCI6MjA4ODk3NDUyNH0.eYBumuNbwMMCTO886u2yAvGPqay1NbcCZkv1VfqP1ZQ';
 
-const sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+  auth: {
+    autoRefreshToken: true,
+    persistSession: true,
+    detectSessionInUrl: true
+  }
+});
 
 let authToken = null;
+
+// Aggiorna authToken automaticamente quando la sessione si rinnova
+sbClient.auth.onAuthStateChange((event, session) => {
+  if (session) {
+    authToken = session.access_token;
+    sessionStorage.setItem('archivio_token', authToken);
+  } else if (event === 'SIGNED_OUT') {
+    authToken = null;
+    sessionStorage.removeItem('archivio_token');
+    sessionStorage.removeItem('archivio_user');
+    if (currentUser) {
+      currentUser = null;
+      document.getElementById('app').classList.remove('active');
+      document.getElementById('login-screen').style.display = 'flex';
+      stopScanner();
+    }
+  }
+});
 
 const api = async (table, opts = {}) => {
   const { method = 'GET', body, params = '', select = '*' } = opts;
