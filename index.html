@@ -2780,20 +2780,27 @@ async function cambiaPassword() {
     errEl.textContent = 'Le password non coincidono'; errEl.style.display = 'block'; return;
   }
 
-  // Verifica password attuale
-  const ok = await verifyPassword(vecchia, currentUser.password_hash);
-  if (!ok) {
-    errEl.textContent = 'Password attuale non corretta'; errEl.style.display = 'block'; return;
-  }
-
   try {
+    // Ricarica sempre l'utente fresco da Supabase prima di verificare
+    const users = await api('utenti', { params: `select=*&id=eq.${currentUser.id}` });
+    if (!users || users.length === 0) {
+      errEl.textContent = 'Utente non trovato'; errEl.style.display = 'block'; return;
+    }
+    const freshUser = users[0];
+
+    // Verifica password attuale sull'hash aggiornato dal DB
+    const ok = await verifyPassword(vecchia, freshUser.password_hash);
+    if (!ok) {
+      errEl.textContent = 'Password attuale non corretta'; errEl.style.display = 'block'; return;
+    }
+
     const nuovoHash = await hashPassword(nuova);
     await api('utenti', {
       method: 'PATCH',
       body: { password_hash: nuovoHash },
       params: `id=eq.${currentUser.id}`
     });
-    // Aggiorna sessione
+    // Aggiorna sessione con hash fresco
     currentUser.password_hash = nuovoHash;
     sessionStorage.setItem('archivio_user', JSON.stringify(currentUser));
     closeModal('modal-cambia-password');
