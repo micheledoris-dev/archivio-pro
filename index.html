@@ -1094,9 +1094,9 @@ tbody tr:hover { background: var(--bg); }
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
         Posizioni
       </div>
-      <div class="nav-item" data-page="prestiti" onclick="goTo('prestiti')">
+      <div class="nav-item" data-page="prelievi" onclick="goTo('prelievi')">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
-        Prestiti
+        Prelievi
       </div>
       <div class="nav-item" data-page="scanner" onclick="goTo('scanner')">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><line x1="7" y1="12" x2="17" y2="12"/></svg>
@@ -1152,8 +1152,8 @@ tbody tr:hover { background: var(--bg); }
           <div class="stat-icon">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
           </div>
-          <div class="stat-value" id="stat-prestiti">—</div>
-          <div class="stat-label">In Prestito</div>
+          <div class="stat-value" id="stat-prelievi">—</div>
+          <div class="stat-label">In Prelievo</div>
         </div>
         <div class="stat-card">
           <div class="stat-icon">
@@ -1186,17 +1186,17 @@ tbody tr:hover { background: var(--bg); }
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
               Nuova Posizione
             </div>
-            <div class="quick-action" onclick="goTo('prestiti')">
+            <div class="quick-action" onclick="goTo('prelievi')">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
-              Vedi Prestiti
+              Vedi Prelievi
             </div>
           </div>
         </div>
         <div class="card">
-          <div class="card-title">Ultimi Prestiti</div>
-          <div id="recent-prestiti">
+          <div class="card-title">Ultimi Prelievi</div>
+          <div id="recent-prelievi">
             <div class="empty-state" style="padding:20px 0">
-              <p>Nessun prestito recente</p>
+              <p>Nessun prelievo recente</p>
             </div>
           </div>
         </div>
@@ -1312,7 +1312,7 @@ tbody tr:hover { background: var(--bg); }
             <strong style="font-size:14px">Fascicoli in questa posizione</strong>
           </div>
           <table>
-            <thead><tr><th>N. Fascicolo</th><th>Anno • RGT</th><th>Note</th><th>Stato</th></tr></thead>
+            <thead><tr><th>N. Fascicolo</th><th>Anno • RGT</th><th>Note</th><th>Stato</th><th></th></tr></thead>
             <tbody id="position-fascicoli-tbody">
               <tr><td colspan="3"><div class="empty-state"><p>Nessun fascicolo</p></div></td></tr>
             </tbody>
@@ -1322,23 +1322,23 @@ tbody tr:hover { background: var(--bg); }
     </div>
 
     <!-- ============ PRESTITI ============ -->
-    <div class="page" id="page-prestiti">
+    <div class="page" id="page-prelievi">
       <div class="page-header">
         <div>
-          <h1 class="page-title">Prestiti</h1>
-          <p class="page-subtitle">Gestisci i prestiti dei fascicoli</p>
+          <h1 class="page-title">Prelievi</h1>
+          <p class="page-subtitle">Gestisci i prelievi dei fascicoli</p>
         </div>
         <div class="page-actions">
-          <button class="btn btn-secondary" onclick="exportPrestitiExcel()">
+          <button class="btn btn-secondary" onclick="exportPrelieviExcel()">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
             Export Excel
           </button>
         </div>
       </div>
       <div class="filter-tabs">
-        <button class="filter-tab active" onclick="filterPrestiti('in_corso', this)">Attivi</button>
-        <button class="filter-tab" onclick="filterPrestiti('restituito', this)">Restituiti</button>
-        <button class="filter-tab" onclick="filterPrestiti('tutti', this)">Tutti</button>
+        <button class="filter-tab active" onclick="filterPrelievi('in_corso', this)">Attivi</button>
+        <button class="filter-tab" onclick="filterPrelievi('restituito', this)">Restituiti</button>
+        <button class="filter-tab" onclick="filterPrelievi('tutti', this)">Tutti</button>
       </div>
       <div class="table-wrap">
         <table>
@@ -1352,7 +1352,7 @@ tbody tr:hover { background: var(--bg); }
               <th style="text-align:right">Azioni</th>
             </tr>
           </thead>
-          <tbody id="prestiti-tbody">
+          <tbody id="prelievi-tbody">
             <tr><td colspan="6"><div class="empty-state"><div class="spinner"></div></div></td></tr>
           </tbody>
         </table>
@@ -1576,12 +1576,12 @@ tbody tr:hover { background: var(--bg); }
   </div>
 </div>
 
-<!-- Modal: Prestito -->
-<div class="modal-overlay" id="modal-prestito">
+<!-- Modal: Prelievo -->
+<div class="modal-overlay" id="modal-prelievo">
   <div class="modal">
-    <h2 class="modal-title">Registra Prestito</h2>
-    <input type="hidden" id="prestito-fascicolo-id">
-    <div id="prestito-fascicolo-info" style="background:var(--bg);border-radius:var(--radius-sm);padding:10px 12px;margin-bottom:16px;font-size:13px;color:var(--text2)">—</div>
+    <h2 class="modal-title">Registra Prelievo</h2>
+    <input type="hidden" id="prelievo-fascicolo-id">
+    <div id="prelievo-fascicolo-info" style="background:var(--bg);border-radius:var(--radius-sm);padding:10px 12px;margin-bottom:16px;font-size:13px;color:var(--text2)">—</div>
     <div class="field">
       <label>Prelevato da *</label>
       <input type="text" id="pr-persona" placeholder="Nome e cognome">
@@ -1595,8 +1595,8 @@ tbody tr:hover { background: var(--bg); }
       <textarea id="pr-note" placeholder="Note opzionali..."></textarea>
     </div>
     <div class="modal-actions">
-      <button class="btn btn-secondary" onclick="closeModal('modal-prestito')">Annulla</button>
-      <button class="btn btn-primary" onclick="savePrestito()">Registra Prestito</button>
+      <button class="btn btn-secondary" onclick="closeModal('modal-prelievo')">Annulla</button>
+      <button class="btn btn-primary" onclick="savePrelievo()">Registra Prelievo</button>
     </div>
   </div>
 </div>
@@ -1750,7 +1750,7 @@ const api = async (table, opts = {}) => {
 let currentUser = null;
 let allFascicoli = [];
 let allPosizioni = [];
-let allPrestiti = [];
+let allPrelievi = [];
 let allUtenti = [];
 let deleteCallback = null;
 let scannerStream = null;
@@ -1880,7 +1880,7 @@ function initApp() {
 }
 
 async function loadAll() {
-  await Promise.all([loadPosizioni(), loadFascicoli(), loadPrestiti()]);
+  await Promise.all([loadPosizioni(), loadFascicoli(), loadPrelievi()]);
   if (currentUser.ruolo === 'admin') loadUtenti();
   updateDashboard();
 }
@@ -1900,7 +1900,7 @@ function goTo(page) {
   
   if (page === 'fascicoli') renderFascicoli();
   if (page === 'posizioni') { showPositionList(); renderPosizioni(); }
-  if (page === 'prestiti') renderPrestiti('in_corso');
+  if (page === 'prelievi') renderPrelievi('in_corso');
   if (page === 'utenti') renderUtenti();
 }
 
@@ -1909,20 +1909,20 @@ function goTo(page) {
 // =============================================
 function updateDashboard() {
   const totali = allFascicoli.length;
-  const inPrestito = allFascicoli.filter(f => f.stato === 'in_prestito').length;
+  const inPrelievo = allFascicoli.filter(f => f.stato === 'in_prestito').length;
   const disponibili = allFascicoli.filter(f => f.stato === 'disponibile').length;
   const posizioni = allPosizioni.length;
   
   document.getElementById('stat-totali').textContent = totali;
-  document.getElementById('stat-prestiti').textContent = inPrestito;
+  document.getElementById('stat-prelievi').textContent = inPrelievo;
   document.getElementById('stat-disponibili').textContent = disponibili;
   document.getElementById('stat-posizioni').textContent = posizioni;
   
-  // Recent prestiti
-  const recenti = allPrestiti.filter(p => p.stato === 'in_corso').slice(0, 5);
-  const el = document.getElementById('recent-prestiti');
+  // Recent prelievi
+  const recenti = allPrelievi.filter(p => p.stato === 'in_corso').slice(0, 5);
+  const el = document.getElementById('recent-prelievi');
   if (recenti.length === 0) {
-    el.innerHTML = '<div class="empty-state" style="padding:20px 0"><p>Nessun prestito attivo</p></div>';
+    el.innerHTML = '<div class="empty-state" style="padding:20px 0"><p>Nessun prelievo attivo</p></div>';
     return;
   }
   el.innerHTML = recenti.map(p => {
@@ -1932,7 +1932,7 @@ function updateDashboard() {
         <div class="recent-item-main">${f ? f.numero : p.fascicolo_id}</div>
         <div class="recent-item-sub">${p.prelevato_da}</div>
       </div>
-      <span class="badge badge-orange">In prestito</span>
+      <span class="badge badge-orange">In prelievo</span>
     </div>`;
   }).join('');
 }
@@ -1965,7 +1965,7 @@ function renderFascicoli(list = null) {
     const posCodice = f.posizioni?.codice || '—';
     const badge = f.stato === 'disponibile' 
       ? '<span class="badge badge-green">Disponibile</span>'
-      : '<span class="badge badge-orange">In prestito</span>';
+      : '<span class="badge badge-orange">In prelievo</span>';
     const canLoan = f.stato === 'disponibile';
     
     return `<tr>
@@ -1977,7 +1977,7 @@ function renderFascicoli(list = null) {
       <td style="color:var(--text3);font-size:12px;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${escHtml(f.note || '')}">${escHtml(f.note || '—')}</td>
       <td>
         <div class="actions-cell">
-          ${canLoan ? `<button class="btn-icon" onclick="openPrestito('${f.id}')" title="Registra prestito">
+          ${canLoan ? `<button class="btn-icon" onclick="openPrelievo('${f.id}')" title="Registra prelievo">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
           </button>` : ''}
           <button class="btn-icon" onclick="editFascicolo('${f.id}')" title="Modifica">
@@ -2099,13 +2099,13 @@ async function saveFascicolo() {
 function askDeleteFascicolo(id, numero) {
   document.getElementById('confirm-title').textContent = 'Elimina Fascicolo';
   document.getElementById('confirm-msg').textContent = `Stai per eliminare il fascicolo "${numero}".`;
-  document.getElementById('confirm-sub').textContent = 'Tutti i prestiti associati verranno eliminati. Azione irreversibile.';
+  document.getElementById('confirm-sub').textContent = 'Tutti i prelievi associati verranno eliminati. Azione irreversibile.';
   deleteCallback = async () => {
     try {
       await api('fascicoli', { method: 'DELETE', params: `id=eq.${id}` });
       showToast('Fascicolo eliminato', 'success');
       await loadFascicoli();
-      await loadPrestiti();
+      await loadPrelievi();
       renderFascicoli();
       updateDashboard();
     } catch(e) { showToast('Errore: ' + e.message, 'error'); }
@@ -2125,7 +2125,7 @@ function exportExcel() {
     'Anno': f.anno,
     'RGT': f.richiesta,
     'Posizione': f.posizioni?.codice || '',
-    'Stato': f.stato === 'disponibile' ? 'Disponibile' : 'In prestito',
+    'Stato': f.stato === 'disponibile' ? 'Disponibile' : 'In prelievo',
     'Note': f.note || ''
   }));
   const ws = XLSX.utils.json_to_sheet(data);
@@ -2258,18 +2258,22 @@ function showPositionDetail(posId) {
   // Fascicoli list
   const tbody = document.getElementById('position-fascicoli-tbody');
   if (fascicoli.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="4"><div class="empty-state"><p>Nessun fascicolo in questa posizione</p></div></td></tr>';
+    tbody.innerHTML = '<tr><td colspan="5"><div class="empty-state"><p>Nessun fascicolo in questa posizione</p></div></td></tr>';
     return;
   }
   tbody.innerHTML = fascicoli.map(f => {
     const badge = f.stato === 'disponibile'
       ? '<span class="badge badge-green">Disponibile</span>'
-      : '<span class="badge badge-orange">In prestito</span>';
+      : '<span class="badge badge-orange">In prelievo</span>';
+    const prelevaBtn = f.stato === 'disponibile'
+      ? `<button class="btn btn-primary btn-sm" onclick="openPrelievo('${f.id}')" style="white-space:nowrap">Preleva</button>`
+      : '';
     return `<tr>
       <td><strong>${escHtml(f.numero)}</strong></td>
       <td style="color:var(--text3)">Anno ${f.anno} • ${escHtml(f.richiesta)}</td>
       <td style="color:var(--text3);font-size:12px;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${escHtml(f.note || '')}">${escHtml(f.note || '—')}</td>
       <td>${badge}</td>
+      <td>${prelevaBtn}</td>
     </tr>`;
   }).join('');
 }
@@ -2374,26 +2378,26 @@ function printQR(posId) {
 // =============================================
 // PRESTITI
 // =============================================
-async function loadPrestiti() {
+async function loadPrelievi() {
   try {
-    allPrestiti = await api('prestiti', { params: 'select=*&order=created_at.desc' }) || [];
+    allPrelievi = await api('prelievi', { params: 'select=*&order=created_at.desc' }) || [];
   } catch(e) {
-    console.error('Load prestiti:', e);
-    allPrestiti = [];
+    console.error('Load prelievi:', e);
+    allPrelievi = [];
   }
 }
 
-function renderPrestiti(filter = 'in_corso') {
+function renderPrelievi(filter = 'in_corso') {
   const data = filter === 'tutti' 
-    ? allPrestiti 
-    : allPrestiti.filter(p => p.stato === filter);
+    ? allPrelievi 
+    : allPrelievi.filter(p => p.stato === filter);
   
-  const tbody = document.getElementById('prestiti-tbody');
+  const tbody = document.getElementById('prelievi-tbody');
   
   if (data.length === 0) {
     tbody.innerHTML = `<tr><td colspan="6"><div class="empty-state">
       <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
-      <p>Nessun prestito trovato</p>
+      <p>Nessun prelievo trovato</p>
     </div></td></tr>`;
     return;
   }
@@ -2423,27 +2427,27 @@ function renderPrestiti(filter = 'in_corso') {
   }).join('');
 }
 
-function filterPrestiti(filter, btn) {
+function filterPrelievi(filter, btn) {
   document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
   btn.classList.add('active');
-  renderPrestiti(filter);
+  renderPrelievi(filter);
 }
 
-function openPrestito(fascicoloId) {
+function openPrelievo(fascicoloId) {
   const f = allFascicoli.find(x => x.id === fascicoloId);
   if (!f) return;
   
-  document.getElementById('prestito-fascicolo-id').value = fascicoloId;
-  document.getElementById('prestito-fascicolo-info').innerHTML =
+  document.getElementById('prelievo-fascicolo-id').value = fascicoloId;
+  document.getElementById('prelievo-fascicolo-info').innerHTML =
     `<strong>${escHtml(f.numero)}</strong> — Anno ${f.anno} — Richiesta ${escHtml(f.richiesta)}`;
   document.getElementById('pr-persona').value = '';
   document.getElementById('pr-data').value = new Date().toISOString().split('T')[0];
   document.getElementById('pr-note').value = '';
-  openModal('modal-prestito');
+  openModal('modal-prelievo');
 }
 
-async function savePrestito() {
-  const fascicoloId = document.getElementById('prestito-fascicolo-id').value;
+async function savePrelievo() {
+  const fascicoloId = document.getElementById('prelievo-fascicolo-id').value;
   const persona = document.getElementById('pr-persona').value.trim();
   const data = document.getElementById('pr-data').value;
   const note = document.getElementById('pr-note').value.trim();
@@ -2451,7 +2455,7 @@ async function savePrestito() {
   if (!persona || !data) { showToast('Compila tutti i campi obbligatori', 'error'); return; }
   
   try {
-    await api('prestiti', {
+    await api('prelievi', {
       method: 'POST',
       body: { fascicolo_id: fascicoloId, prelevato_da: persona, data_prelievo: data, note: note || null, stato: 'in_corso' }
     });
@@ -2460,25 +2464,25 @@ async function savePrestito() {
       body: { stato: 'in_prestito' },
       params: `id=eq.${fascicoloId}`
     });
-    showToast('Prestito registrato', 'success');
-    closeModal('modal-prestito');
+    showToast('Prelievo registrato', 'success');
+    closeModal('modal-prelievo');
     await loadAll();
     renderFascicoli();
-    renderPrestiti('in_corso');
+    renderPrelievi('in_corso');
   } catch(e) {
     showToast('Errore: ' + e.message, 'error');
   }
 }
 
-async function restituisci(prestitoId) {
-  const p = allPrestiti.find(x => x.id === prestitoId);
+async function restituisci(prelievoId) {
+  const p = allPrelievi.find(x => x.id === prelievoId);
   if (!p) return;
   
   try {
-    await api('prestiti', {
+    await api('prelievi', {
       method: 'PATCH',
       body: { stato: 'restituito', data_restituzione: new Date().toISOString().split('T')[0] },
-      params: `id=eq.${prestitoId}`
+      params: `id=eq.${prelievoId}`
     });
     await api('fascicoli', {
       method: 'PATCH',
@@ -2487,14 +2491,14 @@ async function restituisci(prestitoId) {
     });
     showToast('Fascicolo restituito', 'success');
     await loadAll();
-    renderPrestiti('in_corso');
+    renderPrelievi('in_corso');
   } catch(e) {
     showToast('Errore: ' + e.message, 'error');
   }
 }
 
-function exportPrestitiExcel() {
-  const data = allPrestiti.map(p => {
+function exportPrelieviExcel() {
+  const data = allPrelievi.map(p => {
     const f = allFascicoli.find(x => x.id === p.fascicolo_id);
     return {
       'Fascicolo': f ? f.numero : p.fascicolo_id,
@@ -2508,8 +2512,8 @@ function exportPrestitiExcel() {
   });
   const ws = XLSX.utils.json_to_sheet(data);
   const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, 'Prestiti');
-  XLSX.writeFile(wb, `prestiti_${new Date().toISOString().split('T')[0]}.xlsx`);
+  XLSX.utils.book_append_sheet(wb, ws, 'Prelievi');
+  XLSX.writeFile(wb, `prelievi_${new Date().toISOString().split('T')[0]}.xlsx`);
   showToast('Export completato', 'success');
 }
 
@@ -2606,7 +2610,7 @@ function handleQRResult(text) {
     if (f) {
       const badge = f.stato === 'disponibile'
         ? '<span class="badge badge-green">Disponibile</span>'
-        : '<span class="badge badge-orange">In prestito</span>';
+        : '<span class="badge badge-orange">In prelievo</span>';
       resultDiv.innerHTML = `
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
