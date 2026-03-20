@@ -1201,6 +1201,17 @@ tbody tr:hover { background: var(--bg); }
           </div>
         </div>
       </div>
+
+      <!-- Grafico Note -->
+      <div class="card" style="margin-top:14px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+          <div class="card-title" style="margin-bottom:0">Distribuzione Note</div>
+          <span style="font-size:11px;color:var(--text3)" id="note-chart-subtitle"></span>
+        </div>
+        <div id="note-chart-container" style="width:100%;overflow-x:auto">
+          <div class="empty-state" style="padding:20px 0"><p>Nessun dato</p></div>
+        </div>
+      </div>
     </div>
 
     <!-- ============ FASCICOLI ============ -->
@@ -1917,6 +1928,7 @@ function updateDashboard() {
   document.getElementById('stat-prelievi').textContent = inPrelievo;
   document.getElementById('stat-disponibili').textContent = disponibili;
   document.getElementById('stat-posizioni').textContent = posizioni;
+  renderNoteChart();
   
   // Recent prelievi
   const recenti = allPrelievi.filter(p => p.stato === 'in_corso').slice(0, 5);
@@ -2985,6 +2997,66 @@ function checkFascicoloRef(value) {
     el.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="3"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
       <span style="color:var(--red)">Fascicolo non trovato nell'elenco</span>`;
   }
+}
+
+
+// =============================================
+// GRAFICO DISTRIBUZIONE NOTE
+// =============================================
+function renderNoteChart() {
+  const container = document.getElementById('note-chart-container');
+  const subtitle = document.getElementById('note-chart-subtitle');
+  if (!container) return;
+
+  // Raggruppa note identiche
+  const counts = {};
+  for (const f of allFascicoli) {
+    const nota = (f.note || '').trim();
+    if (!nota) continue;
+    counts[nota] = (counts[nota] || 0) + 1;
+  }
+
+  const entries = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+  const totaleConNote = allFascicoli.filter(f => f.note && f.note.trim()).length;
+  const senzaNote = allFascicoli.length - totaleConNote;
+
+  if (entries.length === 0) {
+    container.innerHTML = '<div class="empty-state" style="padding:20px 0"><p>Nessuna nota presente</p></div>';
+    subtitle.textContent = '';
+    return;
+  }
+
+  subtitle.textContent = `${entries.length} categorie · ${senzaNote} senza nota`;
+
+  const max = entries[0][1];
+  const colors = [
+    '#0066cc','#34c759','#ff9500','#ff3b30','#af52de',
+    '#5ac8fa','#ffcc00','#ff6b35','#30b0c7','#a2845e'
+  ];
+
+  const bars = entries.map(([nota, count], i) => {
+    const pct = Math.round((count / max) * 100);
+    const color = colors[i % colors.length];
+    const label = nota.length > 35 ? nota.substring(0, 33) + '…' : nota;
+    return `<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;min-width:0">
+      <div style="flex-shrink:0;width:180px;font-size:12px;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:right" title="${nota.replace(/"/g,'&quot;')}">${label}</div>
+      <div style="flex:1;min-width:60px;background:var(--surface2);border-radius:4px;height:20px;overflow:hidden">
+        <div style="height:100%;width:${pct}%;background:${color};border-radius:4px;transition:width .5s ease;min-width:4px"></div>
+      </div>
+      <div style="flex-shrink:0;width:28px;font-size:12px;font-weight:700;color:var(--text)">${count}</div>
+    </div>`;
+  }).join('');
+
+  // Aggiungi barra "senza nota" se presente
+  const senzaBar = senzaNote > 0 ? `<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;margin-top:12px;padding-top:12px;border-top:1px solid var(--border)">
+    <div style="flex-shrink:0;width:180px;font-size:12px;color:var(--text3);text-align:right;font-style:italic">senza nota</div>
+    <div style="flex:1;min-width:60px;background:var(--surface2);border-radius:4px;height:20px;overflow:hidden">
+      <div style="height:100%;width:${Math.round((senzaNote/max)*100)}%;background:var(--border2);border-radius:4px;min-width:4px"></div>
+    </div>
+    <div style="flex-shrink:0;width:28px;font-size:12px;font-weight:700;color:var(--text3)">${senzaNote}</div>
+  </div>` : '';
+
+  container.innerHTML = `<div style="padding:4px 0">${bars}${senzaBar}</div>`;
 }
 
 // =============================================
