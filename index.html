@@ -2084,8 +2084,30 @@ async function saveFascicolo() {
       await api('fascicoli', { method: 'PATCH', body: data, params: `id=eq.${editId}` });
       showToast('Fascicolo aggiornato', 'success');
     } else {
-      await api('fascicoli', { method: 'POST', body: { ...data, stato: 'disponibile' } });
+      const created = await api('fascicoli', { method: 'POST', body: { ...data, stato: 'disponibile' } });
       showToast('Fascicolo creato', 'success');
+      closeModal('modal-fascicolo');
+      await loadFascicoli();
+      goTo('fascicoli');
+      renderFascicoli();
+      updateDashboard();
+      // Evidenzia l'ultimo inserito
+      const newId = created && created[0] ? created[0].id : null;
+      if (newId) {
+        setTimeout(() => {
+          const rows = document.querySelectorAll('#fascicoli-tbody tr');
+          for (const row of rows) {
+            if (row.innerHTML.includes(numero)) {
+              row.style.transition = 'background .3s';
+              row.style.background = 'var(--blue-light)';
+              row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              setTimeout(() => { row.style.background = ''; }, 2500);
+              break;
+            }
+          }
+        }, 300);
+      }
+      return;
     }
     closeModal('modal-fascicolo');
     await loadFascicoli();
