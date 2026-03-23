@@ -2235,8 +2235,16 @@ function renderPosizioni() {
     </div>`;
     return;
   }
-  
-  grid.innerHTML = allPosizioni.map(p => {
+
+  // Raggruppa per scaffale (prima lettera del codice)
+  const gruppi = {};
+  for (const p of allPosizioni) {
+    const lettera = p.codice.charAt(0).toUpperCase();
+    if (!gruppi[lettera]) gruppi[lettera] = [];
+    gruppi[lettera].push(p);
+  }
+
+  const makeCard = p => {
     const count = allFascicoli.filter(f => f.posizione_id === p.id).length;
     return `<div class="position-card">
       <div class="position-header">
@@ -2257,6 +2265,20 @@ function renderPosizioni() {
       <div class="position-footer">
         <span class="position-count">${count} fascicol${count === 1 ? 'o' : 'i'}</span>
         <a class="position-link" onclick="showPositionDetail('${p.id}')">Vedi contenuto</a>
+      </div>
+    </div>`;
+  };
+
+  grid.innerHTML = Object.keys(gruppi).sort().map(lettera => {
+    const posizioni = gruppi[lettera].sort((a, b) => a.codice.localeCompare(b.codice));
+    const totFascicoli = posizioni.reduce((s, p) => s + allFascicoli.filter(f => f.posizione_id === p.id).length, 0);
+    return `<div style="grid-column:1/-1;margin-bottom:4px">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;padding-bottom:6px;border-bottom:2px solid var(--blue)">
+        <span style="font-size:18px;font-weight:800;color:var(--blue);font-family:'SF Mono',monospace;background:var(--blue-light);padding:2px 12px;border-radius:6px">Scaffale ${lettera}</span>
+        <span style="font-size:12px;color:var(--text3)">${posizioni.length} posizion${posizioni.length===1?'e':'i'} · ${totFascicoli} fascicoli</span>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px">
+        ${posizioni.map(makeCard).join('')}
       </div>
     </div>`;
   }).join('');
