@@ -455,6 +455,32 @@ body {
   overflow: hidden;
 }
 
+/* Card layout fascicoli su mobile */
+.fascicoli-cards { display: none; flex-direction: column; gap: 10px; padding: 12px; }
+.fascicolo-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.fascicolo-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.fascicolo-card-numero { font-size: 17px; font-weight: 700; color: var(--text); }
+.fascicolo-card-row { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; font-size: 13px; color: var(--text2); }
+.fascicolo-card-row strong { color: var(--text); }
+.fascicolo-card-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 4px; }
+
+@media (max-width: 600px) {
+  .fascicoli-table-wrap { display: none !important; }
+  .fascicoli-cards { display: flex !important; }
+}
+
 .search-bar {
   padding: 10px 14px;
   border-bottom: 1px solid var(--border);
@@ -1255,7 +1281,7 @@ tbody tr:hover { background: var(--bg); }
         <input type="file" id="excel-ref-input" accept=".xlsx,.xls" style="display:none" onchange="loadExcelRef(this)">
       </div>
 
-      <div class="table-wrap">
+      <div class="table-wrap fascicoli-table-wrap">
         <div class="search-bar">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
           <input type="text" id="search-fascicoli" placeholder="Cerca fascicolo, RGT, note..." oninput="filterFascicoli()">
@@ -1277,6 +1303,12 @@ tbody tr:hover { background: var(--bg); }
           </tbody>
         </table>
       </div>
+      <!-- Card layout per mobile -->
+      <div class="search-bar" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:0" id="search-bar-mobile" >
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" placeholder="Cerca fascicolo, RGT, note..." oninput="filterFascicoliMobile(this.value)">
+      </div>
+      <div class="fascicoli-cards" id="fascicoli-cards"></div>
     </div>
 
     <!-- ============ POSIZIONI ============ -->
@@ -1970,6 +2002,7 @@ function renderFascicoli(list = null) {
       <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
       <p>Nessun fascicolo trovato</p>
     </div></td></tr>`;
+    renderFascicoliCards(data);
     return;
   }
   
@@ -2002,6 +2035,61 @@ function renderFascicoli(list = null) {
       </td>
     </tr>`;
   }).join('');
+
+  renderFascicoliCards(data);
+}
+
+function renderFascicoliCards(data) {
+  const container = document.getElementById('fascicoli-cards');
+  if (!container) return;
+  if (!data || data.length === 0) {
+    container.innerHTML = '<div class="empty-state"><p>Nessun fascicolo trovato</p></div>';
+    return;
+  }
+  container.innerHTML = data.map(f => {
+    const posCodice = f.posizioni?.codice || '—';
+    const badge = f.stato === 'disponibile'
+      ? '<span class="badge badge-green">D</span>'
+      : '<span class="badge badge-orange">P</span>';
+    const canLoan = f.stato === 'disponibile';
+    return `<div class="fascicolo-card">
+      <div class="fascicolo-card-header">
+        <span class="fascicolo-card-numero">${escHtml(f.numero)}</span>
+        ${badge}
+      </div>
+      <div class="fascicolo-card-row">
+        <span>Anno <strong>${f.anno}</strong></span>
+        &middot;
+        <span>RGT <strong>${escHtml(f.richiesta)}</strong></span>
+        &middot;
+        <span class="tag">${escHtml(posCodice)}</span>
+      </div>
+      ${f.note ? `<div style="font-size:12px;color:var(--text3)">${escHtml(f.note)}</div>` : ''}
+      <div class="fascicolo-card-actions">
+        ${canLoan ? `<button class="btn-icon" onclick="openPrelievo('${f.id}')" title="Registra prelievo">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+        </button>` : ''}
+        <button class="btn-icon" onclick="editFascicolo('${f.id}')" title="Modifica">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        </button>
+        <button class="btn-icon danger" onclick="askDeleteFascicolo('${f.id}', '${escHtml(f.numero)}')" title="Elimina">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+        </button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function filterFascicoliMobile(q) {
+  q = q.toLowerCase();
+  if (!q) { renderFascicoliCards(allFascicoli); return; }
+  const filtered = allFascicoli.filter(f =>
+    f.numero.toLowerCase().includes(q) ||
+    (f.richiesta || '').toLowerCase().includes(q) ||
+    String(f.anno).includes(q) ||
+    (f.note || '').toLowerCase().includes(q)
+  );
+  renderFascicoliCards(filtered);
 }
 
 function filterFascicoli() {
