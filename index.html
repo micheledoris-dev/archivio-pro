@@ -2149,14 +2149,10 @@ function deselezionaTutti() {
 
 function aggiornaBarraStampa() {
   const n = selectedFascicoliIds.size;
-  const bar = document.getElementById('stampa-bar');
-  const count = document.getElementById('stampa-count');
-  if (n > 0) {
-    bar.classList.add('visible');
-    count.textContent = n === 1 ? '1 fascicolo selezionato' : `${n} fascicoli selezionati`;
-  } else {
-    bar.classList.remove('visible');
-  }
+  const btn = document.getElementById('btn-stampa-sel');
+  const count = document.getElementById('sel-count');
+  if (btn) btn.style.display = n > 0 ? '' : 'none';
+  if (count) count.textContent = n;
 }
 
 function stampaSelezionati() {
