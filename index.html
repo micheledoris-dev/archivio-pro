@@ -1248,6 +1248,10 @@ tbody tr:hover { background: var(--bg); }
           <p class="page-subtitle">Gestisci i fascicoli dell'archivio</p>
         </div>
         <div class="page-actions">
+          <button class="btn btn-secondary" id="btn-stampa-sel" onclick="stampaSelezionati()" style="display:none">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+            Stampa selezionati (<span id="sel-count">0</span>)
+          </button>
           <button class="btn btn-secondary" onclick="exportExcel()">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
             Export
@@ -1289,6 +1293,7 @@ tbody tr:hover { background: var(--bg); }
         <table>
           <thead>
             <tr>
+              <th style="width:36px"><input type="checkbox" id="chk-all" onchange="toggleSelAll(this.checked)" title="Seleziona tutti"></th>
               <th>N. Fascicolo</th>
               <th>Anno</th>
               <th>RGT</th>
@@ -1299,7 +1304,7 @@ tbody tr:hover { background: var(--bg); }
             </tr>
           </thead>
           <tbody id="fascicoli-tbody">
-            <tr><td colspan="6"><div class="empty-state"><div class="spinner"></div></div></td></tr>
+            <tr><td colspan="7"><div class="empty-state"><div class="spinner"></div></div></td></tr>
           </tbody>
         </table>
       </div>
@@ -1998,7 +2003,7 @@ function renderFascicoli(list = null) {
   const tbody = document.getElementById('fascicoli-tbody');
   
   if (data.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="6"><div class="empty-state">
+    tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state">
       <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
       <p>Nessun fascicolo trovato</p>
     </div></td></tr>`;
@@ -2014,6 +2019,7 @@ function renderFascicoli(list = null) {
     const canLoan = f.stato === 'disponibile';
     
     return `<tr>
+      <td><input type="checkbox" class="chk-fascicolo" data-id="${f.id}" onchange="aggiornaSelezione()"></td>
       <td><strong>${escHtml(f.numero)}</strong></td>
       <td>${f.anno}</td>
       <td>${escHtml(f.richiesta)}</td>
@@ -2052,9 +2058,13 @@ function renderFascicoliCards(data) {
       ? '<span class="badge badge-green">D</span>'
       : '<span class="badge badge-orange">P</span>';
     const canLoan = f.stato === 'disponibile';
-    return `<div class="fascicolo-card">
+    const isSelected = selectedFascicoliIds.has(f.id);
+    return `<div class="fascicolo-card${isSelected ? ' selected' : ''}" data-id="${f.id}">
       <div class="fascicolo-card-header">
-        <span class="fascicolo-card-numero">${escHtml(f.numero)}</span>
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;flex:1">
+          <input type="checkbox" class="cb-fascicolo" ${isSelected ? 'checked' : ''} onchange="toggleSelezione('${f.id}', this.checked)">
+          <span class="fascicolo-card-numero">${escHtml(f.numero)}</span>
+        </label>
         ${badge}
       </div>
       <div class="fascicolo-card-row">
@@ -2080,6 +2090,82 @@ function renderFascicoliCards(data) {
   }).join('');
 }
 
+// ---- Selezione multipla ----
+const selectedFascicoliIds = new Set();
+
+function toggleSelezione(id, checked) {
+  if (checked) selectedFascicoliIds.add(id);
+  else selectedFascicoliIds.delete(id);
+  aggiornaBarraStampa();
+  const row = document.querySelector(`tr[data-id="${id}"]`);
+  if (row) row.classList.toggle('selected-row', checked);
+  const card = document.querySelector(`.fascicolo-card[data-id="${id}"]`);
+  if (card) card.classList.toggle('selected', checked);
+}
+
+function selezionaTutti(checked) {
+  allFascicoli.forEach(f => {
+    if (checked) selectedFascicoliIds.add(f.id);
+    else selectedFascicoliIds.delete(f.id);
+  });
+  renderFascicoli();
+  aggiornaBarraStampa();
+}
+
+function deselezionaTutti() {
+  selectedFascicoliIds.clear();
+  const cbAll = document.getElementById('cb-all');
+  if (cbAll) cbAll.checked = false;
+  renderFascicoli();
+  aggiornaBarraStampa();
+}
+
+function aggiornaBarraStampa() {
+  const n = selectedFascicoliIds.size;
+  const bar = document.getElementById('stampa-bar');
+  const count = document.getElementById('stampa-count');
+  if (n > 0) {
+    bar.classList.add('visible');
+    count.textContent = n === 1 ? '1 fascicolo selezionato' : `${n} fascicoli selezionati`;
+  } else {
+    bar.classList.remove('visible');
+  }
+}
+
+function stampaSelezionati() {
+  const selezionati = allFascicoli.filter(f => selectedFascicoliIds.has(f.id));
+  if (selezionati.length === 0) return;
+  const now = new Date().toLocaleDateString('it-IT', { day:'2-digit', month:'long', year:'numeric' });
+  const righe = selezionati.map((f, i) => {
+    const posCodice = f.posizioni?.codice || '—';
+    const stato = f.stato === 'disponibile' ? 'Disponibile' : 'In prelievo';
+    return `<tr>
+      <td style="text-align:center;color:#888">${i+1}</td>
+      <td><strong>${escHtml(f.numero)}</strong></td>
+      <td>${f.anno}</td>
+      <td>${escHtml(f.richiesta)}</td>
+      <td>${escHtml(posCodice)}</td>
+      <td>${stato}</td>
+      <td style="color:#888;font-size:11px">${escHtml(f.note || '—')}</td>
+    </tr>`;
+  }).join('');
+  document.getElementById('print-area').innerHTML = `
+    <div class="print-fascicoli-title">Archivio Fascicoli — Stampa Selezione</div>
+    <div class="print-fascicoli-sub">Stampato il ${now} &nbsp;·&nbsp; ${selezionati.length} fascicoli selezionati</div>
+    <table class="print-table">
+      <thead><tr>
+        <th style="width:30px">#</th>
+        <th>N. Fascicolo</th>
+        <th>Anno</th>
+        <th>RGT</th>
+        <th>Posizione</th>
+        <th>Stato</th>
+        <th>Note</th>
+      </tr></thead>
+      <tbody>${righe}</tbody>
+    </table>`;
+  window.print();
+}
 function filterFascicoliMobile(q) {
   q = q.toLowerCase();
   if (!q) { renderFascicoliCards(allFascicoli); return; }
