@@ -1396,12 +1396,13 @@ tbody tr:hover { background: var(--bg); }
               <th>Prelevato da</th>
               <th>Data Prelievo</th>
               <th>Data Restituzione</th>
+              <th>Note</th>
               <th>Stato</th>
               <th style="text-align:right">Azioni</th>
             </tr>
           </thead>
           <tbody id="prelievi-tbody">
-            <tr><td colspan="6"><div class="empty-state"><div class="spinner"></div></div></td></tr>
+            <tr><td colspan="7"><div class="empty-state"><div class="spinner"></div></div></td></tr>
           </tbody>
         </table>
       </div>
@@ -1629,7 +1630,8 @@ tbody tr:hover { background: var(--bg); }
   <div class="modal">
     <h2 class="modal-title">Registra Prelievo</h2>
     <input type="hidden" id="prelievo-fascicolo-id">
-    <div id="prelievo-fascicolo-info" style="background:var(--bg);border-radius:var(--radius-sm);padding:10px 12px;margin-bottom:16px;font-size:13px;color:var(--text2)">—</div>
+    <div id="prelievo-fascicolo-info" style="background:var(--bg);border-radius:var(--radius-sm);padding:10px 12px;margin-bottom:8px;font-size:13px;color:var(--text2)">—</div>
+    <div id="prelievo-fascicolo-note" style="display:none;background:var(--bg);border-radius:var(--radius-sm);padding:8px 12px;margin-bottom:16px;font-size:12px;color:var(--text3);border-left:3px solid var(--border2)"></div>
     <div class="field">
       <label>Prelevato da *</label>
       <input type="text" id="pr-persona" placeholder="Nome e cognome">
@@ -1639,12 +1641,37 @@ tbody tr:hover { background: var(--bg); }
       <input type="date" id="pr-data">
     </div>
     <div class="field">
-      <label>Note</label>
+      <label>Note prelievo</label>
       <textarea id="pr-note" placeholder="Note opzionali..."></textarea>
     </div>
     <div class="modal-actions">
       <button class="btn btn-secondary" onclick="closeModal('modal-prelievo')">Annulla</button>
       <button class="btn btn-primary" onclick="savePrelievo()">Registra Prelievo</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Modifica Prelievo -->
+<div class="modal-overlay" id="modal-modifica-prelievo">
+  <div class="modal">
+    <h2 class="modal-title">Modifica Prelievo</h2>
+    <input type="hidden" id="modifica-prelievo-id">
+    <div id="modifica-prelievo-info" style="background:var(--bg);border-radius:var(--radius-sm);padding:10px 12px;margin-bottom:16px;font-size:13px;color:var(--text2)">—</div>
+    <div class="field">
+      <label>Prelevato da *</label>
+      <input type="text" id="mod-persona" placeholder="Nome e cognome">
+    </div>
+    <div class="field">
+      <label>Data Prelievo *</label>
+      <input type="date" id="mod-data">
+    </div>
+    <div class="field">
+      <label>Note prelievo</label>
+      <textarea id="mod-note" placeholder="Note opzionali..."></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeModal('modal-modifica-prelievo')">Annulla</button>
+      <button class="btn btn-primary" onclick="saveModificaPrelievo()">Salva Modifiche</button>
     </div>
   </div>
 </div>
@@ -2675,10 +2702,14 @@ function renderPrelievi(filter = 'in_corso') {
       <td>${escHtml(p.prelevato_da)}</td>
       <td>${formatDate(p.data_prelievo)}</td>
       <td>${p.data_restituzione ? formatDate(p.data_restituzione) : '<span style="color:var(--text3)">—</span>'}</td>
+      <td style="color:var(--text3);font-size:12px;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${escHtml(p.note || '')}">${escHtml(p.note || '—')}</td>
       <td>${badge}</td>
       <td>
         <div class="actions-cell">
           ${canReturn ? `<button class="btn btn-sm" style="background:var(--green);color:#fff" onclick="restituisci('${p.id}')">Restituisci</button>` : ''}
+          ${canReturn ? `<button class="btn-icon" onclick="openModificaPrelievo('${p.id}')" title="Modifica">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          </button>` : ''}
         </div>
       </td>
     </tr>`;
@@ -2698,10 +2729,57 @@ function openPrelievo(fascicoloId) {
   document.getElementById('prelievo-fascicolo-id').value = fascicoloId;
   document.getElementById('prelievo-fascicolo-info').innerHTML =
     `<strong>${escHtml(f.numero)}</strong> — Anno ${f.anno} — Richiesta ${escHtml(f.richiesta)}`;
+  
+  // Mostra note fascicolo se presenti
+  const noteDiv = document.getElementById('prelievo-fascicolo-note');
+  if (f.note && f.note.trim()) {
+    noteDiv.style.display = 'block';
+    noteDiv.innerHTML = `<strong style="color:var(--text2)">Note fascicolo:</strong> ${escHtml(f.note)}`;
+  } else {
+    noteDiv.style.display = 'none';
+  }
+  
   document.getElementById('pr-persona').value = '';
   document.getElementById('pr-data').value = new Date().toISOString().split('T')[0];
   document.getElementById('pr-note').value = '';
   openModal('modal-prelievo');
+}
+
+function openModificaPrelievo(prelievoId) {
+  const p = allPrelievi.find(x => x.id === prelievoId);
+  if (!p) return;
+  const f = allFascicoli.find(x => x.id === p.fascicolo_id);
+  
+  document.getElementById('modifica-prelievo-id').value = prelievoId;
+  document.getElementById('modifica-prelievo-info').innerHTML =
+    f ? `<strong>${escHtml(f.numero)}</strong> — Anno ${f.anno} — Richiesta ${escHtml(f.richiesta)}` : '—';
+  document.getElementById('mod-persona').value = p.prelevato_da || '';
+  document.getElementById('mod-data').value = p.data_prelievo || '';
+  document.getElementById('mod-note').value = p.note || '';
+  openModal('modal-modifica-prelievo');
+}
+
+async function saveModificaPrelievo() {
+  const prelievoId = document.getElementById('modifica-prelievo-id').value;
+  const persona = document.getElementById('mod-persona').value.trim();
+  const data = document.getElementById('mod-data').value;
+  const note = document.getElementById('mod-note').value.trim();
+  
+  if (!persona || !data) { showToast('Compila tutti i campi obbligatori', 'error'); return; }
+  
+  try {
+    await api('prelievi', {
+      method: 'PATCH',
+      body: { prelevato_da: persona, data_prelievo: data, note: note || null },
+      params: `id=eq.${prelievoId}`
+    });
+    showToast('Prelievo aggiornato', 'success');
+    closeModal('modal-modifica-prelievo');
+    await loadAll();
+    renderPrelievi('in_corso');
+  } catch(e) {
+    showToast('Errore: ' + e.message, 'error');
+  }
 }
 
 async function savePrelievo() {
