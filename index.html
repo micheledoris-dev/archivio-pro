@@ -2045,8 +2045,8 @@ function renderFascicoli(list = null) {
       : '<span class="badge badge-orange">In prelievo</span>';
     const canLoan = f.stato === 'disponibile';
     
-    return `<tr>
-      <td><input type="checkbox" class="chk-fascicolo" data-id="${f.id}" onchange="aggiornaSelezione()"></td>
+    return `<tr data-id="${f.id}" class="${selectedFascicoliIds.has(f.id) ? 'selected-row' : ''}">
+      <td><input type="checkbox" class="cb-fascicolo" ${selectedFascicoliIds.has(f.id) ? 'checked' : ''} onchange="toggleSelezione('${f.id}', this.checked)"></td>
       <td><strong>${escHtml(f.numero)}</strong></td>
       <td>${f.anno}</td>
       <td>${escHtml(f.richiesta)}</td>
