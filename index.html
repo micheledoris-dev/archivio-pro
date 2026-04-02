@@ -1293,7 +1293,7 @@ tbody tr:hover { background: var(--bg); }
         <table>
           <thead>
             <tr>
-              <th style="width:36px"><input type="checkbox" id="chk-all" onchange="toggleSelAll(this.checked)" title="Seleziona tutti"></th>
+              <th style="width:36px"><input type="checkbox" id="cb-all" onchange="selezionaTutti(this.checked)" title="Seleziona tutti"></th>
               <th>N. Fascicolo</th>
               <th>Anno</th>
               <th>RGT</th>
@@ -2136,6 +2136,9 @@ function selezionaTutti(checked) {
     else selectedFascicoliIds.delete(f.id);
   });
   renderFascicoli();
+  // Ripristina lo stato del checkbox "seleziona tutti" dopo il render
+  const cbAll = document.getElementById('cb-all');
+  if (cbAll) cbAll.checked = checked;
   aggiornaBarraStampa();
 }
 
