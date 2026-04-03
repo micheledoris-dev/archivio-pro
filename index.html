@@ -2004,11 +2004,12 @@ function updateDashboard() {
   el.innerHTML = recenti.map(p => {
     const f = allFascicoli.find(x => x.id === p.fascicolo_id);
     return `<div class="recent-item">
-      <div>
+      <div style="flex:1;min-width:0">
         <div class="recent-item-main">${f ? f.numero : p.fascicolo_id}</div>
         <div class="recent-item-sub">${p.prelevato_da}</div>
+        ${p.note ? `<div style="font-size:11px;color:var(--text3);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${escHtml(p.note)}">${escHtml(p.note)}</div>` : ''}
       </div>
-      <span class="badge badge-orange">In prelievo</span>
+      <span class="badge badge-orange" style="flex-shrink:0">In prelievo</span>
     </div>`;
   }).join('');
 }
