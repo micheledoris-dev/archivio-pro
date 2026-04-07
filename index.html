@@ -1692,7 +1692,7 @@ tbody tr:hover { background: var(--bg); }
     <div class="field">
       <label>Ruolo *</label>
       <select id="u-ruolo">
-        <option value="operatore">Operatore</option>
+        <option value="operatore">Utente</option>
         <option value="admin">Admin</option>
       </select>
     </div>
@@ -1942,7 +1942,7 @@ function initApp() {
   
   // User info
   document.getElementById('sidebar-user-name').textContent = currentUser.nome;
-  document.getElementById('sidebar-user-role').textContent = currentUser.ruolo === 'admin' ? 'Admin' : 'Operatore';
+  document.getElementById('sidebar-user-role').textContent = currentUser.ruolo === 'admin' ? 'Admin' : 'Utente';
   document.getElementById('user-avatar-initials').textContent = currentUser.nome.charAt(0).toUpperCase();
   
   // Hide utenti nav if not admin
@@ -2997,7 +2997,7 @@ function renderUtenti() {
   tbody.innerHTML = allUtenti.map(u => {
     const badge = u.ruolo === 'admin' 
       ? '<span class="badge badge-blue">admin</span>'
-      : '<span class="badge" style="background:var(--surface2);color:var(--text2)">operatore</span>';
+      : '<span class="badge" style="background:var(--surface2);color:var(--text2)">utente</span>';
     const canDelete = u.id !== currentUser.id;
     return `<tr>
       <td><code style="font-size:13px">${escHtml(u.username)}</code></td>
