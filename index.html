@@ -1682,12 +1682,12 @@ tbody tr:hover { background: var(--bg); }
     <h2 class="modal-title" id="modal-utente-title">Nuovo Utente</h2>
     <input type="hidden" id="utente-edit-id">
     <div class="field">
-      <label>Username *</label>
-      <input type="text" id="u-username" placeholder="es. mario.rossi" autocomplete="off">
-    </div>
-    <div class="field">
       <label>Nome Completo *</label>
       <input type="text" id="u-nome" placeholder="es. Mario Rossi">
+    </div>
+    <div class="field" id="field-email">
+      <label>Email *</label>
+      <input type="email" id="u-email" placeholder="es. mario.rossi@tribunale.it">
     </div>
     <div class="field">
       <label>Ruolo *</label>
@@ -1696,14 +1696,10 @@ tbody tr:hover { background: var(--bg); }
         <option value="admin">Admin</option>
       </select>
     </div>
-    <div class="field" id="field-password">
-      <label>Password *</label>
-      <input type="password" id="u-password" placeholder="Minimo 6 caratteri" autocomplete="new-password">
-    </div>
     <div class="modal-actions">
       <button class="btn btn-secondary" onclick="closeModal('modal-utente')">Annulla</button>
       <button class="btn btn-primary" onclick="saveUtente()">
-        <span id="save-utente-label">Crea Utente</span>
+        <span id="save-utente-label">Invita Utente</span>
       </button>
     </div>
   </div>
@@ -1852,15 +1848,27 @@ async function doLogin() {
 
     authToken = data.session.access_token;
 
-    // Carica profilo dalla tabella utenti tramite email
+    // Prova a caricare profilo dalla tabella utenti
     const users = await api('utenti', { params: `select=*&username=eq.${encodeURIComponent(email)}` });
-    if (!users || users.length === 0) {
-      showLoginError("Profilo utente non trovato. Contatta l'amministratore.");
-      await sbClient.auth.signOut();
-      return;
+    
+    if (users && users.length > 0) {
+      // Profilo trovato nella tabella utenti
+      currentUser = users[0];
+    } else {
+      // Profilo non trovato — crea automaticamente dalla sessione Supabase
+      const meta = data.user.user_metadata || {};
+      const nome = meta.full_name || meta.nome || email.split('@')[0];
+      const ruolo = meta.ruolo || 'operatore';
+      // Salva in tabella utenti per i prossimi accessi
+      try {
+        await api('utenti', { method: 'POST', body: { username: email, nome, ruolo, password_hash: 'supabase_auth' } });
+        const newUsers = await api('utenti', { params: `select=*&username=eq.${encodeURIComponent(email)}` });
+        currentUser = newUsers && newUsers.length > 0 ? newUsers[0] : { username: email, nome, ruolo, id: data.user.id };
+      } catch(e2) {
+        currentUser = { username: email, nome, ruolo, id: data.user.id };
+      }
     }
 
-    currentUser = users[0];
     sessionStorage.setItem('archivio_user', JSON.stringify(currentUser));
     sessionStorage.setItem('archivio_token', authToken);
     initApp();
@@ -1905,7 +1913,7 @@ async function doForgotPassword() {
 
   try {
     const { error } = await sbClient.auth.resetPasswordForEmail(email, {
-      redirectTo: 'https://micheledoris-dev.github.io/archivio-pro/'
+      redirectTo: 'https://archiviofascicoli.netlify.app'
     });
     if (error) { errEl.textContent = error.message; errEl.style.display = 'block'; }
     else { okEl.textContent = 'Email inviata! Controlla la tua casella di posta.'; okEl.style.display = 'block'; }
@@ -3019,13 +3027,12 @@ function renderUtenti() {
 
 function resetUtenteForm() {
   document.getElementById('utente-edit-id').value = '';
-  document.getElementById('u-username').value = '';
   document.getElementById('u-nome').value = '';
+  document.getElementById('u-email').value = '';
   document.getElementById('u-ruolo').value = 'operatore';
-  document.getElementById('u-password').value = '';
   document.getElementById('modal-utente-title').textContent = 'Nuovo Utente';
-  document.getElementById('save-utente-label').textContent = 'Crea Utente';
-  document.getElementById('field-password').style.display = 'block';
+  document.getElementById('save-utente-label').textContent = 'Invita Utente';
+  document.getElementById('field-email').style.display = 'block';
 }
 
 function editUtente(id) {
@@ -3033,46 +3040,55 @@ function editUtente(id) {
   if (!u) return;
   openModal('modal-utente');
   document.getElementById('utente-edit-id').value = u.id;
-  document.getElementById('u-username').value = u.username;
   document.getElementById('u-nome').value = u.nome;
+  document.getElementById('u-email').value = u.username || '';
   document.getElementById('u-ruolo').value = u.ruolo;
-  document.getElementById('u-password').value = '';
   document.getElementById('modal-utente-title').textContent = 'Modifica Utente';
   document.getElementById('save-utente-label').textContent = 'Salva';
-  document.getElementById('field-password').style.display = 'none'; // non mostrare password in edit
+  document.getElementById('field-email').style.display = 'none'; // email non modificabile
 }
 
 async function saveUtente() {
   const editId = document.getElementById('utente-edit-id').value;
-  const username = document.getElementById('u-username').value.trim();
   const nome = document.getElementById('u-nome').value.trim();
+  const email = document.getElementById('u-email').value.trim();
   const ruolo = document.getElementById('u-ruolo').value;
-  const password = document.getElementById('u-password').value;
-  
-  if (!username || !nome) { showToast('Compila username e nome', 'error'); return; }
-  if (!editId && !password) { showToast('Inserisci una password', 'error'); return; }
-  if (!editId && password.length < 6) { showToast('Password minimo 6 caratteri', 'error'); return; }
-  
+
+  if (!nome) { showToast('Inserisci il nome completo', 'error'); return; }
+  if (!editId && !email) { showToast('Inserisci la email', 'error'); return; }
+
   try {
     if (editId) {
-      const data = { username, nome, ruolo };
-      if (password && password.length >= 6) {
-        data.password_hash = await hashPassword(password);
-      }
-      await api('utenti', { method: 'PATCH', body: data, params: `id=eq.${editId}` });
+      // Modifica solo nome e ruolo nella tabella utenti
+      await api('utenti', { method: 'PATCH', body: { nome, ruolo }, params: `id=eq.${editId}` });
       showToast('Utente aggiornato', 'success');
     } else {
-      // Crea utente in Supabase Auth
-      const { data: authData, error: authError } = await sbClient.auth.admin
-        ? await fetch(`${SUPABASE_URL}/auth/v1/admin/users`, {
-            method: 'POST',
-            headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}`, 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email: username, password, email_confirm: true })
-          }).then(r => r.json()).then(d => ({ data: d, error: d.error || null }))
-        : { data: null, error: null };
-      // Salva profilo nella tabella utenti (username = email)
-      await api('utenti', { method: 'POST', body: { username, nome, ruolo, password_hash: 'supabase_auth' } });
-      showToast('Utente creato', 'success');
+      // Controlla se esiste già
+      const existing = await api('utenti', { params: `select=*&username=eq.${encodeURIComponent(email)}` });
+      if (existing && existing.length > 0) {
+        showToast('Utente con questa email già esistente', 'error');
+        return;
+      }
+
+      // Invita utente via Supabase Admin API con metadata nome e ruolo
+      const res = await fetch(`${SUPABASE_URL}/auth/v1/invite`, {
+        method: 'POST',
+        headers: {
+          'apikey': SUPABASE_KEY,
+          'Authorization': `Bearer ${authToken}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          email,
+          data: { full_name: nome, nome, ruolo }
+        })
+      });
+      const inviteData = await res.json();
+      if (!res.ok) throw new Error(inviteData.msg || inviteData.message || inviteData.error_description || 'Errore invio invito. Verifica che l\'email non sia già registrata.');
+
+      // Salva profilo nella tabella utenti
+      await api('utenti', { method: 'POST', body: { username: email, nome, ruolo, password_hash: 'supabase_auth' } });
+      showToast(`✉️ Invito inviato a ${email}`, 'success');
     }
     closeModal('modal-utente');
     await loadUtenti();
