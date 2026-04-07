@@ -1678,16 +1678,16 @@ tbody tr:hover { background: var(--bg); }
 
 <!-- Modal: Nuovo Utente -->
 <div class="modal-overlay" id="modal-utente">
-  <div class="modal">
+  <div class="modal" style="max-width:520px;width:95%">
     <h2 class="modal-title" id="modal-utente-title">Nuovo Utente</h2>
     <input type="hidden" id="utente-edit-id">
     <div class="field">
       <label>Nome Completo *</label>
-      <input type="text" id="u-nome" placeholder="es. Mario Rossi">
+      <input type="text" id="u-nome" placeholder="es. Mario Rossi" oninput="aggiornaEmailPreview()">
     </div>
     <div class="field" id="field-email">
       <label>Email *</label>
-      <input type="email" id="u-email" placeholder="es. mario.rossi@tribunale.it">
+      <input type="email" id="u-email" placeholder="es. mario.rossi@giustizia.it" oninput="aggiornaEmailPreview()">
     </div>
     <div class="field">
       <label>Ruolo *</label>
@@ -1696,10 +1696,26 @@ tbody tr:hover { background: var(--bg); }
         <option value="admin">Admin</option>
       </select>
     </div>
-    <div class="modal-actions">
+    <div class="field" id="field-password-gen">
+      <label>Password temporanea</label>
+      <div style="display:flex;gap:8px;align-items:center">
+        <input type="text" id="u-password-gen" placeholder="Clicca Genera..." readonly style="flex:1;background:var(--bg);font-family:monospace" oninput="aggiornaEmailPreview()">
+        <button class="btn btn-secondary" onclick="generaPasswordUtente()" style="white-space:nowrap">Genera</button>
+      </div>
+    </div>
+    <div id="field-email-preview" style="display:none">
+      <div style="font-size:12px;font-weight:600;color:var(--text2);margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px">Anteprima email da inviare</div>
+      <div id="u-email-preview" style="background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px;font-size:12.5px;line-height:1.8;color:var(--text);white-space:pre-wrap;font-family:var(--font);max-height:220px;overflow-y:auto"></div>
+      <div style="display:flex;gap:8px;margin-top:8px">
+        <button class="btn btn-secondary" onclick="copiaEmailUtente()" style="font-size:12px;padding:6px 12px">Copia testo email</button>
+        <button class="btn btn-secondary" onclick="copiaPasswordUtente()" style="font-size:12px;padding:6px 12px">Copia password</button>
+        <span id="u-copia-ok" style="font-size:12px;color:var(--green);align-self:center;display:none">✓ Copiato!</span>
+      </div>
+    </div>
+    <div class="modal-actions" style="margin-top:16px">
       <button class="btn btn-secondary" onclick="closeModal('modal-utente')">Annulla</button>
       <button class="btn btn-primary" onclick="saveUtente()">
-        <span id="save-utente-label">Invita Utente</span>
+        <span id="save-utente-label">Salva Utente</span>
       </button>
     </div>
   </div>
@@ -3030,9 +3046,72 @@ function resetUtenteForm() {
   document.getElementById('u-nome').value = '';
   document.getElementById('u-email').value = '';
   document.getElementById('u-ruolo').value = 'operatore';
+  document.getElementById('u-password-gen').value = '';
   document.getElementById('modal-utente-title').textContent = 'Nuovo Utente';
-  document.getElementById('save-utente-label').textContent = 'Invita Utente';
+  document.getElementById('save-utente-label').textContent = 'Salva Utente';
   document.getElementById('field-email').style.display = 'block';
+  document.getElementById('field-password-gen').style.display = 'block';
+  document.getElementById('field-email-preview').style.display = 'none';
+}
+
+function generaPasswordUtente() {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789@#!';
+  let pwd = '';
+  for (let i = 0; i < 10; i++) pwd += chars[Math.floor(Math.random() * chars.length)];
+  document.getElementById('u-password-gen').value = pwd;
+  aggiornaEmailPreview();
+}
+
+function aggiornaEmailPreview() {
+  const nome = document.getElementById('u-nome').value.trim();
+  const email = document.getElementById('u-email').value.trim();
+  const pwd = document.getElementById('u-password-gen').value.trim();
+  const preview = document.getElementById('field-email-preview');
+  const previewText = document.getElementById('u-email-preview');
+
+  if (!nome && !email && !pwd) { preview.style.display = 'none'; return; }
+  preview.style.display = 'block';
+
+  previewText.textContent = `Oggetto: Accesso ad Archivio Pro – Tribunale
+
+Gentile ${nome || 'Utente'},
+
+Le comunichiamo che è stato creato un account per accedere al sistema Archivio Pro del Tribunale.
+
+🔗 Link di accesso:
+https://archiviofascicoli.netlify.app
+
+📧 Email: ${email || '—'}
+🔑 Password temporanea: ${pwd || '—'}
+
+Al primo accesso Le consigliamo di cambiare la password cliccando su "Password dimenticata?" nella schermata di accesso.
+
+Per qualsiasi problema non esiti a contattarci.
+
+Cordiali saluti,
+Amministratore Archivio Pro`;
+}
+
+function copiaEmailUtente() {
+  const testo = document.getElementById('u-email-preview').textContent;
+  if (!testo) return;
+  navigator.clipboard.writeText(testo).then(() => {
+    const ok = document.getElementById('u-copia-ok');
+    ok.textContent = '✓ Email copiata!';
+    ok.style.display = 'inline';
+    setTimeout(() => ok.style.display = 'none', 2000);
+  });
+}
+
+function copiaPasswordUtente() {
+  const pwd = document.getElementById('u-password-gen').value;
+  if (!pwd) return;
+  navigator.clipboard.writeText(pwd).then(() => {
+    const ok = document.getElementById('u-copia-ok');
+    ok.textContent = '✓ Password copiata!';
+    ok.style.display = 'inline';
+    setTimeout(() => ok.style.display = 'none', 2000);
+  });
 }
 
 function editUtente(id) {
@@ -3043,9 +3122,12 @@ function editUtente(id) {
   document.getElementById('u-nome').value = u.nome;
   document.getElementById('u-email').value = u.username || '';
   document.getElementById('u-ruolo').value = u.ruolo;
+  document.getElementById('u-password-gen').value = '';
   document.getElementById('modal-utente-title').textContent = 'Modifica Utente';
   document.getElementById('save-utente-label').textContent = 'Salva';
-  document.getElementById('field-email').style.display = 'none'; // email non modificabile
+  document.getElementById('field-email').style.display = 'none';
+  document.getElementById('field-password-gen').style.display = 'none';
+  document.getElementById('field-email-preview').style.display = 'none';
 }
 
 async function saveUtente() {
@@ -3053,42 +3135,24 @@ async function saveUtente() {
   const nome = document.getElementById('u-nome').value.trim();
   const email = document.getElementById('u-email').value.trim();
   const ruolo = document.getElementById('u-ruolo').value;
+  const password = document.getElementById('u-password-gen') ? document.getElementById('u-password-gen').value.trim() : '';
 
   if (!nome) { showToast('Inserisci il nome completo', 'error'); return; }
   if (!editId && !email) { showToast('Inserisci la email', 'error'); return; }
 
   try {
     if (editId) {
-      // Modifica solo nome e ruolo nella tabella utenti
       await api('utenti', { method: 'PATCH', body: { nome, ruolo }, params: `id=eq.${editId}` });
       showToast('Utente aggiornato', 'success');
     } else {
-      // Controlla se esiste già
       const existing = await api('utenti', { params: `select=*&username=eq.${encodeURIComponent(email)}` });
       if (existing && existing.length > 0) {
         showToast('Utente con questa email già esistente', 'error');
         return;
       }
-
-      // Invita utente via Supabase Admin API con metadata nome e ruolo
-      const res = await fetch(`${SUPABASE_URL}/auth/v1/invite`, {
-        method: 'POST',
-        headers: {
-          'apikey': SUPABASE_KEY,
-          'Authorization': `Bearer ${authToken}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          email,
-          data: { full_name: nome, nome, ruolo }
-        })
-      });
-      const inviteData = await res.json();
-      if (!res.ok) throw new Error(inviteData.msg || inviteData.message || inviteData.error_description || 'Errore invio invito. Verifica che l\'email non sia già registrata.');
-
-      // Salva profilo nella tabella utenti
-      await api('utenti', { method: 'POST', body: { username: email, nome, ruolo, password_hash: 'supabase_auth' } });
-      showToast(`✉️ Invito inviato a ${email}`, 'success');
+      // Salva profilo nella tabella utenti con password in chiaro (temporanea)
+      await api('utenti', { method: 'POST', body: { username: email, nome, ruolo, password_hash: password || 'da_impostare' } });
+      showToast(`Utente ${nome} creato! Ricordati di inviare l'email con le credenziali.`, 'success');
     }
     closeModal('modal-utente');
     await loadUtenti();
