@@ -1307,7 +1307,8 @@ tbody tr:hover { background: var(--bg); }
           <thead>
             <tr>
               <th style="width:36px"><input type="checkbox" id="cb-all" onchange="selezionaTutti(this.checked)" title="Seleziona tutti"></th>
-              <th>N. Fascicolo</th>
+              <th>N. Sentenza</th>
+              <th>RGNR</th>
               <th>Anno</th>
               <th>RGT</th>
               <th>Posizione</th>
@@ -1373,7 +1374,7 @@ tbody tr:hover { background: var(--bg); }
             <strong style="font-size:14px">Fascicoli in questa posizione</strong>
           </div>
           <table>
-            <thead><tr><th>N. Fascicolo</th><th>Anno • RGT</th><th>Note</th><th>Stato</th><th></th></tr></thead>
+            <thead><tr><th>N. Sentenza</th><th>RGNR</th><th>Anno • RGT</th><th>Note</th><th>Stato</th><th></th></tr></thead>
             <tbody id="position-fascicoli-tbody">
               <tr><td colspan="3"><div class="empty-state"><p>Nessun fascicolo</p></div></td></tr>
             </tbody>
@@ -2143,6 +2144,7 @@ function renderFascicoli(list = null) {
     return `<tr data-id="${f.id}" class="${selectedFascicoliIds.has(f.id) ? 'selected-row' : ''}">
       <td><input type="checkbox" class="cb-fascicolo" ${selectedFascicoliIds.has(f.id) ? 'checked' : ''} onchange="toggleSelezione('${f.id}', this.checked)"></td>
       <td><strong>${escHtml(f.numero)}</strong></td>
+      <td style="color:var(--text3);font-size:12px">${escHtml(f.rgnr || '—')}</td>
       <td>${f.anno}</td>
       <td>${escHtml(f.richiesta)}</td>
       <td><span class="tag">${escHtml(posCodice)}</span></td>
@@ -2454,7 +2456,8 @@ async function confirmDelete() {
 // Export Excel
 function exportExcel() {
   const data = allFascicoli.map(f => ({
-    'N. Fascicolo': f.numero,
+    'N. Sentenza': f.numero,
+    'RGNR': f.rgnr || '',
     'Anno': f.anno,
     'RGT': f.richiesta,
     'Posizione': f.posizioni?.codice || '',
