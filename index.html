@@ -1813,7 +1813,42 @@ tbody tr:hover { background: var(--bg); }
   </div>
 </div>
 
-<!-- Modal: Conferma Eliminazione -->
+<!-- Modal: Conferma Eliminazione FASCICOLO (doppia conferma) -->
+<div class="modal-overlay" id="modal-confirm-fascicolo">
+  <div class="modal" style="max-width:420px">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+      <div style="width:40px;height:40px;border-radius:50%;background:#FEF2F2;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#DC2626" stroke-width="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      </div>
+      <div>
+        <div style="font-weight:700;font-size:16px;color:var(--text)">Elimina Fascicolo</div>
+        <div style="font-size:12px;color:var(--text3)">Operazione riservata agli amministratori</div>
+      </div>
+    </div>
+    <div style="background:#FEF2F2;border:1px solid #FCA5A5;border-radius:var(--radius-sm);padding:12px 14px;margin-bottom:16px;font-size:13px;color:#991B1B">
+      ⚠️ Il fascicolo <strong id="del-fasc-numero">—</strong> verrà nascosto dall'archivio.<br>
+      <span style="font-size:12px;opacity:.85">Sarà recuperabile da un amministratore in qualsiasi momento.</span>
+    </div>
+    <div class="field">
+      <label style="font-size:13px">Per confermare, scrivi il numero del fascicolo:</label>
+      <input type="text" id="del-fasc-confirm-input" placeholder="es. 1246"
+        style="border:2px solid var(--border);transition:border-color .15s"
+        oninput="checkDelFascConferma()"
+        onfocus="this.style.borderColor='var(--blue)'"
+        onblur="this.style.borderColor='var(--border)'">
+      <div id="del-fasc-confirm-msg" style="font-size:12px;margin-top:4px;min-height:16px"></div>
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:8px">
+      <button class="btn btn-secondary" onclick="closeModal('modal-confirm-fascicolo')">Annulla</button>
+      <button class="btn btn-danger" id="del-fasc-ok-btn" onclick="confirmDeleteFascicolo()" disabled style="opacity:.4;cursor:not-allowed">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+        Elimina
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Conferma Eliminazione GENERICA -->
 <div class="modal-overlay" id="modal-confirm">
   <div class="modal" style="max-width:380px">
     <div class="confirm-title" id="confirm-title">Elimina elemento</div>
@@ -2204,7 +2239,7 @@ function updateDashboard() {
 // =============================================
 async function loadFascicoli() {
   try {
-    allFascicoli = await api('fascicoli', { params: 'select=*,posizioni(codice)&order=created_at.desc' }) || [];
+    allFascicoli = (await api('fascicoli', { params: 'select=*,posizioni(codice)&order=created_at.desc' }) || []).filter(f => !f.eliminato);
   } catch(e) {
     console.error('Load fascicoli:', e);
     allFascicoli = [];
@@ -2248,9 +2283,9 @@ function renderFascicoli(list = null) {
           <button class="btn-icon" onclick="editFascicolo('${f.id}')" title="Modifica">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
           </button>
-          <button class="btn-icon danger" onclick="askDeleteFascicolo('${f.id}', '${escHtml(f.numero)}')" title="Elimina">
+          ${currentUser?.ruolo === 'admin' ? `<button class="btn-icon danger" onclick="askDeleteFascicolo('${f.id}', '${escHtml(f.numero)}')" title="Elimina (solo admin)">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
-          </button>
+          </button>` : ''}
         </div>
       </td>
     </tr>`;
@@ -2296,9 +2331,9 @@ function renderFascicoliCards(data) {
         <button class="btn-icon" onclick="editFascicolo('${f.id}')" title="Modifica">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
         </button>
-        <button class="btn-icon danger" onclick="askDeleteFascicolo('${f.id}', '${escHtml(f.numero)}')" title="Elimina">
+        ${currentUser?.ruolo === 'admin' ? `<button class="btn-icon danger" onclick="askDeleteFascicolo('${f.id}', '${escHtml(f.numero)}')" title="Elimina (solo admin)">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
-        </button>
+        </button>` : ''}
       </div>
     </div>`;
   }).join('');
@@ -2521,21 +2556,66 @@ async function saveFascicolo() {
   }
 }
 
+let deleteFascicoloTarget = null;
+
 function askDeleteFascicolo(id, numero) {
-  document.getElementById('confirm-title').textContent = 'Elimina Fascicolo';
-  document.getElementById('confirm-msg').textContent = `Stai per eliminare il fascicolo "${numero}".`;
-  document.getElementById('confirm-sub').textContent = 'Tutti i prelievi associati verranno eliminati. Azione irreversibile.';
-  deleteCallback = async () => {
-    try {
-      await api('fascicoli', { method: 'DELETE', params: `id=eq.${id}` });
-      showToast('Fascicolo eliminato', 'success');
-      await loadFascicoli();
-      await loadPrelievi();
-      renderFascicoli();
-      updateDashboard();
-    } catch(e) { showToast('Errore: ' + e.message, 'error'); }
-  };
-  openModal('modal-confirm');
+  if (!currentUser || currentUser.ruolo !== 'admin') {
+    showToast('Solo gli amministratori possono eliminare i fascicoli', 'error');
+    return;
+  }
+  deleteFascicoloTarget = { id, numero };
+  document.getElementById('del-fasc-numero').textContent = numero;
+  document.getElementById('del-fasc-confirm-input').value = '';
+  document.getElementById('del-fasc-confirm-msg').textContent = '';
+  const btn = document.getElementById('del-fasc-ok-btn');
+  btn.disabled = true; btn.style.opacity = '.4'; btn.style.cursor = 'not-allowed';
+  openModal('modal-confirm-fascicolo');
+}
+
+function checkDelFascConferma() {
+  const input = document.getElementById('del-fasc-confirm-input');
+  const msg = document.getElementById('del-fasc-confirm-msg');
+  const btn = document.getElementById('del-fasc-ok-btn');
+  const val = input.value.trim();
+  const target = deleteFascicoloTarget?.numero || '';
+  if (!val) {
+    msg.textContent = '';
+    btn.disabled = true; btn.style.opacity = '.4'; btn.style.cursor = 'not-allowed';
+    input.style.borderColor = 'var(--border)';
+    return;
+  }
+  if (val === target) {
+    msg.innerHTML = '<span style="color:#16a34a">✓ Numero corretto — puoi procedere</span>';
+    btn.disabled = false; btn.style.opacity = '1'; btn.style.cursor = 'pointer';
+    input.style.borderColor = '#16a34a';
+  } else {
+    msg.innerHTML = '<span style="color:#DC2626">✗ Il numero non corrisponde</span>';
+    btn.disabled = true; btn.style.opacity = '.4'; btn.style.cursor = 'not-allowed';
+    input.style.borderColor = '#DC2626';
+  }
+}
+
+async function confirmDeleteFascicolo() {
+  if (!deleteFascicoloTarget) return;
+  const { id, numero } = deleteFascicoloTarget;
+  closeModal('modal-confirm-fascicolo');
+  try {
+    await api('fascicoli', {
+      method: 'PATCH',
+      body: {
+        eliminato: true,
+        eliminato_da: currentUser?.nome || currentUser?.username || 'admin',
+        eliminato_il: new Date().toISOString()
+      },
+      params: `id=eq.${id}`
+    });
+    showToast(`Fascicolo ${numero} eliminato`, 'success');
+    deleteFascicoloTarget = null;
+    await loadFascicoli();
+    await loadPrelievi();
+    renderFascicoli();
+    updateDashboard();
+  } catch(e) { showToast('Errore: ' + e.message, 'error'); }
 }
 
 async function confirmDelete() {
