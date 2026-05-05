@@ -1577,11 +1577,17 @@ tbody tr:hover { background: var(--bg); }
   <div class="modal">
     <h2 class="modal-title" id="modal-fascicolo-title">Nuovo Fascicolo</h2>
     <input type="hidden" id="fascicolo-edit-id">
-    <div class="field">
-      <label>Numero Fascicolo *</label>
-      <input type="text" id="f-numero" placeholder="es. 1234" oninput="checkFascicoloRef(this.value); checkDuplicato()">
-      <div id="fascicolo-ref-check" style="display:none;margin-top:5px;font-size:12px;font-weight:600;display:flex;align-items:center;gap:5px"></div>
-      <div id="fascicolo-dup-check" style="display:none;margin-top:4px;font-size:12px;font-weight:600;display:flex;align-items:center;gap:5px"></div>
+    <div class="field-row">
+      <div class="field">
+        <label>Numero Sentenza *</label>
+        <input type="text" id="f-numero" placeholder="es. 1234" oninput="checkFascicoloRef(this.value); checkDuplicato()">
+        <div id="fascicolo-ref-check" style="display:none;margin-top:5px;font-size:12px;font-weight:600;display:flex;align-items:center;gap:5px"></div>
+        <div id="fascicolo-dup-check" style="display:none;margin-top:4px;font-size:12px;font-weight:600;display:flex;align-items:center;gap:5px"></div>
+      </div>
+      <div class="field">
+        <label>RGNR</label>
+        <input type="text" id="f-rgnr" placeholder="es. 1234/2024">
+      </div>
     </div>
     <div class="field-row">
       <div class="field">
@@ -2287,6 +2293,7 @@ function filterFascicoliMobile(q) {
   const filtered = allFascicoli.filter(f =>
     f.numero.toLowerCase().includes(q) ||
     (f.richiesta || '').toLowerCase().includes(q) ||
+    (f.rgnr || '').toLowerCase().includes(q) ||
     String(f.anno).includes(q) ||
     (f.note || '').toLowerCase().includes(q)
   );
@@ -2342,6 +2349,7 @@ function closeModal(id) {
 function resetFascicoloForm() {
   document.getElementById('fascicolo-edit-id').value = '';
   document.getElementById('f-numero').value = '';
+  document.getElementById('f-rgnr').value = '';
   const refCheck = document.getElementById('fascicolo-ref-check'); if(refCheck) refCheck.style.display='none';
   const dupCheck = document.getElementById('fascicolo-dup-check'); if(dupCheck) dupCheck.style.display='none';
   document.getElementById('f-anno').value = '';
@@ -2358,6 +2366,7 @@ function editFascicolo(id) {
   openModal('modal-fascicolo');
   document.getElementById('fascicolo-edit-id').value = f.id;
   document.getElementById('f-numero').value = f.numero;
+  document.getElementById('f-rgnr').value = f.rgnr || '';
   document.getElementById('f-anno').value = f.anno;
   document.getElementById('f-richiesta').value = f.richiesta;
   document.getElementById('f-posizione').value = f.posizione_id || '';
@@ -2369,6 +2378,7 @@ function editFascicolo(id) {
 async function saveFascicolo() {
   const editId = document.getElementById('fascicolo-edit-id').value;
   const numero = document.getElementById('f-numero').value.trim();
+  const rgnr = document.getElementById('f-rgnr').value.trim();
   const anno = parseInt(document.getElementById('f-anno').value);
   const richiesta = document.getElementById('f-richiesta').value.trim();
   const posizione_id = document.getElementById('f-posizione').value;
@@ -2378,7 +2388,7 @@ async function saveFascicolo() {
     showToast('Compila tutti i campi obbligatori', 'error'); return;
   }
   
-  const data = { numero, anno, richiesta, posizione_id, note: note || null };
+  const data = { numero, anno, richiesta, rgnr: rgnr || null, posizione_id, note: note || null };
   
   try {
     if (editId) {
