@@ -20,6 +20,19 @@
   --surface2: #f0f0f2;
   --border: #e2e2e7;
   --border2: #d1d1d6;
+  /* MOTIVAZIONI PRELIEVO */
+  --motivo-irrevocabilita: #DC2626;
+  --motivo-irrevocabilita-bg: #FEF2F2;
+  --motivo-irrevocabilita-border: #FCA5A5;
+  --motivo-impugnazione: #D97706;
+  --motivo-impugnazione-bg: #FFFBEB;
+  --motivo-impugnazione-border: #FCD34D;
+  --motivo-prestito: #0F766E;
+  --motivo-prestito-bg: #CCFBF1;
+  --motivo-prestito-border: #5EEAD4;
+  --motivo-altro: #2563EB;
+  --motivo-altro-bg: #EFF6FF;
+  --motivo-altro-border: #93C5FD;
   --text: #1c1c1e;
   --text2: #48484a;
   --text3: #8e8e93;
@@ -1646,16 +1659,20 @@ tbody tr:hover { background: var(--bg); }
     <div class="field">
       <label>Motivazione <span style="color:var(--red);font-size:11px">★ obbligatoria</span></label>
       <div style="display:flex;flex-direction:column;gap:6px;margin-top:4px" id="pr-motiv-group">
-        <label style="display:flex;align-items:center;gap:8px;padding:8px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;font-weight:normal;font-size:13px" id="pr-motiv-label-irr">
-          <input type="radio" name="pr-motivazione" value="Irrevocabilità" onchange="onMotivChange()" style="accent-color:var(--blue)">
+        <label style="display:flex;align-items:center;gap:8px;padding:8px 10px;border:2px solid var(--motivo-irrevocabilita-border);border-radius:var(--radius-sm);cursor:pointer;font-weight:normal;font-size:13px;background:var(--motivo-irrevocabilita-bg);color:var(--motivo-irrevocabilita)" id="pr-motiv-label-irr">
+          <input type="radio" name="pr-motivazione" value="Irrevocabilità" onchange="onMotivChange()" style="accent-color:var(--motivo-irrevocabilita)">
           Irrevocabilità
         </label>
-        <label style="display:flex;align-items:center;gap:8px;padding:8px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;font-weight:normal;font-size:13px" id="pr-motiv-label-imp">
-          <input type="radio" name="pr-motivazione" value="Impugnazione" onchange="onMotivChange()" style="accent-color:var(--blue)">
+        <label style="display:flex;align-items:center;gap:8px;padding:8px 10px;border:2px solid var(--motivo-impugnazione-border);border-radius:var(--radius-sm);cursor:pointer;font-weight:normal;font-size:13px;background:var(--motivo-impugnazione-bg);color:var(--motivo-impugnazione)" id="pr-motiv-label-imp">
+          <input type="radio" name="pr-motivazione" value="Impugnazione" onchange="onMotivChange()" style="accent-color:var(--motivo-impugnazione)">
           Impugnazione
         </label>
-        <label style="display:flex;align-items:center;gap:8px;padding:8px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;font-weight:normal;font-size:13px" id="pr-motiv-label-altro">
-          <input type="radio" name="pr-motivazione" value="altro" onchange="onMotivChange()" style="accent-color:var(--blue)">
+        <label style="display:flex;align-items:center;gap:8px;padding:8px 10px;border:2px solid var(--motivo-prestito-border);border-radius:var(--radius-sm);cursor:pointer;font-weight:normal;font-size:13px;background:var(--motivo-prestito-bg);color:var(--motivo-prestito)" id="pr-motiv-label-pre">
+          <input type="radio" name="pr-motivazione" value="In Prestito" onchange="onMotivChange()" style="accent-color:var(--motivo-prestito)">
+          In Prestito
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;padding:8px 10px;border:2px solid var(--motivo-altro-border);border-radius:var(--radius-sm);cursor:pointer;font-weight:normal;font-size:13px;background:var(--motivo-altro-bg);color:var(--motivo-altro)" id="pr-motiv-label-altro">
+          <input type="radio" name="pr-motivazione" value="altro" onchange="onMotivChange()" style="accent-color:var(--motivo-altro)">
           Altro
         </label>
       </div>
@@ -1689,16 +1706,20 @@ tbody tr:hover { background: var(--bg); }
     <div class="field">
       <label>Motivazione</label>
       <div style="display:flex;flex-direction:column;gap:6px;margin-top:4px">
-        <label style="display:flex;align-items:center;gap:8px;padding:8px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;font-weight:normal;font-size:13px">
-          <input type="radio" name="mod-motivazione" value="Irrevocabilità" onchange="onModMotivChange()" style="accent-color:var(--blue)">
+        <label style="display:flex;align-items:center;gap:8px;padding:8px 10px;border:2px solid var(--motivo-irrevocabilita-border);border-radius:var(--radius-sm);cursor:pointer;font-weight:normal;font-size:13px;background:var(--motivo-irrevocabilita-bg);color:var(--motivo-irrevocabilita)">
+          <input type="radio" name="mod-motivazione" value="Irrevocabilità" onchange="onModMotivChange()" style="accent-color:var(--motivo-irrevocabilita)">
           Irrevocabilità
         </label>
-        <label style="display:flex;align-items:center;gap:8px;padding:8px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;font-weight:normal;font-size:13px">
-          <input type="radio" name="mod-motivazione" value="Impugnazione" onchange="onModMotivChange()" style="accent-color:var(--blue)">
+        <label style="display:flex;align-items:center;gap:8px;padding:8px 10px;border:2px solid var(--motivo-impugnazione-border);border-radius:var(--radius-sm);cursor:pointer;font-weight:normal;font-size:13px;background:var(--motivo-impugnazione-bg);color:var(--motivo-impugnazione)">
+          <input type="radio" name="mod-motivazione" value="Impugnazione" onchange="onModMotivChange()" style="accent-color:var(--motivo-impugnazione)">
           Impugnazione
         </label>
-        <label style="display:flex;align-items:center;gap:8px;padding:8px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;font-weight:normal;font-size:13px">
-          <input type="radio" name="mod-motivazione" value="altro" onchange="onModMotivChange()" style="accent-color:var(--blue)">
+        <label style="display:flex;align-items:center;gap:8px;padding:8px 10px;border:2px solid var(--motivo-prestito-border);border-radius:var(--radius-sm);cursor:pointer;font-weight:normal;font-size:13px;background:var(--motivo-prestito-bg);color:var(--motivo-prestito)">
+          <input type="radio" name="mod-motivazione" value="In Prestito" onchange="onModMotivChange()" style="accent-color:var(--motivo-prestito)">
+          In Prestito
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;padding:8px 10px;border:2px solid var(--motivo-altro-border);border-radius:var(--radius-sm);cursor:pointer;font-weight:normal;font-size:13px;background:var(--motivo-altro-bg);color:var(--motivo-altro)">
+          <input type="radio" name="mod-motivazione" value="altro" onchange="onModMotivChange()" style="accent-color:var(--motivo-altro)">
           Altro
         </label>
       </div>
@@ -2767,7 +2788,16 @@ function renderPrelievi(filter = 'in_corso') {
         ${f ? `<span style="color:var(--text3);font-size:11px;margin-left:6px">(${f.anno})</span>` : ''}
       </td>
       <td>${escHtml(p.prelevato_da)}</td>
-      <td>${p.motivazione ? `<span style="background:var(--blue);color:#fff;padding:2px 8px;border-radius:10px;font-size:11px;white-space:nowrap">${escHtml(p.motivazione)}</span>` : '<span style="color:var(--text3)">—</span>'}</td>
+      <td>${p.motivazione ? (() => {
+        const m = p.motivazione;
+        const styles = {
+          'Irrevocabilità': 'background:var(--motivo-irrevocabilita-bg);color:var(--motivo-irrevocabilita);border:1px solid var(--motivo-irrevocabilita-border)',
+          'Impugnazione':   'background:var(--motivo-impugnazione-bg);color:var(--motivo-impugnazione);border:1px solid var(--motivo-impugnazione-border)',
+          'In Prestito':    'background:var(--motivo-prestito-bg);color:var(--motivo-prestito);border:1px solid var(--motivo-prestito-border)',
+        };
+        const style = styles[m] || 'background:var(--motivo-altro-bg);color:var(--motivo-altro);border:1px solid var(--motivo-altro-border)';
+        return `<span style="padding:2px 8px;border-radius:10px;font-size:11px;white-space:nowrap;font-weight:600;${style}">${escHtml(m)}</span>`;
+      })() : '<span style="color:var(--text3)">—</span>'}</td>
       <td>${formatDate(p.data_prelievo)}</td>
       <td>${p.data_restituzione ? formatDate(p.data_restituzione) : '<span style="color:var(--text3)">—</span>'}</td>
       <td style="color:var(--text3);font-size:12px;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${escHtml(p.note || '')}">${escHtml(p.note || '—')}</td>
@@ -2794,10 +2824,20 @@ function onMotivChange() {
   const val = document.querySelector('input[name="pr-motivazione"]:checked')?.value;
   const libera = document.getElementById('pr-motivazione-libera');
   libera.style.display = val === 'altro' ? 'block' : 'none';
-  // Highlight selected radio label
-  ['pr-motiv-label-irr','pr-motiv-label-imp','pr-motiv-label-altro'].forEach(id => {
+  // Highlight selected, dim others
+  const map = {
+    'pr-motiv-label-irr': { color: 'var(--motivo-irrevocabilita)', bg: 'var(--motivo-irrevocabilita-bg)', border: 'var(--motivo-irrevocabilita-border)' },
+    'pr-motiv-label-imp': { color: 'var(--motivo-impugnazione)',   bg: 'var(--motivo-impugnazione-bg)',   border: 'var(--motivo-impugnazione-border)' },
+    'pr-motiv-label-pre': { color: 'var(--motivo-prestito)',       bg: 'var(--motivo-prestito-bg)',       border: 'var(--motivo-prestito-border)' },
+    'pr-motiv-label-altro':{ color: 'var(--motivo-altro)',         bg: 'var(--motivo-altro-bg)',          border: 'var(--motivo-altro-border)' },
+  };
+  Object.entries(map).forEach(([id, style]) => {
     const el = document.getElementById(id);
-    if (el) el.style.borderColor = el.querySelector('input').checked ? 'var(--blue)' : 'var(--border)';
+    if (!el) return;
+    const checked = el.querySelector('input').checked;
+    el.style.opacity = checked ? '1' : '0.55';
+    el.style.fontWeight = checked ? '600' : 'normal';
+    el.style.borderWidth = checked ? '2px' : '2px';
   });
 }
 
@@ -2831,9 +2871,9 @@ function openPrelievo(fascicoloId) {
   document.querySelectorAll('input[name="pr-motivazione"]').forEach(r => r.checked = false);
   document.getElementById('pr-motivazione-libera').style.display = 'none';
   document.getElementById('pr-motivazione-libera').value = '';
-  ['pr-motiv-label-irr','pr-motiv-label-imp','pr-motiv-label-altro'].forEach(id => {
+  ['pr-motiv-label-irr','pr-motiv-label-imp','pr-motiv-label-pre','pr-motiv-label-altro'].forEach(id => {
     const el = document.getElementById(id);
-    if (el) el.style.borderColor = 'var(--border)';
+    if (el) { el.style.opacity = '1'; el.style.fontWeight = 'normal'; }
   });
   openModal('modal-prelievo');
 }
@@ -2852,7 +2892,7 @@ function openModificaPrelievo(prelievoId) {
   
   // Popola motivazione
   const motiv = p.motivazione || '';
-  const isStandard = ['Irrevocabilità','Impugnazione'].includes(motiv);
+  const isStandard = ['Irrevocabilità','Impugnazione','In Prestito'].includes(motiv);
   document.querySelectorAll('input[name="mod-motivazione"]').forEach(r => {
     r.checked = isStandard ? r.value === motiv : (motiv ? r.value === 'altro' : false);
   });
