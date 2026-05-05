@@ -1129,6 +1129,10 @@ tbody tr:hover { background: var(--bg); }
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
         Fascicoli
       </div>
+      <div class="nav-item" onclick="cercaRapido()" style="background:var(--blue);color:#fff;font-weight:600" title="Cerca un fascicolo">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        Cerca
+      </div>
       <div class="nav-item" data-page="posizioni" onclick="goTo('posizioni')">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
         Posizioni
@@ -1208,6 +1212,27 @@ tbody tr:hover { background: var(--bg); }
           <div class="stat-value" id="stat-posizioni">—</div>
           <div class="stat-label">Posizioni</div>
         </div>
+      </div>
+      <!-- CERCA RAPIDO SCRIVANIA -->
+      <div class="card" style="margin-bottom:16px">
+        <div class="card-title" style="margin-bottom:10px">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="vertical-align:-2px;margin-right:5px"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          Cerca Fascicolo
+        </div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <input type="text" id="cerca-rapido-input"
+            placeholder="Numero sentenza, RGNR, RGT..."
+            style="flex:1;padding:10px 14px;border:2px solid var(--border);border-radius:var(--radius-sm);font-size:14px;outline:none;transition:border-color .15s"
+            oninput="cercaRapidoLive(this.value)"
+            onkeydown="if(event.key==='Enter') cercaRapidoVai()"
+            onfocus="this.style.borderColor='var(--blue)'"
+            onblur="this.style.borderColor='var(--border)'">
+          <button class="btn btn-primary" onclick="cercaRapidoVai()" style="white-space:nowrap;gap:6px">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            Cerca
+          </button>
+        </div>
+        <div id="cerca-rapido-risultati" style="margin-top:8px;display:none;max-height:220px;overflow-y:auto;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface)"></div>
       </div>
       <div class="content-grid">
         <div class="card">
@@ -2058,6 +2083,71 @@ async function loadAll() {
 // =============================================
 // NAVIGATION
 // =============================================
+// ── CERCA RAPIDO ──────────────────────────────────────────────────────────────
+function cercaRapido() {
+  goTo('fascicoli');
+  setTimeout(() => {
+    const input = document.getElementById('search-fascicoli') || document.querySelector('.search-bar input') || document.querySelector('input[placeholder*="cerca"]') || document.querySelector('input[id*="search"]');
+    if (input) { input.focus(); input.select(); }
+  }, 100);
+}
+
+function cercaRapidoLive(q) {
+  const box = document.getElementById('cerca-rapido-risultati');
+  if (!q || q.length < 2) { box.style.display = 'none'; return; }
+  const ql = q.toLowerCase();
+  const results = (allFascicoli || []).filter(f =>
+    (f.numero || '').toLowerCase().includes(ql) ||
+    (f.rgnr || '').toLowerCase().includes(ql) ||
+    (f.richiesta || '').toLowerCase().includes(ql)
+  ).slice(0, 8);
+
+  if (!results.length) {
+    box.style.display = 'block';
+    box.innerHTML = `<div style="padding:12px 14px;color:var(--text3);font-size:13px">Nessun fascicolo trovato</div>`;
+    return;
+  }
+  box.style.display = 'block';
+  box.innerHTML = results.map(f => {
+    const badge = f.stato === 'disponibile'
+      ? `<span style="background:var(--green-light,#dcfce7);color:var(--green,#16a34a);padding:1px 7px;border-radius:8px;font-size:11px;font-weight:600">Disponibile</span>`
+      : `<span style="background:#fff7ed;color:#ea580c;padding:1px 7px;border-radius:8px;font-size:11px;font-weight:600">In prelievo</span>`;
+    const pos = f.posizioni?.codice || '—';
+    return `<div onclick="cercaRapidoApri('${f.id}')" style="padding:10px 14px;cursor:pointer;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:8px;transition:background .1s" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background=''">
+      <div>
+        <strong style="font-size:13px">${escHtml(f.numero)}</strong>
+        ${f.rgnr ? `<span style="color:var(--text3);font-size:11px;margin-left:6px">RGNR: ${escHtml(f.rgnr)}</span>` : ''}
+        <span style="color:var(--text3);font-size:11px;margin-left:6px">Anno ${f.anno}</span>
+        <div style="font-size:11px;color:var(--text3);margin-top:1px">RGT: ${escHtml(f.richiesta)} • ${escHtml(pos)}</div>
+      </div>
+      ${badge}
+    </div>`;
+  }).join('');
+}
+
+function cercaRapidoApri(id) {
+  document.getElementById('cerca-rapido-risultati').style.display = 'none';
+  document.getElementById('cerca-rapido-input').value = '';
+  goTo('fascicoli');
+  setTimeout(() => {
+    const searchEl = document.getElementById('fascicoli-search');
+    if (searchEl) {
+      const f = allFascicoli.find(x => x.id === id);
+      if (f) { searchEl.value = f.numero; filterFascicoli(); }
+    }
+  }, 120);
+}
+
+function cercaRapidoVai() {
+  const q = document.getElementById('cerca-rapido-input').value.trim();
+  if (!q) return;
+  goTo('fascicoli');
+  setTimeout(() => {
+    const searchEl = document.getElementById('fascicoli-search');
+    if (searchEl) { searchEl.value = q; filterFascicoli(); }
+  }, 120);
+}
+
 function goTo(page) {
   // Stop scanner when leaving
   if (page !== 'scanner') stopScanner();
