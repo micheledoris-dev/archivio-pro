@@ -1394,6 +1394,7 @@ tbody tr:hover { background: var(--bg); }
             <tr>
               <th>Fascicolo</th>
               <th>Prelevato da</th>
+              <th>Motivazione</th>
               <th>Data Prelievo</th>
               <th>Data Restituzione</th>
               <th>Note</th>
@@ -1643,6 +1644,24 @@ tbody tr:hover { background: var(--bg); }
       <input type="date" id="pr-data">
     </div>
     <div class="field">
+      <label>Motivazione <span style="color:var(--red);font-size:11px">★ obbligatoria</span></label>
+      <div style="display:flex;flex-direction:column;gap:6px;margin-top:4px" id="pr-motiv-group">
+        <label style="display:flex;align-items:center;gap:8px;padding:8px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;font-weight:normal;font-size:13px" id="pr-motiv-label-irr">
+          <input type="radio" name="pr-motivazione" value="Irrevocabilità" onchange="onMotivChange()" style="accent-color:var(--blue)">
+          Irrevocabilità
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;padding:8px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;font-weight:normal;font-size:13px" id="pr-motiv-label-imp">
+          <input type="radio" name="pr-motivazione" value="Impugnazione" onchange="onMotivChange()" style="accent-color:var(--blue)">
+          Impugnazione
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;padding:8px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;font-weight:normal;font-size:13px" id="pr-motiv-label-altro">
+          <input type="radio" name="pr-motivazione" value="altro" onchange="onMotivChange()" style="accent-color:var(--blue)">
+          Altro
+        </label>
+      </div>
+      <textarea id="pr-motivazione-libera" placeholder="Descrivi il motivo del prelievo..." style="display:none;margin-top:6px" rows="2"></textarea>
+    </div>
+    <div class="field">
       <label>Note prelievo</label>
       <textarea id="pr-note" placeholder="Note opzionali..."></textarea>
     </div>
@@ -1666,6 +1685,24 @@ tbody tr:hover { background: var(--bg); }
     <div class="field">
       <label>Data Prelievo *</label>
       <input type="date" id="mod-data">
+    </div>
+    <div class="field">
+      <label>Motivazione</label>
+      <div style="display:flex;flex-direction:column;gap:6px;margin-top:4px">
+        <label style="display:flex;align-items:center;gap:8px;padding:8px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;font-weight:normal;font-size:13px">
+          <input type="radio" name="mod-motivazione" value="Irrevocabilità" onchange="onModMotivChange()" style="accent-color:var(--blue)">
+          Irrevocabilità
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;padding:8px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;font-weight:normal;font-size:13px">
+          <input type="radio" name="mod-motivazione" value="Impugnazione" onchange="onModMotivChange()" style="accent-color:var(--blue)">
+          Impugnazione
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;padding:8px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;font-weight:normal;font-size:13px">
+          <input type="radio" name="mod-motivazione" value="altro" onchange="onModMotivChange()" style="accent-color:var(--blue)">
+          Altro
+        </label>
+      </div>
+      <textarea id="mod-motivazione-libera" placeholder="Descrivi il motivo..." style="display:none;margin-top:6px" rows="2"></textarea>
     </div>
     <div class="field">
       <label>Note prelievo</label>
@@ -2730,6 +2767,7 @@ function renderPrelievi(filter = 'in_corso') {
         ${f ? `<span style="color:var(--text3);font-size:11px;margin-left:6px">(${f.anno})</span>` : ''}
       </td>
       <td>${escHtml(p.prelevato_da)}</td>
+      <td>${p.motivazione ? `<span style="background:var(--blue);color:#fff;padding:2px 8px;border-radius:10px;font-size:11px;white-space:nowrap">${escHtml(p.motivazione)}</span>` : '<span style="color:var(--text3)">—</span>'}</td>
       <td>${formatDate(p.data_prelievo)}</td>
       <td>${p.data_restituzione ? formatDate(p.data_restituzione) : '<span style="color:var(--text3)">—</span>'}</td>
       <td style="color:var(--text3);font-size:12px;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${escHtml(p.note || '')}">${escHtml(p.note || '—')}</td>
@@ -2752,6 +2790,23 @@ function filterPrelievi(filter, btn) {
   renderPrelievi(filter);
 }
 
+function onMotivChange() {
+  const val = document.querySelector('input[name="pr-motivazione"]:checked')?.value;
+  const libera = document.getElementById('pr-motivazione-libera');
+  libera.style.display = val === 'altro' ? 'block' : 'none';
+  // Highlight selected radio label
+  ['pr-motiv-label-irr','pr-motiv-label-imp','pr-motiv-label-altro'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.borderColor = el.querySelector('input').checked ? 'var(--blue)' : 'var(--border)';
+  });
+}
+
+function onModMotivChange() {
+  const val = document.querySelector('input[name="mod-motivazione"]:checked')?.value;
+  const libera = document.getElementById('mod-motivazione-libera');
+  libera.style.display = val === 'altro' ? 'block' : 'none';
+}
+
 function openPrelievo(fascicoloId) {
   const f = allFascicoli.find(x => x.id === fascicoloId);
   if (!f) return;
@@ -2772,6 +2827,14 @@ function openPrelievo(fascicoloId) {
   document.getElementById('pr-persona').value = '';
   document.getElementById('pr-data').value = new Date().toISOString().split('T')[0];
   document.getElementById('pr-note').value = '';
+  // Reset motivazione
+  document.querySelectorAll('input[name="pr-motivazione"]').forEach(r => r.checked = false);
+  document.getElementById('pr-motivazione-libera').style.display = 'none';
+  document.getElementById('pr-motivazione-libera').value = '';
+  ['pr-motiv-label-irr','pr-motiv-label-imp','pr-motiv-label-altro'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.borderColor = 'var(--border)';
+  });
   openModal('modal-prelievo');
 }
 
@@ -2786,6 +2849,21 @@ function openModificaPrelievo(prelievoId) {
   document.getElementById('mod-persona').value = p.prelevato_da || '';
   document.getElementById('mod-data').value = p.data_prelievo || '';
   document.getElementById('mod-note').value = p.note || '';
+  
+  // Popola motivazione
+  const motiv = p.motivazione || '';
+  const isStandard = ['Irrevocabilità','Impugnazione'].includes(motiv);
+  document.querySelectorAll('input[name="mod-motivazione"]').forEach(r => {
+    r.checked = isStandard ? r.value === motiv : (motiv ? r.value === 'altro' : false);
+  });
+  const liberaEl = document.getElementById('mod-motivazione-libera');
+  if (!isStandard && motiv) {
+    liberaEl.style.display = 'block';
+    liberaEl.value = motiv;
+  } else {
+    liberaEl.style.display = 'none';
+    liberaEl.value = '';
+  }
   openModal('modal-modifica-prelievo');
 }
 
@@ -2794,13 +2872,17 @@ async function saveModificaPrelievo() {
   const persona = document.getElementById('mod-persona').value.trim();
   const data = document.getElementById('mod-data').value;
   const note = document.getElementById('mod-note').value.trim();
+  const motivVal = document.querySelector('input[name="mod-motivazione"]:checked')?.value;
+  const motivLibera = document.getElementById('mod-motivazione-libera').value.trim();
   
   if (!persona || !data) { showToast('Compila tutti i campi obbligatori', 'error'); return; }
+  
+  const motivazione = motivVal === 'altro' ? motivLibera : (motivVal || null);
   
   try {
     await api('prelievi', {
       method: 'PATCH',
-      body: { prelevato_da: persona, data_prelievo: data, note: note || null },
+      body: { prelevato_da: persona, data_prelievo: data, note: note || null, motivazione: motivazione },
       params: `id=eq.${prelievoId}`
     });
     showToast('Prelievo aggiornato', 'success');
@@ -2817,8 +2899,34 @@ async function savePrelievo() {
   const persona = document.getElementById('pr-persona').value.trim();
   const data = document.getElementById('pr-data').value;
   const note = document.getElementById('pr-note').value.trim();
+  const motivVal = document.querySelector('input[name="pr-motivazione"]:checked')?.value;
+  const motivLibera = document.getElementById('pr-motivazione-libera').value.trim();
   
   if (!persona || !data) { showToast('Compila tutti i campi obbligatori', 'error'); return; }
+  if (!motivVal) { showToast('Seleziona una motivazione', 'error'); return; }
+  if (motivVal === 'altro' && !motivLibera) { showToast('Inserisci la motivazione nel campo testo', 'error'); return; }
+  
+  const motivazione = motivVal === 'altro' ? motivLibera : motivVal;
+  
+  try {
+    await api('prelievi', {
+      method: 'POST',
+      body: { fascicolo_id: fascicoloId, prelevato_da: persona, data_prelievo: data, note: note || null, stato: 'in_corso', motivazione: motivazione }
+    });
+    await api('fascicoli', {
+      method: 'PATCH',
+      body: { stato: 'in_prestito' },
+      params: `id=eq.${fascicoloId}`
+    });
+    showToast('Prelievo registrato', 'success');
+    closeModal('modal-prelievo');
+    await loadAll();
+    renderFascicoli();
+    renderPrelievi('in_corso');
+  } catch(e) {
+    showToast('Errore: ' + e.message, 'error');
+  }
+}
   
   try {
     await api('prelievi', {
@@ -2870,6 +2978,7 @@ function exportPrelieviExcel() {
       'Fascicolo': f ? f.numero : p.fascicolo_id,
       'Anno': f ? f.anno : '',
       'Prelevato da': p.prelevato_da,
+      'Motivazione': p.motivazione || '',
       'Data Prelievo': p.data_prelievo,
       'Data Restituzione': p.data_restituzione || '',
       'Stato': p.stato === 'in_corso' ? 'In corso' : 'Restituito',
