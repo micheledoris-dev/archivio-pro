@@ -2927,26 +2927,6 @@ async function savePrelievo() {
     showToast('Errore: ' + e.message, 'error');
   }
 }
-  
-  try {
-    await api('prelievi', {
-      method: 'POST',
-      body: { fascicolo_id: fascicoloId, prelevato_da: persona, data_prelievo: data, note: note || null, stato: 'in_corso' }
-    });
-    await api('fascicoli', {
-      method: 'PATCH',
-      body: { stato: 'in_prestito' },
-      params: `id=eq.${fascicoloId}`
-    });
-    showToast('Prelievo registrato', 'success');
-    closeModal('modal-prelievo');
-    await loadAll();
-    renderFascicoli();
-    renderPrelievi('in_corso');
-  } catch(e) {
-    showToast('Errore: ' + e.message, 'error');
-  }
-}
 
 async function restituisci(prelievoId) {
   const p = allPrelievi.find(x => x.id === prelievoId);
