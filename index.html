@@ -2266,6 +2266,7 @@ function goTo(page) {
   
   if (page === 'fascicoli') renderFascicoli();
   if (page === 'armadi') loadArmadi();
+  if (page === 'posizioni') { showPositionList(); loadPosizioni().then(() => renderPosizioni()); }
   if (page === 'prelievi') renderPrelievi('in_corso');
   if (page === 'utenti') renderUtenti();
 }
