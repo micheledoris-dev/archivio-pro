@@ -1242,7 +1242,7 @@ tbody tr:hover { background: var(--bg); }
         <div class="card">
           <div class="card-title">Azioni Rapide</div>
           <div class="quick-actions">
-            <div class="quick-action" onclick="openModal('modal-fascicolo')">
+            <div class="quick-action" onclick="apriNuovoFascicolo()">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
               Nuovo Fascicolo
             </div>
@@ -1303,7 +1303,7 @@ tbody tr:hover { background: var(--bg); }
             Import
           </button>
           <input type="file" id="import-file" accept=".xlsx,.xls" style="display:none" onchange="importExcel(this)">
-          <button class="btn btn-primary" onclick="openModal('modal-fascicolo')">
+          <button class="btn btn-primary" onclick="apriNuovoFascicolo()">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
             Nuovo
           </button>
@@ -1671,48 +1671,175 @@ tbody tr:hover { background: var(--bg); }
 
 <!-- Modal: Nuovo/Edit Fascicolo -->
 <div class="modal-overlay" id="modal-fascicolo">
-  <div class="modal">
+  <div class="modal" style="max-width:520px">
     <h2 class="modal-title" id="modal-fascicolo-title">Nuovo Fascicolo</h2>
     <input type="hidden" id="fascicolo-edit-id">
-    <div class="field-row">
+
+    <!-- ── PASSO 1: scelta percorso (solo nuovo, non modifica) ── -->
+    <div id="f-step1" style="display:none">
+      <p style="font-size:13px;color:var(--text2);margin-bottom:16px">Dove vuoi collocare il fascicolo?</p>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div onclick="scegliPercorso('scaffale')"
+          style="border:2px solid var(--border);border-radius:var(--radius);padding:20px 14px;cursor:pointer;text-align:center;transition:all .15s"
+          onmouseover="this.style.borderColor='var(--blue)';this.style.background='var(--blue-light,#eff6ff)'"
+          onmouseout="this.style.borderColor='var(--border)';this.style.background=''">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="1.5" style="margin-bottom:8px"><rect x="2" y="3" width="20" height="4" rx="1"/><rect x="2" y="9" width="20" height="4" rx="1"/><rect x="2" y="15" width="20" height="4" rx="1"/></svg>
+          <div style="font-weight:700;font-size:14px;color:var(--text)">Scaffale</div>
+          <div style="font-size:11px;color:var(--text3);margin-top:3px">Posizione esistente</div>
+        </div>
+        <div onclick="scegliPercorso('armadio')"
+          style="border:2px solid var(--border);border-radius:var(--radius);padding:20px 14px;cursor:pointer;text-align:center;transition:all .15s"
+          onmouseover="this.style.borderColor='var(--blue)';this.style.background='var(--blue-light,#eff6ff)'"
+          onmouseout="this.style.borderColor='var(--border)';this.style.background=''">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="1.5" style="margin-bottom:8px"><rect x="3" y="2" width="18" height="20" rx="1"/><line x1="3" y1="7" x2="21" y2="7"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="17" x2="21" y2="17"/><circle cx="8" cy="4.5" r=".8" fill="var(--blue)"/><circle cx="8" cy="9.5" r=".8" fill="var(--blue)"/><circle cx="8" cy="14.5" r=".8" fill="var(--blue)"/></svg>
+          <div style="font-weight:700;font-size:14px;color:var(--text)">Armadio</div>
+          <div style="font-size:11px;color:var(--text3);margin-top:3px">Pene Detentive S.M.</div>
+        </div>
+      </div>
+      <div style="text-align:center;margin-top:14px">
+        <button class="btn btn-secondary" onclick="scegliPercorso('nessuno')" style="font-size:12px">
+          Non ancora collocato — inserisci solo i dati
+        </button>
+      </div>
+      <div class="modal-actions" style="margin-top:16px">
+        <button class="btn btn-secondary" onclick="closeModal('modal-fascicolo')">Annulla</button>
+      </div>
+    </div>
+
+    <!-- ── PASSO 2: dati fascicolo ── -->
+    <div id="f-step2" style="display:none">
+
+      <!-- Badge percorso scelto -->
+      <div id="f-percorso-badge" style="display:inline-flex;align-items:center;gap:6px;background:var(--blue-light,#eff6ff);color:var(--blue);border:1px solid var(--blue);border-radius:20px;padding:3px 12px;font-size:12px;font-weight:600;margin-bottom:14px;cursor:pointer" onclick="tornaAlPasso1()">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+        <span id="f-percorso-label">Scaffale</span>
+      </div>
+
+      <!-- Dati fascicolo -->
+      <div class="field-row">
+        <div class="field">
+          <label>Numero Sentenza *</label>
+          <input type="text" id="f-numero" placeholder="es. 1234" oninput="checkFascicoloRef(this.value); checkDuplicato()">
+          <div id="fascicolo-ref-check" style="display:none;margin-top:5px;font-size:12px;font-weight:600"></div>
+          <div id="fascicolo-dup-check" style="display:none;margin-top:4px;font-size:12px;font-weight:600"></div>
+        </div>
+        <div class="field">
+          <label>RGNR</label>
+          <input type="text" id="f-rgnr" placeholder="es. 1234/2024">
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>Anno *</label>
+          <input type="number" id="f-anno" placeholder="2026" min="1900" max="2100" oninput="checkDuplicato()">
+        </div>
+        <div class="field">
+          <label>RGT *</label>
+          <input type="text" id="f-richiesta" placeholder="es. 480/24">
+        </div>
+      </div>
+
+      <!-- Sezione posizione SCAFFALE -->
+      <div id="f-sezione-scaffale" style="display:none">
+        <div class="field">
+          <label>Posizione *</label>
+          <select id="f-posizione">
+            <option value="">Seleziona posizione</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Sezione posizione ARMADIO -->
+      <div id="f-sezione-armadio" style="display:none">
+        <div class="field-row">
+          <div class="field">
+            <label>Armadio (anno) *</label>
+            <select id="f-armadio-id" onchange="aggiornaRipianiSelect()">
+              <option value="">Seleziona armadio</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Ripiano *</label>
+            <select id="f-ripiano-id">
+              <option value="">Prima seleziona armadio</option>
+            </select>
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label>Contenitore</label>
+            <select id="f-tipo-contenitore">
+              <option value="cartella">Cartella archivio</option>
+              <option value="valigetta">Valigetta</option>
+              <option value="raccoglitore">Raccoglitore</option>
+              <option value="scatola">Scatola</option>
+              <option value="pila">Pila sul ripiano</option>
+            </select>
+          </div>
+          <div class="field" id="f-valigetta-field" style="display:none">
+            <label>N° Valigetta</label>
+            <input type="text" id="f-valigetta-numero" placeholder="es. 0001">
+          </div>
+        </div>
+      </div>
+
       <div class="field">
-        <label>Numero Sentenza *</label>
-        <input type="text" id="f-numero" placeholder="es. 1234" oninput="checkFascicoloRef(this.value); checkDuplicato()">
-        <div id="fascicolo-ref-check" style="display:none;margin-top:5px;font-size:12px;font-weight:600;display:flex;align-items:center;gap:5px"></div>
-        <div id="fascicolo-dup-check" style="display:none;margin-top:4px;font-size:12px;font-weight:600;display:flex;align-items:center;gap:5px"></div>
+        <label>Note</label>
+        <textarea id="f-note" placeholder="Note opzionali..."></textarea>
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn btn-secondary" onclick="closeModal('modal-fascicolo')">Annulla</button>
+        <button class="btn btn-primary" onclick="saveFascicolo()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+          <span id="save-fascicolo-label">Crea</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Modifica: mostra direttamente step2 -->
+    <div id="f-step-modifica" style="display:none">
+      <div class="field-row">
+        <div class="field">
+          <label>Numero Sentenza *</label>
+          <input type="text" id="f-numero" placeholder="es. 1234" oninput="checkFascicoloRef(this.value); checkDuplicato()">
+          <div id="fascicolo-ref-check" style="display:none;margin-top:5px;font-size:12px;font-weight:600"></div>
+          <div id="fascicolo-dup-check" style="display:none;margin-top:4px;font-size:12px;font-weight:600"></div>
+        </div>
+        <div class="field">
+          <label>RGNR</label>
+          <input type="text" id="f-rgnr" placeholder="es. 1234/2024">
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>Anno *</label>
+          <input type="number" id="f-anno" placeholder="2026" min="1900" max="2100" oninput="checkDuplicato()">
+        </div>
+        <div class="field">
+          <label>RGT *</label>
+          <input type="text" id="f-richiesta" placeholder="es. 480/24">
+        </div>
       </div>
       <div class="field">
-        <label>RGNR</label>
-        <input type="text" id="f-rgnr" placeholder="es. 1234/2024">
-      </div>
-    </div>
-    <div class="field-row">
-      <div class="field">
-        <label>Anno *</label>
-        <input type="number" id="f-anno" placeholder="2026" min="1900" max="2100" oninput="checkDuplicato()">
+        <label>Posizione</label>
+        <select id="f-posizione">
+          <option value="">Seleziona posizione</option>
+        </select>
       </div>
       <div class="field">
-        <label>RGT *</label>
-        <input type="text" id="f-richiesta" placeholder="es. 480/24">
+        <label>Note</label>
+        <textarea id="f-note" placeholder="Note opzionali..."></textarea>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" onclick="closeModal('modal-fascicolo')">Annulla</button>
+        <button class="btn btn-primary" onclick="saveFascicolo()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+          <span id="save-fascicolo-label">Salva</span>
+        </button>
       </div>
     </div>
-    <div class="field">
-      <label>Posizione *</label>
-      <select id="f-posizione">
-        <option value="">Seleziona posizione</option>
-      </select>
-    </div>
-    <div class="field">
-      <label>Note</label>
-      <textarea id="f-note" placeholder="Note opzionali..."></textarea>
-    </div>
-    <div class="modal-actions">
-      <button class="btn btn-secondary" onclick="closeModal('modal-fascicolo')">Annulla</button>
-      <button class="btn btn-primary" onclick="saveFascicolo()">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-        <span id="save-fascicolo-label">Crea</span>
-      </button>
-    </div>
+
   </div>
 </div>
 
@@ -2218,7 +2345,7 @@ function cercaRapidoLive(q) {
     const badge = f.stato === 'disponibile'
       ? `<span style="background:var(--green-light,#dcfce7);color:var(--green,#16a34a);padding:1px 7px;border-radius:8px;font-size:11px;font-weight:600">Disponibile</span>`
       : `<span style="background:#fff7ed;color:#ea580c;padding:1px 7px;border-radius:8px;font-size:11px;font-weight:600">In prelievo</span>`;
-    const pos = f.posizioni?.codice || '—';
+    const pos = getPosizioneFascicolo(f);
     return `<div onclick="cercaRapidoApri('${f.id}')" style="padding:10px 14px;cursor:pointer;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:8px;transition:background .1s" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background=''">
       <div>
         <strong style="font-size:13px">${escHtml(f.numero)}</strong>
@@ -2332,7 +2459,7 @@ function renderFascicoli(list = null) {
   }
   
   tbody.innerHTML = data.map(f => {
-    const posCodice = f.posizioni?.codice || '—';
+    const posCodice = getPosizioneFascicolo(f);
     const badge = f.stato === 'disponibile' 
       ? '<span class="badge badge-green">Disponibile</span>'
       : '<span class="badge badge-orange">In prelievo</span>';
@@ -2374,7 +2501,7 @@ function renderFascicoliCards(data) {
     return;
   }
   container.innerHTML = data.map(f => {
-    const posCodice = f.posizioni?.codice || '—';
+    const posCodice = getPosizioneFascicolo(f);
     const badge = f.stato === 'disponibile'
       ? '<span class="badge badge-green">D</span>'
       : '<span class="badge badge-orange">P</span>';
@@ -2457,7 +2584,7 @@ function stampaSelezionati() {
   if (selezionati.length === 0) return;
   const now = new Date().toLocaleDateString('it-IT', { day:'2-digit', month:'long', year:'numeric' });
   const righe = selezionati.map((f, i) => {
-    const posCodice = f.posizioni?.codice || '—';
+    const posCodice = getPosizioneFascicolo(f);
     const stato = f.stato === 'disponibile' ? 'Disponibile' : 'In prelievo';
     return `<tr>
       <td style="text-align:center;color:#888">${i+1}</td>
@@ -2507,7 +2634,7 @@ function filterFascicoli() {
     f.richiesta.toLowerCase().includes(q) ||
     (f.note || '').toLowerCase().includes(q) ||
     String(f.anno).includes(q) ||
-    (f.posizioni?.codice || '').toLowerCase().includes(q)
+    getPosizioneFascicolo(f).toLowerCase().includes(q)
   );
   renderFascicoli(filtered);
 }
@@ -2524,16 +2651,13 @@ function openModal(id) {
   }
   
   if (id === 'modal-fascicolo') {
-    // Populate positions dropdown
+    // Popola dropdown scaffali (usato in modifica e percorso scaffale)
     const sel = document.getElementById('f-posizione');
-    const cur = sel.value;
-    sel.innerHTML = '<option value="">Seleziona posizione</option>' +
-      allPosizioni.map(p => `<option value="${p.id}">${escHtml(p.codice)}${p.descrizione ? ' – ' + escHtml(p.descrizione) : ''}</option>`).join('');
-    if (cur) sel.value = cur;
-    
-    // Set default anno
-    if (!document.getElementById('fascicolo-edit-id').value) {
-      document.getElementById('f-anno').value = new Date().getFullYear();
+    const cur = sel ? sel.value : '';
+    if (sel) {
+      sel.innerHTML = '<option value="">Seleziona posizione</option>' +
+        allPosizioni.map(p => `<option value="${p.id}">${escHtml(p.codice)}${p.descrizione ? ' – ' + escHtml(p.descrizione) : ''}</option>`).join('');
+      if (cur) sel.value = cur;
     }
   }
 }
@@ -2543,6 +2667,87 @@ function closeModal(id) {
   if (id === 'modal-fascicolo') resetFascicoloForm();
   if (id === 'modal-posizione') resetPosizioneForm();
   if (id === 'modal-utente') resetUtenteForm();
+}
+
+function getPosizioneFascicolo(f) {
+  // Prima controlla ripiano (armadio)
+  if (f.ripiano_id) {
+    const rip = allRipiani.find(r => r.id === f.ripiano_id);
+    if (rip) {
+      const arm = allArmadi.find(a => a.id === rip.armadio_id);
+      const tipo = f.tipo_contenitore ? ` — ${f.tipo_contenitore}` : '';
+      return arm ? `Armadio ${arm.nome} · Rip. ${rip.numero}${tipo}` : `Ripiano ${rip.numero}${tipo}`;
+    }
+  }
+  // Poi scaffale
+  if (f.posizioni?.codice) return f.posizioni.codice;
+  if (f.posizione_id) {
+    const pos = allPosizioni.find(p => p.id === f.posizione_id);
+    if (pos) return pos.codice;
+  }
+  return '—';
+}
+
+function apriNuovoFascicolo() {
+  document.getElementById('fascicolo-edit-id').value = '';
+  document.getElementById('modal-fascicolo-title').textContent = 'Nuovo Fascicolo';
+  document.getElementById('f-step1').style.display = 'block';
+  document.getElementById('f-step2').style.display = 'none';
+  document.getElementById('f-step-modifica').style.display = 'none';
+  fascioloPercorso = 'nessuno';
+  openModal('modal-fascicolo');
+}
+
+function scegliPercorso(percorso) {
+  fascioloPercorso = percorso;
+  document.getElementById('f-step1').style.display = 'none';
+  document.getElementById('f-step2').style.display = 'block';
+
+  // Badge percorso
+  const labels = { scaffale: '📁 Scaffale', armadio: '🗄️ Armadio Pene Detentive', nessuno: '📋 Solo dati' };
+  document.getElementById('f-percorso-label').textContent = labels[percorso] || percorso;
+
+  // Mostra sezione giusta
+  document.getElementById('f-sezione-scaffale').style.display = percorso === 'scaffale' ? 'block' : 'none';
+  document.getElementById('f-sezione-armadio').style.display = percorso === 'armadio' ? 'block' : 'none';
+
+  // Popola armadi se armadio
+  if (percorso === 'armadio') {
+    const sel = document.getElementById('f-armadio-id');
+    sel.innerHTML = '<option value="">Seleziona armadio</option>' +
+      allArmadi.map(a => `<option value="${a.id}">${escHtml(a.nome)} — ${escHtml(a.descrizione || '')}</option>`).join('');
+    document.getElementById('f-ripiano-id').innerHTML = '<option value="">Prima seleziona armadio</option>';
+    // Mostra/nascondi campo valigetta
+    document.getElementById('f-tipo-contenitore').onchange = function() {
+      document.getElementById('f-valigetta-field').style.display = this.value === 'valigetta' ? 'block' : 'none';
+    };
+  }
+
+  // Reset campi
+  ['f-numero','f-rgnr','f-richiesta','f-note'].forEach(id => { const el = document.getElementById(id); if(el) el.value = ''; });
+  document.getElementById('f-anno').value = new Date().getFullYear();
+  document.getElementById('f-posizione').value = '';
+  document.getElementById('save-fascicolo-label').textContent = 'Crea';
+  document.getElementById('f-numero').focus();
+}
+
+function tornaAlPasso1() {
+  document.getElementById('f-step1').style.display = 'block';
+  document.getElementById('f-step2').style.display = 'none';
+}
+
+function aggiornaRipianiSelect() {
+  const armadioId = document.getElementById('f-armadio-id').value;
+  const sel = document.getElementById('f-ripiano-id');
+  if (!armadioId) { sel.innerHTML = '<option value="">Prima seleziona armadio</option>'; return; }
+  // Ripiani ordinati dal 5 (alto) al 1 (basso) visivamente, ma etichettati 1=basso
+  const ripiani = allRipiani.filter(r => r.armadio_id === armadioId)
+    .sort((a, b) => b.numero - a.numero); // 5,4,3,2,1 dall'alto
+  sel.innerHTML = '<option value="">Seleziona ripiano</option>' +
+    ripiani.map(r => {
+      const pos = r.numero === 1 ? ' (basso)' : r.numero === 5 ? ' (alto)' : '';
+      return `<option value="${r.id}">Ripiano ${r.numero}${pos}</option>`;
+    }).join('');
 }
 
 function resetFascicoloForm() {
@@ -2563,6 +2768,10 @@ function editFascicolo(id) {
   const f = allFascicoli.find(x => x.id === id);
   if (!f) return;
   openModal('modal-fascicolo');
+  // Modifica — mostra direttamente step-modifica
+  document.getElementById('f-step1').style.display = 'none';
+  document.getElementById('f-step2').style.display = 'none';
+  document.getElementById('f-step-modifica').style.display = 'block';
   document.getElementById('fascicolo-edit-id').value = f.id;
   document.getElementById('f-numero').value = f.numero;
   document.getElementById('f-rgnr').value = f.rgnr || '';
@@ -2580,14 +2789,36 @@ async function saveFascicolo() {
   const rgnr = document.getElementById('f-rgnr').value.trim();
   const anno = parseInt(document.getElementById('f-anno').value);
   const richiesta = document.getElementById('f-richiesta').value.trim();
-  const posizione_id = document.getElementById('f-posizione').value;
   const note = document.getElementById('f-note').value.trim();
-  
-  if (!numero || !anno || !richiesta || !posizione_id) {
+
+  if (!numero || !anno || !richiesta) {
     showToast('Compila tutti i campi obbligatori', 'error'); return;
   }
-  
-  const data = { numero, anno, richiesta, rgnr: rgnr || null, posizione_id, note: note || null };
+
+  // Dati posizione in base al percorso
+  let posizione_id = null, ripiano_id = null, tipo_contenitore = null;
+
+  if (editId) {
+    // Modifica — usa posizione scaffale
+    posizione_id = document.getElementById('f-posizione').value || null;
+  } else if (fascioloPercorso === 'scaffale') {
+    posizione_id = document.getElementById('f-posizione').value;
+    if (!posizione_id) { showToast('Seleziona una posizione', 'error'); return; }
+  } else if (fascioloPercorso === 'armadio') {
+    ripiano_id = document.getElementById('f-ripiano-id').value;
+    tipo_contenitore = document.getElementById('f-tipo-contenitore').value;
+    if (!document.getElementById('f-armadio-id').value) { showToast('Seleziona un armadio', 'error'); return; }
+    if (!ripiano_id) { showToast('Seleziona un ripiano', 'error'); return; }
+  }
+
+  const data = {
+    numero, anno, richiesta,
+    rgnr: rgnr || null,
+    posizione_id: posizione_id || null,
+    ripiano_id: ripiano_id || null,
+    tipo_contenitore: tipo_contenitore || null,
+    note: note || null
+  };
   
   try {
     if (editId) {
@@ -2702,7 +2933,7 @@ function exportExcel() {
     'RGNR': f.rgnr || '',
     'Anno': f.anno,
     'RGT': f.richiesta,
-    'Posizione': f.posizioni?.codice || '',
+    'Posizione': getPosizioneFascicolo(f),
     'Stato': f.stato === 'disponibile' ? 'Disponibile' : 'In prelievo',
     'Note': f.note || ''
   }));
