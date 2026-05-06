@@ -2011,7 +2011,92 @@ tbody tr:hover { background: var(--bg); }
   </div>
 </div>
 
-<!-- Modal: Conferma Eliminazione FASCICOLO (doppia conferma) -->
+<!-- Modal: Riconsegna Fascicolo -->
+<div class="modal-overlay" id="modal-riconsegna">
+  <div class="modal" style="max-width:460px">
+    <h2 class="modal-title">Riconsegna Fascicolo</h2>
+    <input type="hidden" id="ric-prelievo-id">
+
+    <!-- Info fascicolo -->
+    <div id="ric-fascicolo-info" style="background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 14px;margin-bottom:16px;font-size:13px"></div>
+
+    <!-- Domanda principale -->
+    <p style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:10px">Dove lo hai rimesso?</p>
+
+    <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px">
+      <!-- Stesso posto -->
+      <label id="ric-opt-stesso" style="display:flex;align-items:center;gap:10px;padding:12px 14px;border:2px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;transition:all .15s"
+        onmouseover="this.style.borderColor='var(--green,#16a34a)'"
+        onmouseout="if(!document.getElementById('ric-radio-stesso').checked) this.style.borderColor='var(--border)'">
+        <input type="radio" name="ric-dove" id="ric-radio-stesso" value="stesso" onchange="onRicDoveChange()" style="accent-color:#16a34a">
+        <div>
+          <div style="font-weight:600;font-size:13px;color:var(--text)">✅ Stesso posto</div>
+          <div id="ric-posto-attuale" style="font-size:11px;color:var(--text3);margin-top:2px">—</div>
+        </div>
+      </label>
+
+      <!-- Posto diverso -->
+      <label id="ric-opt-diverso" style="display:flex;align-items:center;gap:10px;padding:12px 14px;border:2px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;transition:all .15s"
+        onmouseover="this.style.borderColor='var(--blue)'"
+        onmouseout="if(!document.getElementById('ric-radio-diverso').checked) this.style.borderColor='var(--border)'">
+        <input type="radio" name="ric-dove" id="ric-radio-diverso" value="diverso" onchange="onRicDoveChange()" style="accent-color:var(--blue)">
+        <div>
+          <div style="font-weight:600;font-size:13px;color:var(--text)">📍 Posto diverso</div>
+          <div style="font-size:11px;color:var(--text3);margin-top:2px">Aggiorna la posizione</div>
+        </div>
+      </label>
+    </div>
+
+    <!-- Sezione posto diverso -->
+    <div id="ric-sezione-diverso" style="display:none;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-sm);padding:14px;margin-bottom:16px">
+      <div style="font-size:12px;font-weight:600;color:var(--text2);margin-bottom:10px;text-transform:uppercase;letter-spacing:.5px">Nuova posizione</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
+        <label style="display:flex;align-items:center;gap:5px;font-size:12px;cursor:pointer">
+          <input type="radio" name="ric-tipo-pos" value="armadio" checked onchange="onRicTipoPosChange()" style="accent-color:var(--blue)"> Armadio
+        </label>
+        <label style="display:flex;align-items:center;gap:5px;font-size:12px;cursor:pointer">
+          <input type="radio" name="ric-tipo-pos" value="scaffale" onchange="onRicTipoPosChange()" style="accent-color:var(--blue)"> Scaffale
+        </label>
+      </div>
+
+      <!-- Armadio -->
+      <div id="ric-armadio-fields">
+        <div style="display:flex;gap:8px">
+          <div style="flex:1">
+            <label style="font-size:11px;font-weight:600;color:var(--text2)">Armadio</label>
+            <select id="ric-armadio-id" onchange="onRicArmadioChange()" style="width:100%;margin-top:3px;padding:7px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:12px">
+              <option value="">Seleziona</option>
+            </select>
+          </div>
+          <div style="flex:1">
+            <label style="font-size:11px;font-weight:600;color:var(--text2)">Ripiano</label>
+            <select id="ric-ripiano-id" style="width:100%;margin-top:3px;padding:7px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:12px">
+              <option value="">Prima seleziona armadio</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Scaffale -->
+      <div id="ric-scaffale-fields" style="display:none">
+        <label style="font-size:11px;font-weight:600;color:var(--text2)">Posizione scaffale</label>
+        <select id="ric-posizione-id" style="width:100%;margin-top:3px;padding:7px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:12px">
+          <option value="">Seleziona posizione</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeModal('modal-riconsegna')">Annulla</button>
+      <button class="btn btn-primary" id="ric-ok-btn" onclick="confermaRiconsegna()" disabled style="opacity:.4;cursor:not-allowed">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+        Conferma Riconsegna
+      </button>
+    </div>
+  </div>
+</div>
+
+
 <div class="modal-overlay" id="modal-confirm-fascicolo">
   <div class="modal" style="max-width:420px">
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
@@ -2346,16 +2431,92 @@ function cercaRapidoLive(q) {
       ? `<span style="background:var(--green-light,#dcfce7);color:var(--green,#16a34a);padding:1px 7px;border-radius:8px;font-size:11px;font-weight:600">Disponibile</span>`
       : `<span style="background:#fff7ed;color:#ea580c;padding:1px 7px;border-radius:8px;font-size:11px;font-weight:600">In prelievo</span>`;
     const pos = getPosizioneFascicolo(f);
-    return `<div onclick="cercaRapidoApri('${f.id}')" style="padding:10px 14px;cursor:pointer;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:8px;transition:background .1s" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background=''">
-      <div>
-        <strong style="font-size:13px">${escHtml(f.numero)}</strong>
-        ${f.rgnr ? `<span style="color:var(--text3);font-size:11px;margin-left:6px">RGNR: ${escHtml(f.rgnr)}</span>` : ''}
-        <span style="color:var(--text3);font-size:11px;margin-left:6px">Anno ${f.anno}</span>
-        <div style="font-size:11px;color:var(--text3);margin-top:1px">RGT: ${escHtml(f.richiesta)} • ${escHtml(pos)}</div>
+    const hasRipiano = !!f.ripiano_id;
+
+    return `<div style="padding:10px 14px;border-bottom:1px solid var(--border)">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;cursor:pointer"
+        onclick="cercaRapidoApri('${f.id}')"
+        onmouseover="this.style.background='var(--surface2)'"
+        onmouseout="this.style.background=''">
+        <div>
+          <strong style="font-size:13px">${escHtml(f.numero)}</strong>
+          ${f.rgnr ? `<span style="color:var(--text3);font-size:11px;margin-left:6px">RGNR: ${escHtml(f.rgnr)}</span>` : ''}
+          <span style="color:var(--text3);font-size:11px;margin-left:6px">Anno ${f.anno}</span>
+          <div style="font-size:11px;color:var(--text3);margin-top:1px">RGT: ${escHtml(f.richiesta)} • 📍 ${escHtml(pos)}</div>
+        </div>
+        ${badge}
       </div>
-      ${badge}
+      ${hasRipiano ? `
+      <div style="margin-top:6px">
+        <button onclick="mostraInArmadio('${f.ripiano_id}','${escHtml(f.numero)}')"
+          style="background:var(--blue);color:#fff;border:none;border-radius:var(--radius-sm);padding:4px 12px;font-size:11px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:5px;transition:opacity .15s"
+          onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          Mostrami dove si trova
+        </button>
+      </div>` : ''}
     </div>`;
   }).join('');
+}
+
+function mostraInArmadio(ripianoId, numeroFascicolo) {
+  // Chiudi la ricerca
+  document.getElementById('cerca-rapido-risultati').style.display = 'none';
+  document.getElementById('cerca-rapido-input').value = '';
+
+  // Vai alla pagina armadi
+  goTo('armadi');
+
+  // Aspetta che gli armadi siano renderizzati, poi fai highlight
+  setTimeout(() => illuminaRipiano(ripianoId, numeroFascicolo), 400);
+}
+
+function illuminaRipiano(ripianoId, numeroFascicolo) {
+  // Trova il div del ripiano tramite onclick
+  const tutti = document.querySelectorAll('#armadi-grid [onclick]');
+  let trovato = null;
+  tutti.forEach(el => {
+    if (el.getAttribute('onclick')?.includes(ripianoId)) trovato = el;
+  });
+
+  if (!trovato) return;
+
+  // Scroll verso l'elemento
+  trovato.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+  // Animazione lampeggiante
+  const origBg = trovato.style.background;
+  const origBorder = trovato.style.borderColor;
+
+  // Aggiunge tooltip
+  trovato.setAttribute('title', `📍 ${numeroFascicolo} si trova qui`);
+
+  let count = 0;
+  const blink = setInterval(() => {
+    count++;
+    if (count % 2 === 0) {
+      trovato.style.background = '#FEF08A'; // giallo acceso
+      trovato.style.borderColor = '#EAB308';
+      trovato.style.boxShadow = '0 0 0 3px #EAB30840';
+    } else {
+      trovato.style.background = origBg || 'var(--bg)';
+      trovato.style.borderColor = origBorder || 'var(--border)';
+      trovato.style.boxShadow = '';
+    }
+    if (count >= 8) {
+      clearInterval(blink);
+      // Lascia evidenziato in giallo tenue
+      trovato.style.background = '#FEFCE8';
+      trovato.style.borderColor = '#EAB308';
+      trovato.style.boxShadow = '0 0 0 2px #EAB30830';
+      // Rimuovi dopo 5 secondi
+      setTimeout(() => {
+        trovato.style.background = origBg || '';
+        trovato.style.borderColor = origBorder || 'var(--border)';
+        trovato.style.boxShadow = '';
+      }, 5000);
+    }
+  }, 300);
 }
 
 function cercaRapidoApri(id) {
@@ -3690,24 +3851,116 @@ async function savePrelievo() {
   }
 }
 
-async function restituisci(prelievoId) {
+function restituisci(prelievoId) {
   const p = allPrelievi.find(x => x.id === prelievoId);
   if (!p) return;
-  
+  const f = allFascicoli.find(x => x.id === p.fascicolo_id);
+
+  document.getElementById('ric-prelievo-id').value = prelievoId;
+
+  // Info fascicolo
+  const infoEl = document.getElementById('ric-fascicolo-info');
+  if (f) {
+    const pos = getPosizioneFascicolo(f);
+    infoEl.innerHTML = `<strong>${escHtml(f.numero)}/${f.anno}</strong> — ${escHtml(f.richiesta || '')}
+      <span style="color:var(--text3);margin-left:8px">📍 ${escHtml(pos)}</span>`;
+    document.getElementById('ric-posto-attuale').textContent = pos !== '—' ? pos : 'Posizione non registrata';
+  } else {
+    infoEl.innerHTML = `<span style="color:var(--text3)">Fascicolo non disponibile</span>`;
+    document.getElementById('ric-posto-attuale').textContent = '—';
+  }
+
+  // Reset
+  document.querySelectorAll('input[name="ric-dove"]').forEach(r => r.checked = false);
+  document.getElementById('ric-sezione-diverso').style.display = 'none';
+  document.getElementById('ric-opt-stesso').style.borderColor = 'var(--border)';
+  document.getElementById('ric-opt-diverso').style.borderColor = 'var(--border)';
+  const btn = document.getElementById('ric-ok-btn');
+  btn.disabled = true; btn.style.opacity = '.4'; btn.style.cursor = 'not-allowed';
+
+  // Popola armadi
+  const selArm = document.getElementById('ric-armadio-id');
+  selArm.innerHTML = '<option value="">Seleziona</option>' +
+    allArmadi.map(a => `<option value="${a.id}">${escHtml(a.nome)}</option>`).join('');
+  document.getElementById('ric-ripiano-id').innerHTML = '<option value="">Prima seleziona armadio</option>';
+
+  // Popola scaffali
+  const selPos = document.getElementById('ric-posizione-id');
+  selPos.innerHTML = '<option value="">Seleziona posizione</option>' +
+    allPosizioni.map(p => `<option value="${p.id}">${escHtml(p.codice)}${p.descrizione ? ' – ' + escHtml(p.descrizione) : ''}</option>`).join('');
+
+  openModal('modal-riconsegna');
+}
+
+function onRicDoveChange() {
+  const val = document.querySelector('input[name="ric-dove"]:checked')?.value;
+  document.getElementById('ric-sezione-diverso').style.display = val === 'diverso' ? 'block' : 'none';
+  document.getElementById('ric-opt-stesso').style.borderColor = val === 'stesso' ? '#16a34a' : 'var(--border)';
+  document.getElementById('ric-opt-diverso').style.borderColor = val === 'diverso' ? 'var(--blue)' : 'var(--border)';
+  const btn = document.getElementById('ric-ok-btn');
+  btn.disabled = false; btn.style.opacity = '1'; btn.style.cursor = 'pointer';
+}
+
+function onRicTipoPosChange() {
+  const val = document.querySelector('input[name="ric-tipo-pos"]:checked')?.value;
+  document.getElementById('ric-armadio-fields').style.display = val === 'armadio' ? 'block' : 'none';
+  document.getElementById('ric-scaffale-fields').style.display = val === 'scaffale' ? 'block' : 'none';
+}
+
+function onRicArmadioChange() {
+  const armadioId = document.getElementById('ric-armadio-id').value;
+  const sel = document.getElementById('ric-ripiano-id');
+  if (!armadioId) { sel.innerHTML = '<option value="">Prima seleziona armadio</option>'; return; }
+  const ripiani = allRipiani.filter(r => r.armadio_id === armadioId).sort((a,b) => b.numero - a.numero);
+  sel.innerHTML = '<option value="">Seleziona ripiano</option>' +
+    ripiani.map(r => {
+      const pos = r.numero === 1 ? ' (basso)' : r.numero === 5 ? ' (alto)' : '';
+      return `<option value="${r.id}">Ripiano ${r.numero}${pos}</option>`;
+    }).join('');
+}
+
+async function confermaRiconsegna() {
+  const prelievoId = document.getElementById('ric-prelievo-id').value;
+  const dove = document.querySelector('input[name="ric-dove"]:checked')?.value;
+  const p = allPrelievi.find(x => x.id === prelievoId);
+  if (!p || !dove) return;
+
   try {
+    // Chiudi il prelievo
     await api('prelievi', {
       method: 'PATCH',
       body: { stato: 'restituito', data_restituzione: new Date().toISOString().split('T')[0] },
       params: `id=eq.${prelievoId}`
     });
+
+    // Aggiorna stato fascicolo
+    const fascBody = { stato: 'disponibile' };
+
+    // Se posto diverso — aggiorna posizione
+    if (dove === 'diverso') {
+      const tipoPosVal = document.querySelector('input[name="ric-tipo-pos"]:checked')?.value;
+      if (tipoPosVal === 'armadio') {
+        const ripId = document.getElementById('ric-ripiano-id').value;
+        if (ripId) fascBody.ripiano_id = ripId;
+        fascBody.posizione_id = null;
+      } else {
+        const posId = document.getElementById('ric-posizione-id').value;
+        if (posId) fascBody.posizione_id = posId;
+        fascBody.ripiano_id = null;
+      }
+    }
+
     await api('fascicoli', {
       method: 'PATCH',
-      body: { stato: 'disponibile' },
+      body: fascBody,
       params: `id=eq.${p.fascicolo_id}`
     });
-    showToast('Fascicolo restituito', 'success');
+
+    closeModal('modal-riconsegna');
+    showToast('Fascicolo riconsegnato ✓', 'success');
     await loadAll();
     renderPrelievi('in_corso');
+    updateDashboard();
   } catch(e) {
     showToast('Errore: ' + e.message, 'error');
   }
