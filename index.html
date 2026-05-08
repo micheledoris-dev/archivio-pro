@@ -1217,6 +1217,38 @@ tbody tr:hover { background: var(--bg); }
           <div class="stat-label">Posizioni</div>
         </div>
       </div>
+      <!-- ── 3 TASTI PRINCIPALI ── -->
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:20px">
+
+        <!-- DEPOSITA -->
+        <div onclick="apriDeposita()"
+          style="background:var(--blue);border-radius:var(--radius);padding:22px 16px;cursor:pointer;text-align:center;transition:opacity .15s;box-shadow:0 2px 8px rgba(37,99,235,.25)"
+          onmouseover="this.style.opacity='.88'" onmouseout="this.style.opacity='1'">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:8px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          <div style="font-weight:700;font-size:16px;color:#fff">DEPOSITA</div>
+          <div style="font-size:11px;color:rgba(255,255,255,.75);margin-top:3px">Archivia un fascicolo</div>
+        </div>
+
+        <!-- PRELEVA -->
+        <div onclick="apriPreleva()"
+          style="background:#0F766E;border-radius:var(--radius);padding:22px 16px;cursor:pointer;text-align:center;transition:opacity .15s;box-shadow:0 2px 8px rgba(15,118,110,.25)"
+          onmouseover="this.style.opacity='.88'" onmouseout="this.style.opacity='1'">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:8px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          <div style="font-weight:700;font-size:16px;color:#fff">PRELEVA</div>
+          <div style="font-size:11px;color:rgba(255,255,255,.75);margin-top:3px">Prendi un fascicolo</div>
+        </div>
+
+        <!-- RESTITUISCI -->
+        <div onclick="apriRestituisci()"
+          style="background:#D97706;border-radius:var(--radius);padding:22px 16px;cursor:pointer;text-align:center;transition:opacity .15s;box-shadow:0 2px 8px rgba(217,119,6,.25)"
+          onmouseover="this.style.opacity='.88'" onmouseout="this.style.opacity='1'">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:8px"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.79"/></svg>
+          <div style="font-weight:700;font-size:16px;color:#fff">RESTITUISCI</div>
+          <div style="font-size:11px;color:rgba(255,255,255,.75);margin-top:3px">Riporta un fascicolo</div>
+        </div>
+
+      </div>
+
       <!-- CERCA RAPIDO SCRIVANIA -->
       <div class="card" style="margin-bottom:16px">
         <div class="card-title" style="margin-bottom:10px">
@@ -1238,9 +1270,10 @@ tbody tr:hover { background: var(--bg); }
         </div>
         <div id="cerca-rapido-risultati" style="margin-top:8px;display:none;max-height:220px;overflow-y:auto;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface)"></div>
       </div>
+
       <div class="content-grid">
         <div class="card">
-          <div class="card-title">Azioni Rapide</div>
+          <div class="card-title">Azioni Secondarie</div>
           <div class="quick-actions">
             <div class="quick-action" onclick="apriNuovoFascicolo()">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
@@ -2012,6 +2045,159 @@ tbody tr:hover { background: var(--bg); }
 </div>
 
 <!-- Modal: Riconsegna Fascicolo -->
+<!-- ═══ MODAL: DEPOSITA ═══════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="modal-deposita">
+  <div class="modal" style="max-width:520px">
+    <div id="dep-step1">
+      <h2 class="modal-title">Deposita Fascicolo</h2>
+      <p style="font-size:13px;color:var(--text2);margin-bottom:16px">Dove vuoi depositare il fascicolo?</p>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px">
+        <div onclick="depScegli('armadio')" style="border:2px solid var(--border);border-radius:var(--radius);padding:20px 14px;cursor:pointer;text-align:center;transition:all .15s" onmouseover="this.style.borderColor='var(--blue)';this.style.background='#eff6ff'" onmouseout="this.style.borderColor='var(--border)';this.style.background=''">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="1.5" style="margin-bottom:8px"><rect x="3" y="2" width="18" height="20" rx="1"/><line x1="3" y1="7" x2="21" y2="7"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="17" x2="21" y2="17"/></svg>
+          <div style="font-weight:700;font-size:14px">Armadio</div>
+          <div style="font-size:11px;color:var(--text3);margin-top:3px">Pene Detentive S.M.</div>
+        </div>
+        <div onclick="depScegli('scaffale')" style="border:2px solid var(--border);border-radius:var(--radius);padding:20px 14px;cursor:pointer;text-align:center;transition:all .15s" onmouseover="this.style.borderColor='var(--blue)';this.style.background='#eff6ff'" onmouseout="this.style.borderColor='var(--border)';this.style.background=''">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="1.5" style="margin-bottom:8px"><rect x="2" y="3" width="20" height="4" rx="1"/><rect x="2" y="9" width="20" height="4" rx="1"/><rect x="2" y="15" width="20" height="4" rx="1"/></svg>
+          <div style="font-weight:700;font-size:14px">Scaffale</div>
+          <div style="font-size:11px;color:var(--text3);margin-top:3px">Posizione esistente</div>
+        </div>
+      </div>
+      <div style="text-align:center;margin-bottom:12px">
+        <button class="btn btn-secondary" onclick="depScegli('altro')" style="font-size:12px">Altro / Non ancora collocato</button>
+      </div>
+      <div class="modal-actions"><button class="btn btn-secondary" onclick="closeModal('modal-deposita')">Annulla</button></div>
+    </div>
+    <div id="dep-step2" style="display:none">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+        <button onclick="document.getElementById('dep-step1').style.display='block';document.getElementById('dep-step2').style.display='none'" style="background:none;border:none;cursor:pointer;color:var(--text3);padding:4px;border-radius:6px">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+        </button>
+        <h2 class="modal-title" style="margin:0" id="dep-step2-title">Deposita</h2>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>N. Sentenza *</label><input type="text" id="dep-numero" placeholder="es. 1246" oninput="checkDepDuplicato()"><div id="dep-dup-msg" style="font-size:12px;margin-top:3px;min-height:14px"></div></div>
+        <div class="field"><label>RGNR</label><input type="text" id="dep-rgnr" placeholder="es. 1234/2024"></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>Anno *</label><input type="number" id="dep-anno" placeholder="2026" min="1900" max="2100" oninput="checkDepDuplicato()"></div>
+        <div class="field"><label>RGT *</label><input type="text" id="dep-rgt" placeholder="es. 480/24"></div>
+      </div>
+      <div id="dep-pos-armadio" style="display:none">
+        <div class="field-row">
+          <div class="field"><label>Armadio *</label><select id="dep-armadio-id" onchange="depAggiornaRipiani()"><option value="">Seleziona</option></select></div>
+          <div class="field"><label>Ripiano *</label><select id="dep-ripiano-id"><option value="">Prima seleziona armadio</option></select></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label>Contenitore</label><select id="dep-tipo-cont" onchange="document.getElementById('dep-valigetta-wrap').style.display=this.value==='valigetta'?'block':'none'"><option value="cartella">Cartella archivio</option><option value="valigetta">Valigetta</option><option value="raccoglitore">Raccoglitore</option><option value="scatola">Scatola</option><option value="pila">Pila sul ripiano</option></select></div>
+          <div class="field" id="dep-valigetta-wrap" style="display:none"><label>N° Valigetta</label><input type="text" id="dep-valigetta-num" placeholder="es. 0001"></div>
+        </div>
+      </div>
+      <div id="dep-pos-scaffale" style="display:none">
+        <div class="field"><label>Posizione *</label><select id="dep-posizione-id"><option value="">Seleziona posizione</option></select></div>
+      </div>
+      <div class="field"><label>Note</label><textarea id="dep-note" placeholder="Note opzionali..." rows="2"></textarea></div>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" onclick="closeModal('modal-deposita')">Annulla</button>
+        <button class="btn btn-primary" onclick="eseguiDeposita()" style="background:var(--blue)">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          Deposita
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ MODAL: PRELEVA ════════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="modal-preleva">
+  <div class="modal" style="max-width:480px">
+    <h2 class="modal-title">Preleva Fascicolo</h2>
+    <div class="field">
+      <label>N. Sentenza *</label>
+      <div style="display:flex;gap:8px">
+        <input type="text" id="pre-numero" placeholder="es. 1246" style="flex:1" oninput="cercaPerPrelievo()">
+        <input type="number" id="pre-anno" placeholder="Anno" style="width:90px" oninput="cercaPerPrelievo()">
+      </div>
+    </div>
+    <div id="pre-risultato" style="display:none;margin-bottom:14px;padding:12px 14px;border-radius:var(--radius-sm);border:2px solid var(--border)">
+      <div id="pre-fascicolo-info" style="font-size:13px"></div>
+      <div id="pre-posizione-info" style="font-size:12px;color:var(--text3);margin-top:4px"></div>
+      <button id="pre-btn-mostra" onclick="" style="display:none;margin-top:8px;background:var(--blue);color:#fff;border:none;border-radius:var(--radius-sm);padding:4px 12px;font-size:11px;font-weight:600;cursor:pointer">📍 Mostrami dove si trova</button>
+    </div>
+    <div class="field" id="pre-motiv-wrap" style="display:none">
+      <label>Motivazione <span style="color:var(--red);font-size:11px">★ obbligatoria</span></label>
+      <div style="display:flex;flex-direction:column;gap:6px;margin-top:4px">
+        <label style="display:flex;align-items:center;gap:8px;padding:8px 10px;border:2px solid var(--motivo-irrevocabilita-border);border-radius:var(--radius-sm);cursor:pointer;background:var(--motivo-irrevocabilita-bg);color:var(--motivo-irrevocabilita);transition:all .15s" id="pre-m-irr"><input type="radio" name="pre-motiv" value="Irrevocabilità" onchange="onPreMotivChange()" style="accent-color:var(--motivo-irrevocabilita)"> Irrevocabilità</label>
+        <label style="display:flex;align-items:center;gap:8px;padding:8px 10px;border:2px solid var(--motivo-impugnazione-border);border-radius:var(--radius-sm);cursor:pointer;background:var(--motivo-impugnazione-bg);color:var(--motivo-impugnazione);transition:all .15s" id="pre-m-imp"><input type="radio" name="pre-motiv" value="Impugnazione" onchange="onPreMotivChange()" style="accent-color:var(--motivo-impugnazione)"> Impugnazione</label>
+        <label style="display:flex;align-items:center;gap:8px;padding:8px 10px;border:2px solid var(--motivo-prestito-border);border-radius:var(--radius-sm);cursor:pointer;background:var(--motivo-prestito-bg);color:var(--motivo-prestito);transition:all .15s" id="pre-m-pre"><input type="radio" name="pre-motiv" value="In Prestito" onchange="onPreMotivChange()" style="accent-color:var(--motivo-prestito)"> In Prestito</label>
+        <label style="display:flex;align-items:center;gap:8px;padding:8px 10px;border:2px solid var(--motivo-altro-border);border-radius:var(--radius-sm);cursor:pointer;background:var(--motivo-altro-bg);color:var(--motivo-altro);transition:all .15s" id="pre-m-alt"><input type="radio" name="pre-motiv" value="altro" onchange="onPreMotivChange()" style="accent-color:var(--motivo-altro)"> Altro</label>
+      </div>
+      <textarea id="pre-motiv-libera" placeholder="Descrivi il motivo..." style="display:none;margin-top:6px" rows="2"></textarea>
+      <div class="field" style="margin-top:10px"><label>Note (opzionali)</label><textarea id="pre-note" placeholder="Note aggiuntive..." rows="2"></textarea></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeModal('modal-preleva')">Annulla</button>
+      <button class="btn btn-primary" id="pre-btn-conferma" onclick="eseguiPrelievo()" disabled style="opacity:.4;cursor:not-allowed;background:#0F766E">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Conferma Prelievo
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ MODAL: RESTITUISCI RAPIDO ════════════════════════════════════════ -->
+<div class="modal-overlay" id="modal-restituisci-rapido">
+  <div class="modal" style="max-width:460px">
+    <h2 class="modal-title">Restituisci Fascicolo</h2>
+    <div class="field">
+      <label>N. Sentenza *</label>
+      <div style="display:flex;gap:8px">
+        <input type="text" id="res-numero" placeholder="es. 1246" style="flex:1" oninput="cercaPerRestituzione()">
+        <input type="number" id="res-anno" placeholder="Anno" style="width:90px" oninput="cercaPerRestituzione()">
+      </div>
+    </div>
+    <div id="res-risultato" style="display:none;margin-bottom:14px;padding:12px 14px;background:var(--bg);border-radius:var(--radius-sm);border:1px solid var(--border);font-size:13px">
+      <div id="res-fascicolo-info"></div>
+    </div>
+    <div id="res-dove-wrap" style="display:none">
+      <p style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:10px">Dove lo rimetti?</p>
+      <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px">
+        <label id="res-opt-stesso" style="display:flex;align-items:center;gap:10px;padding:12px 14px;border:2px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;transition:all .15s">
+          <input type="radio" name="res-dove" value="stesso" onchange="onResDoveChange()" style="accent-color:#16a34a">
+          <div><div style="font-weight:600;font-size:13px">✅ Stesso posto</div><div id="res-posto-attuale" style="font-size:11px;color:var(--text3);margin-top:2px">—</div></div>
+        </label>
+        <label id="res-opt-diverso" style="display:flex;align-items:center;gap:10px;padding:12px 14px;border:2px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;transition:all .15s">
+          <input type="radio" name="res-dove" value="diverso" onchange="onResDoveChange()" style="accent-color:var(--blue)">
+          <div><div style="font-weight:600;font-size:13px">📍 Posto diverso</div><div style="font-size:11px;color:var(--text3)">Aggiorna la posizione</div></div>
+        </label>
+      </div>
+      <div id="res-nuovo-posto" style="display:none;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px;margin-bottom:12px">
+        <div style="display:flex;gap:10px;margin-bottom:10px">
+          <label style="display:flex;align-items:center;gap:5px;font-size:12px;cursor:pointer"><input type="radio" name="res-tipo-pos" value="armadio" checked onchange="onResTipoPosChange()" style="accent-color:var(--blue)"> Armadio</label>
+          <label style="display:flex;align-items:center;gap:5px;font-size:12px;cursor:pointer"><input type="radio" name="res-tipo-pos" value="scaffale" onchange="onResTipoPosChange()" style="accent-color:var(--blue)"> Scaffale</label>
+        </div>
+        <div id="res-armadio-fields">
+          <div style="display:flex;gap:8px">
+            <div style="flex:1"><label style="font-size:11px;font-weight:600;color:var(--text2)">Armadio</label><select id="res-armadio-id" onchange="resAggiornaRipiani()" style="width:100%;margin-top:3px;padding:7px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:12px"><option value="">Seleziona</option></select></div>
+            <div style="flex:1"><label style="font-size:11px;font-weight:600;color:var(--text2)">Ripiano</label><select id="res-ripiano-id" style="width:100%;margin-top:3px;padding:7px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:12px"><option value="">Prima seleziona armadio</option></select></div>
+          </div>
+        </div>
+        <div id="res-scaffale-fields" style="display:none">
+          <label style="font-size:11px;font-weight:600;color:var(--text2)">Posizione</label>
+          <select id="res-posizione-id" style="width:100%;margin-top:3px;padding:7px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:12px"><option value="">Seleziona posizione</option></select>
+        </div>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeModal('modal-restituisci-rapido')">Annulla</button>
+      <button class="btn btn-primary" id="res-btn-ok" onclick="eseguiRestituzione()" disabled style="opacity:.4;cursor:not-allowed;background:#D97706">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.79"/></svg>
+        Conferma Restituzione
+      </button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-overlay" id="modal-riconsegna">
   <div class="modal" style="max-width:460px">
     <h2 class="modal-title">Riconsegna Fascicolo</h2>
@@ -3156,6 +3342,355 @@ async function importExcel(input) {
 // =============================================
 // POSIZIONI
 // =============================================
+// =============================================
+// 3 FLUSSI PRINCIPALI: DEPOSITA / PRELEVA / RESTITUISCI
+// =============================================
+
+// ── DEPOSITA ──────────────────────────────────────────────────────────────────
+let depPercorso = 'altro';
+
+function apriDeposita() {
+  depPercorso = 'altro';
+  document.getElementById('dep-step1').style.display = 'block';
+  document.getElementById('dep-step2').style.display = 'none';
+  openModal('modal-deposita');
+}
+
+function depScegli(percorso) {
+  depPercorso = percorso;
+  document.getElementById('dep-step1').style.display = 'none';
+  document.getElementById('dep-step2').style.display = 'block';
+
+  const titles = { armadio: 'Deposita in Armadio', scaffale: 'Deposita su Scaffale', altro: 'Deposita — Solo dati' };
+  document.getElementById('dep-step2-title').textContent = titles[percorso] || 'Deposita';
+
+  document.getElementById('dep-pos-armadio').style.display = percorso === 'armadio' ? 'block' : 'none';
+  document.getElementById('dep-pos-scaffale').style.display = percorso === 'scaffale' ? 'block' : 'none';
+
+  if (percorso === 'armadio') {
+    const sel = document.getElementById('dep-armadio-id');
+    sel.innerHTML = '<option value="">Seleziona armadio</option>' +
+      allArmadi.map(a => `<option value="${a.id}">${escHtml(a.nome)}</option>`).join('');
+    document.getElementById('dep-ripiano-id').innerHTML = '<option value="">Prima seleziona armadio</option>';
+  }
+  if (percorso === 'scaffale') {
+    const sel = document.getElementById('dep-posizione-id');
+    sel.innerHTML = '<option value="">Seleziona posizione</option>' +
+      allPosizioni.map(p => `<option value="${p.id}">${escHtml(p.codice)}${p.descrizione ? ' – '+escHtml(p.descrizione) : ''}</option>`).join('');
+  }
+
+  ['dep-numero','dep-rgnr','dep-rgt','dep-note'].forEach(id => { const el = document.getElementById(id); if(el) el.value=''; });
+  document.getElementById('dep-anno').value = new Date().getFullYear();
+  document.getElementById('dep-dup-msg').textContent = '';
+  setTimeout(() => document.getElementById('dep-numero').focus(), 100);
+}
+
+function depAggiornaRipiani() {
+  const armadioId = document.getElementById('dep-armadio-id').value;
+  const sel = document.getElementById('dep-ripiano-id');
+  if (!armadioId) { sel.innerHTML = '<option value="">Prima seleziona armadio</option>'; return; }
+  const ripiani = allRipiani.filter(r => r.armadio_id === armadioId).sort((a,b) => b.numero - a.numero);
+  sel.innerHTML = '<option value="">Seleziona ripiano</option>' +
+    ripiani.map(r => {
+      const pos = r.numero === 1 ? ' (basso)' : r.numero === 5 ? ' (alto)' : '';
+      return `<option value="${r.id}">Ripiano ${r.numero}${pos}</option>`;
+    }).join('');
+}
+
+function checkDepDuplicato() {
+  const numero = document.getElementById('dep-numero').value.trim();
+  const anno = parseInt(document.getElementById('dep-anno').value);
+  const msg = document.getElementById('dep-dup-msg');
+  if (!numero || !anno) { msg.textContent = ''; return; }
+  const exists = allFascicoli.find(f => f.numero === numero && f.anno === anno);
+  if (exists) {
+    msg.innerHTML = `<span style="color:#D97706">⚠️ Già presente — ${getPosizioneFascicolo(exists)}</span>`;
+  } else {
+    msg.innerHTML = `<span style="color:#16a34a">✓ Nuovo fascicolo</span>`;
+  }
+}
+
+async function eseguiDeposita() {
+  const numero = document.getElementById('dep-numero').value.trim();
+  const rgnr   = document.getElementById('dep-rgnr').value.trim();
+  const anno   = parseInt(document.getElementById('dep-anno').value);
+  const rgt    = document.getElementById('dep-rgt').value.trim();
+  const note   = document.getElementById('dep-note').value.trim();
+
+  if (!numero || !anno || !rgt) { showToast('Compila N. Sentenza, Anno e RGT', 'error'); return; }
+
+  const data = { numero, anno, richiesta: rgt, rgnr: rgnr||null, note: note||null, stato: 'disponibile' };
+
+  if (depPercorso === 'armadio') {
+    const ripId = document.getElementById('dep-ripiano-id').value;
+    if (!document.getElementById('dep-armadio-id').value) { showToast('Seleziona un armadio', 'error'); return; }
+    if (!ripId) { showToast('Seleziona un ripiano', 'error'); return; }
+    data.ripiano_id = ripId;
+    data.tipo_contenitore = document.getElementById('dep-tipo-cont').value;
+    data.posizione_id = null;
+  } else if (depPercorso === 'scaffale') {
+    const posId = document.getElementById('dep-posizione-id').value;
+    if (!posId) { showToast('Seleziona una posizione', 'error'); return; }
+    data.posizione_id = posId;
+    data.ripiano_id = null;
+  }
+
+  try {
+    await api('fascicoli', { method: 'POST', body: data });
+    showToast(`Fascicolo ${numero}/${anno} depositato ✓`, 'success');
+    closeModal('modal-deposita');
+    await loadAll();
+    renderFascicoli();
+    updateDashboard();
+  } catch(e) {
+    if (e.message?.includes('duplicate')) {
+      showToast('Fascicolo già presente — usa Modifica per aggiornarlo', 'error');
+    } else {
+      showToast('Errore: ' + e.message, 'error');
+    }
+  }
+}
+
+// ── PRELEVA ───────────────────────────────────────────────────────────────────
+let preFascicoloId = null;
+
+function apriPreleva() {
+  preFascicoloId = null;
+  ['pre-numero','pre-note','pre-motiv-libera'].forEach(id => { const el = document.getElementById(id); if(el) el.value=''; });
+  document.getElementById('pre-anno').value = '';
+  document.getElementById('pre-risultato').style.display = 'none';
+  document.getElementById('pre-motiv-wrap').style.display = 'none';
+  document.querySelectorAll('input[name="pre-motiv"]').forEach(r => r.checked = false);
+  const btn = document.getElementById('pre-btn-conferma');
+  btn.disabled = true; btn.style.opacity = '.4'; btn.style.cursor = 'not-allowed';
+  openModal('modal-preleva');
+  setTimeout(() => document.getElementById('pre-numero').focus(), 100);
+}
+
+function cercaPerPrelievo() {
+  const numero = document.getElementById('pre-numero').value.trim();
+  const anno   = parseInt(document.getElementById('pre-anno').value);
+  const resEl  = document.getElementById('pre-risultato');
+  const motivEl = document.getElementById('pre-motiv-wrap');
+  const btn    = document.getElementById('pre-btn-conferma');
+
+  if (!numero || !anno) { resEl.style.display = 'none'; motivEl.style.display = 'none'; return; }
+
+  const f = allFascicoli.find(x => x.numero === numero && x.anno === anno);
+  if (!f) {
+    resEl.style.display = 'block';
+    resEl.style.borderColor = 'var(--border)';
+    document.getElementById('pre-fascicolo-info').innerHTML = `<span style="color:var(--text3)">Fascicolo non trovato</span>`;
+    document.getElementById('pre-posizione-info').textContent = '';
+    document.getElementById('pre-btn-mostra').style.display = 'none';
+    motivEl.style.display = 'none';
+    preFascicoloId = null;
+    btn.disabled = true; btn.style.opacity = '.4'; btn.style.cursor = 'not-allowed';
+    return;
+  }
+
+  if (f.stato !== 'disponibile') {
+    resEl.style.display = 'block';
+    resEl.style.borderColor = '#FCA5A5';
+    document.getElementById('pre-fascicolo-info').innerHTML = `<span style="color:#DC2626">⚠️ Fascicolo già in prelievo</span> — <strong>${escHtml(f.numero)}/${f.anno}</strong>`;
+    document.getElementById('pre-posizione-info').textContent = '';
+    document.getElementById('pre-btn-mostra').style.display = 'none';
+    motivEl.style.display = 'none';
+    preFascicoloId = null;
+    btn.disabled = true; btn.style.opacity = '.4'; btn.style.cursor = 'not-allowed';
+    return;
+  }
+
+  preFascicoloId = f.id;
+  const pos = getPosizioneFascicolo(f);
+  resEl.style.display = 'block';
+  resEl.style.borderColor = '#16a34a';
+  document.getElementById('pre-fascicolo-info').innerHTML =
+    `<span style="color:#16a34a">✓ Trovato:</span> <strong>${escHtml(f.numero)}/${f.anno}</strong> — ${escHtml(f.richiesta||'')}`;
+  document.getElementById('pre-posizione-info').innerHTML = `📍 ${escHtml(pos)}`;
+
+  // Bottone mostrami
+  const btnMostra = document.getElementById('pre-btn-mostra');
+  if (f.ripiano_id) {
+    btnMostra.style.display = 'inline-flex';
+    btnMostra.onclick = () => { closeModal('modal-preleva'); mostraInArmadio(f.ripiano_id, f.numero); };
+  } else {
+    btnMostra.style.display = 'none';
+  }
+
+  motivEl.style.display = 'block';
+  // Non abilitiamo ancora il tasto — serve la motivazione
+}
+
+function onPreMotivChange() {
+  const val = document.querySelector('input[name="pre-motiv"]:checked')?.value;
+  document.getElementById('pre-motiv-libera').style.display = val === 'altro' ? 'block' : 'none';
+
+  const cols = { 'Irrevocabilità': ['pre-m-irr','#DC2626'], 'Impugnazione': ['pre-m-imp','#D97706'], 'In Prestito': ['pre-m-pre','#0F766E'], 'altro': ['pre-m-alt','#2563EB'] };
+  Object.values(cols).forEach(([id]) => {
+    const el = document.getElementById(id); if(!el) return;
+    el.style.fontWeight = el.querySelector('input').checked ? '600' : 'normal';
+    el.style.opacity = el.querySelector('input').checked ? '1' : '.6';
+  });
+
+  const btn = document.getElementById('pre-btn-conferma');
+  if (preFascicoloId && val) {
+    btn.disabled = false; btn.style.opacity = '1'; btn.style.cursor = 'pointer';
+  }
+}
+
+async function eseguiPrelievo() {
+  if (!preFascicoloId) return;
+  const motivVal   = document.querySelector('input[name="pre-motiv"]:checked')?.value;
+  const motivLibera = document.getElementById('pre-motiv-libera').value.trim();
+  const note       = document.getElementById('pre-note').value.trim();
+  if (!motivVal) { showToast('Seleziona una motivazione', 'error'); return; }
+  if (motivVal === 'altro' && !motivLibera) { showToast('Inserisci la motivazione nel campo testo', 'error'); return; }
+  const motivazione = motivVal === 'altro' ? motivLibera : motivVal;
+
+  try {
+    await api('prelievi', {
+      method: 'POST',
+      body: { fascicolo_id: preFascicoloId, prelevato_da: currentUser?.nome || currentUser?.username || 'Operatore', data_prelievo: new Date().toISOString().split('T')[0], stato: 'in_corso', motivazione, note: note||null }
+    });
+    await api('fascicoli', { method: 'PATCH', body: { stato: 'in_prestito' }, params: `id=eq.${preFascicoloId}` });
+    const f = allFascicoli.find(x => x.id === preFascicoloId);
+    showToast(`Prelievo registrato: ${f?.numero || ''} ✓`, 'success');
+    closeModal('modal-preleva');
+    await loadAll();
+    updateDashboard();
+  } catch(e) { showToast('Errore: ' + e.message, 'error'); }
+}
+
+// ── RESTITUISCI RAPIDO ────────────────────────────────────────────────────────
+let resFascicoloId = null;
+let resPrelievoId  = null;
+
+function apriRestituisci() {
+  resFascicoloId = null; resPrelievoId = null;
+  document.getElementById('res-numero').value = '';
+  document.getElementById('res-anno').value   = '';
+  document.getElementById('res-risultato').style.display  = 'none';
+  document.getElementById('res-dove-wrap').style.display  = 'none';
+  document.getElementById('res-nuovo-posto').style.display = 'none';
+  document.querySelectorAll('input[name="res-dove"]').forEach(r => r.checked = false);
+  const btn = document.getElementById('res-btn-ok');
+  btn.disabled = true; btn.style.opacity = '.4'; btn.style.cursor = 'not-allowed';
+  // Popola armadi
+  document.getElementById('res-armadio-id').innerHTML = '<option value="">Seleziona</option>' +
+    allArmadi.map(a => `<option value="${a.id}">${escHtml(a.nome)}</option>`).join('');
+  // Popola scaffali
+  document.getElementById('res-posizione-id').innerHTML = '<option value="">Seleziona posizione</option>' +
+    allPosizioni.map(p => `<option value="${p.id}">${escHtml(p.codice)}</option>`).join('');
+  openModal('modal-restituisci-rapido');
+  setTimeout(() => document.getElementById('res-numero').focus(), 100);
+}
+
+function cercaPerRestituzione() {
+  const numero = document.getElementById('res-numero').value.trim();
+  const anno   = parseInt(document.getElementById('res-anno').value);
+  const resEl  = document.getElementById('res-risultato');
+  const doveEl = document.getElementById('res-dove-wrap');
+
+  if (!numero || !anno) { resEl.style.display = 'none'; doveEl.style.display = 'none'; return; }
+
+  const f = allFascicoli.find(x => x.numero === numero && x.anno === anno);
+  if (!f) {
+    resEl.style.display = 'block';
+    document.getElementById('res-fascicolo-info').innerHTML = `<span style="color:var(--text3)">Fascicolo non trovato</span>`;
+    doveEl.style.display = 'none'; resFascicoloId = null; resPrelievoId = null;
+    return;
+  }
+
+  const prelievo = allPrelievi.find(p => p.fascicolo_id === f.id && p.stato === 'in_corso');
+  if (!prelievo) {
+    resEl.style.display = 'block';
+    document.getElementById('res-fascicolo-info').innerHTML = `<span style="color:#D97706">⚠️ Nessun prelievo attivo per questo fascicolo</span>`;
+    doveEl.style.display = 'none'; resFascicoloId = null; resPrelievoId = null;
+    return;
+  }
+
+  resFascicoloId = f.id;
+  resPrelievoId  = prelievo.id;
+  const pos = getPosizioneFascicolo(f);
+  resEl.style.display = 'block';
+  document.getElementById('res-fascicolo-info').innerHTML =
+    `<span style="color:#16a34a">✓</span> <strong>${escHtml(f.numero)}/${f.anno}</strong> — prelevato da <strong>${escHtml(prelievo.prelevato_da)}</strong><br>
+     <span style="color:var(--text3);font-size:11px">Posizione originale: 📍 ${escHtml(pos)}</span>`;
+  document.getElementById('res-posto-attuale').textContent = pos !== '—' ? pos : 'Posizione non registrata';
+
+  doveEl.style.display = 'block';
+  document.getElementById('res-opt-stesso').style.borderColor = 'var(--border)';
+  document.getElementById('res-opt-diverso').style.borderColor = 'var(--border)';
+  document.querySelectorAll('input[name="res-dove"]').forEach(r => r.checked = false);
+  const btn = document.getElementById('res-btn-ok');
+  btn.disabled = true; btn.style.opacity = '.4'; btn.style.cursor = 'not-allowed';
+}
+
+function onResDoveChange() {
+  const val = document.querySelector('input[name="res-dove"]:checked')?.value;
+  document.getElementById('res-nuovo-posto').style.display = val === 'diverso' ? 'block' : 'none';
+  document.getElementById('res-opt-stesso').style.borderColor  = val === 'stesso'  ? '#16a34a' : 'var(--border)';
+  document.getElementById('res-opt-diverso').style.borderColor = val === 'diverso' ? 'var(--blue)' : 'var(--border)';
+  const btn = document.getElementById('res-btn-ok');
+  btn.disabled = false; btn.style.opacity = '1'; btn.style.cursor = 'pointer';
+}
+
+function onResTipoPosChange() {
+  const val = document.querySelector('input[name="res-tipo-pos"]:checked')?.value;
+  document.getElementById('res-armadio-fields').style.display  = val === 'armadio'  ? 'block' : 'none';
+  document.getElementById('res-scaffale-fields').style.display = val === 'scaffale' ? 'block' : 'none';
+}
+
+function resAggiornaRipiani() {
+  const armadioId = document.getElementById('res-armadio-id').value;
+  const sel = document.getElementById('res-ripiano-id');
+  if (!armadioId) { sel.innerHTML = '<option value="">Prima seleziona armadio</option>'; return; }
+  const ripiani = allRipiani.filter(r => r.armadio_id === armadioId).sort((a,b) => b.numero - a.numero);
+  sel.innerHTML = '<option value="">Seleziona ripiano</option>' +
+    ripiani.map(r => {
+      const pos = r.numero === 1 ? ' (basso)' : r.numero === 5 ? ' (alto)' : '';
+      return `<option value="${r.id}">Ripiano ${r.numero}${pos}</option>`;
+    }).join('');
+}
+
+async function eseguiRestituzione() {
+  if (!resFascicoloId || !resPrelievoId) return;
+  const dove = document.querySelector('input[name="res-dove"]:checked')?.value;
+  if (!dove) { showToast('Scegli dove rimetti il fascicolo', 'error'); return; }
+
+  try {
+    await api('prelievi', {
+      method: 'PATCH',
+      body: { stato: 'restituito', data_restituzione: new Date().toISOString().split('T')[0] },
+      params: `id=eq.${resPrelievoId}`
+    });
+
+    const fascBody = { stato: 'disponibile' };
+    if (dove === 'diverso') {
+      const tipoPosVal = document.querySelector('input[name="res-tipo-pos"]:checked')?.value;
+      if (tipoPosVal === 'armadio') {
+        const ripId = document.getElementById('res-ripiano-id').value;
+        if (!ripId) { showToast('Seleziona un ripiano', 'error'); return; }
+        fascBody.ripiano_id = ripId;
+        fascBody.posizione_id = null;
+      } else {
+        const posId = document.getElementById('res-posizione-id').value;
+        if (!posId) { showToast('Seleziona una posizione', 'error'); return; }
+        fascBody.posizione_id = posId;
+        fascBody.ripiano_id = null;
+      }
+    }
+
+    await api('fascicoli', { method: 'PATCH', body: fascBody, params: `id=eq.${resFascicoloId}` });
+    const f = allFascicoli.find(x => x.id === resFascicoloId);
+    showToast(`Fascicolo ${f?.numero||''} restituito ✓`, 'success');
+    closeModal('modal-restituisci-rapido');
+    await loadAll();
+    updateDashboard();
+  } catch(e) { showToast('Errore: ' + e.message, 'error'); }
+}
+
 // =============================================
 // ARMADI
 // =============================================
