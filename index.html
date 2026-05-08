@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Archivio Pro</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -3580,6 +3580,35 @@ function etiGetContenuto() {
   }
 }
 
+// Genera QR come canvas usando qrcodejs
+function generateQRCanvas(text, size) {
+  return new Promise((resolve, reject) => {
+    const div = document.createElement('div');
+    div.style.display = 'none';
+    document.body.appendChild(div);
+    try {
+      new QRCode(div, { text: text || 'ARCHIVIO', width: size, height: size, correctLevel: QRCode.CorrectLevel.M });
+      setTimeout(() => {
+        const img = div.querySelector('img') || div.querySelector('canvas');
+        if (img) {
+          const c = document.createElement('canvas');
+          c.width = size; c.height = size;
+          const ctx = c.getContext('2d');
+          ctx.drawImage(img, 0, 0, size, size);
+          document.body.removeChild(div);
+          resolve(c);
+        } else {
+          document.body.removeChild(div);
+          reject(new Error('QR non generato'));
+        }
+      }, 150);
+    } catch(e) {
+      document.body.removeChild(div);
+      reject(e);
+    }
+  });
+}
+
 async function etiAggiornaAnteprima() {
   const w = parseInt(document.getElementById('eti-w').value) || 100;
   const h = parseInt(document.getElementById('eti-h').value) || 30;
@@ -3615,14 +3644,10 @@ async function etiAggiornaAnteprima() {
   ctx.lineWidth = 1;
   ctx.strokeRect(0.5, 0.5, canvas.width-1, canvas.height-1);
 
-  // Genera QR come data URL
+  // Genera QR
   try {
     const qrSize = Math.min(canvas.height - 6, canvas.width * 0.3);
-    const qrCanvas = document.createElement('canvas');
-    await QRCode.toCanvas(qrCanvas, cont.qrText || 'ARCHIVIO', {
-      width: qrSize, margin: 1,
-      color: { dark: '#000000', light: '#ffffff' }
-    });
+    const qrCanvas = await generateQRCanvas(cont.qrText || 'ARCHIVIO', Math.round(qrSize));
 
     // QR a destra
     const qrX = canvas.width - qrSize - 4;
@@ -3699,11 +3724,9 @@ async function etiStampa() {
     const righe   = Math.floor((297 - margine*2 + gapY) / (h + gapY));
     const perFoglio = Math.max(1, colonne * righe);
 
-    // Genera QR data URL
-    const qrDataUrl = await QRCode.toDataURL(cont.qrText, {
-      width: 200, margin: 1,
-      color: { dark: '#000000', light: '#ffffff' }
-    });
+    // Genera QR canvas poi converti in dataURL
+    const qrCanvas = await generateQRCanvas(cont.qrText, 200);
+    const qrDataUrl = qrCanvas.toDataURL('image/png');
 
     let count = 0;
     let page  = 0;
