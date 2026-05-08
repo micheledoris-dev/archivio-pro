@@ -3503,7 +3503,10 @@ async function importExcel(input) {
 // =============================================
 let etiTipo = 'ripiano';
 
-function initEtichette() {
+async function initEtichette() {
+  // Assicura che armadi e ripiani siano caricati
+  if (!allArmadi || !allArmadi.length) await loadArmadi();
+
   // Popola armadi nei select
   ['eti-armadio-id','eti-armadio-id-v'].forEach(id => {
     const sel = document.getElementById(id);
@@ -3511,6 +3514,17 @@ function initEtichette() {
     sel.innerHTML = '<option value="">Seleziona armadio</option>' +
       allArmadi.map(a => `<option value="${a.id}">${escHtml(a.nome)}</option>`).join('');
   });
+
+  // Popola ripiani valigetta quando si sceglie armadio
+  const selArmV = document.getElementById('eti-armadio-id-v');
+  if (selArmV) selArmV.onchange = function() {
+    const ripSel = document.getElementById('eti-ripiano-id-v');
+    const rips = allRipiani.filter(r => r.armadio_id === this.value).sort((a,b) => b.numero - a.numero);
+    ripSel.innerHTML = '<option value="">Seleziona ripiano</option>' +
+      rips.map(r => `<option value="${r.id}">Ripiano ${r.numero}${r.numero===1?' (basso)':r.numero===5?' (alto)':''}</option>`).join('');
+    etiAggiornaAnteprima();
+  };
+
   etiAggiornaAnteprima();
 }
 
