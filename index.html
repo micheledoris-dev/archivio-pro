@@ -2468,52 +2468,52 @@ function mostraInArmadio(ripianoId, numeroFascicolo) {
   goTo('armadi');
 
   // Aspetta che gli armadi siano renderizzati, poi fai highlight
-  setTimeout(() => illuminaRipiano(ripianoId, numeroFascicolo), 400);
+  setTimeout(() => illuminaRipiano(ripianoId, numeroFascicolo), 800);
 }
 
 function illuminaRipiano(ripianoId, numeroFascicolo) {
-  // Trova il div del ripiano tramite onclick
-  const tutti = document.querySelectorAll('#armadi-grid [onclick]');
-  let trovato = null;
-  tutti.forEach(el => {
-    if (el.getAttribute('onclick')?.includes(ripianoId)) trovato = el;
-  });
+  const trovato = document.querySelector(`[data-ripiano-id="${ripianoId}"]`);
 
-  if (!trovato) return;
+  if (!trovato) {
+    showToast('Ripiano non trovato nella vista — ricarica la pagina Armadi', 'error');
+    return;
+  }
 
   // Scroll verso l'elemento
   trovato.scrollIntoView({ behavior: 'smooth', block: 'center' });
 
-  // Animazione lampeggiante
-  const origBg = trovato.style.background;
-  const origBorder = trovato.style.borderColor;
+  // Salva stili originali
+  const origBg     = trovato.style.background || '';
+  const origBorder = trovato.style.borderColor || 'var(--border)';
+  const origShadow = trovato.style.boxShadow || '';
 
-  // Aggiunge tooltip
+  // Tooltip
   trovato.setAttribute('title', `📍 ${numeroFascicolo} si trova qui`);
 
+  // Lampeggio 4 volte (8 half-cycles)
   let count = 0;
   const blink = setInterval(() => {
     count++;
-    if (count % 2 === 0) {
-      trovato.style.background = '#FEF08A'; // giallo acceso
-      trovato.style.borderColor = '#EAB308';
-      trovato.style.boxShadow = '0 0 0 3px #EAB30840';
+    if (count % 2 === 1) {
+      trovato.style.background   = '#FEF08A';
+      trovato.style.borderColor  = '#EAB308';
+      trovato.style.boxShadow    = '0 0 0 4px #EAB30860';
     } else {
-      trovato.style.background = origBg || 'var(--bg)';
-      trovato.style.borderColor = origBorder || 'var(--border)';
-      trovato.style.boxShadow = '';
+      trovato.style.background   = origBg;
+      trovato.style.borderColor  = origBorder;
+      trovato.style.boxShadow    = origShadow;
     }
     if (count >= 8) {
       clearInterval(blink);
-      // Lascia evidenziato in giallo tenue
-      trovato.style.background = '#FEFCE8';
+      // Rimane giallo tenue per 5 secondi
+      trovato.style.background  = '#FEFCE8';
       trovato.style.borderColor = '#EAB308';
-      trovato.style.boxShadow = '0 0 0 2px #EAB30830';
-      // Rimuovi dopo 5 secondi
+      trovato.style.boxShadow   = '0 0 0 2px #EAB30840';
       setTimeout(() => {
-        trovato.style.background = origBg || '';
-        trovato.style.borderColor = origBorder || 'var(--border)';
-        trovato.style.boxShadow = '';
+        trovato.style.background  = origBg;
+        trovato.style.borderColor = origBorder;
+        trovato.style.boxShadow   = origShadow;
+        trovato.removeAttribute('title');
       }, 5000);
     }
   }, 300);
@@ -3211,6 +3211,7 @@ function renderArmadi() {
           const pct = Math.min(count * 8, 100); // indicatore visivo riempimento
           return `
           <div onclick="apriRipiano('${rip.id}', '${escHtml(arm.nome)}', ${rip.numero})"
+            data-ripiano-id="${rip.id}"
             style="display:flex;align-items:center;gap:10px;padding:8px 10px;margin-bottom:4px;border-radius:var(--radius-sm);border:1.5px solid var(--border);cursor:pointer;transition:all .15s;background:var(--bg)"
             onmouseover="this.style.borderColor='var(--blue)';this.style.background='var(--blue-light,#eff6ff)'"
             onmouseout="this.style.borderColor='var(--border)';this.style.background='var(--bg)'">
