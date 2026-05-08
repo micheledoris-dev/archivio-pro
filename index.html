@@ -1640,20 +1640,20 @@ tbody tr:hover { background: var(--bg); }
               <div class="field-row">
                 <div class="field">
                   <label>Armadio</label>
-                  <select id="eti-armadio-id" onchange="etiAggiornaRipiani(); etiAggiornaAnteprima()">
+                  <select id="eti-armadio-id" onchange="etiAggiornaRipiani()">
                     <option value="">Seleziona</option>
                   </select>
                 </div>
                 <div class="field">
                   <label>Ripiano</label>
-                  <select id="eti-ripiano-id" onchange="etiAggiornaAnteprima()">
+                  <select id="eti-ripiano-id" onchange="">
                     <option value="">Seleziona</option>
                   </select>
                 </div>
               </div>
               <div class="field">
                 <label>Descrizione aggiuntiva</label>
-                <input type="text" id="eti-desc-ripiano" placeholder="es. Pene Detentive Senza Misura" oninput="etiAggiornaAnteprima()">
+                <input type="text" id="eti-desc-ripiano" placeholder="es. Pene Detentive Senza Misura">
               </div>
             </div>
 
@@ -1662,18 +1662,18 @@ tbody tr:hover { background: var(--bg); }
               <div class="field-row">
                 <div class="field">
                   <label>Armadio</label>
-                  <select id="eti-armadio-id-v" onchange="etiAggiornaAnteprima()">
+                  <select id="eti-armadio-id-v" onchange="">
                     <option value="">Seleziona</option>
                   </select>
                 </div>
                 <div class="field">
                   <label>N° Valigetta</label>
-                  <input type="text" id="eti-val-numero" placeholder="es. 0001" oninput="etiAggiornaAnteprima()">
+                  <input type="text" id="eti-val-numero" placeholder="es. 0001">
                 </div>
               </div>
               <div class="field">
                 <label>Ripiano</label>
-                <select id="eti-ripiano-id-v" onchange="etiAggiornaAnteprima()">
+                <select id="eti-ripiano-id-v" onchange="">
                   <option value="">Seleziona</option>
                 </select>
               </div>
@@ -1683,15 +1683,15 @@ tbody tr:hover { background: var(--bg); }
             <div id="eti-form-libera" style="display:none">
               <div class="field">
                 <label>Riga 1 (grande)</label>
-                <input type="text" id="eti-lib-riga1" placeholder="es. CORPI DI REATO 2025" oninput="etiAggiornaAnteprima()">
+                <input type="text" id="eti-lib-riga1" placeholder="es. CORPI DI REATO 2025">
               </div>
               <div class="field">
                 <label>Riga 2</label>
-                <input type="text" id="eti-lib-riga2" placeholder="es. Ripiano 1 — Scaffale B" oninput="etiAggiornaAnteprima()">
+                <input type="text" id="eti-lib-riga2" placeholder="es. Ripiano 1 — Scaffale B">
               </div>
               <div class="field">
                 <label>Riga 3 (piccola)</label>
-                <input type="text" id="eti-lib-riga3" placeholder="es. Archivio Tribunale" oninput="etiAggiornaAnteprima()">
+                <input type="text" id="eti-lib-riga3" placeholder="es. Archivio Tribunale">
               </div>
             </div>
           </div>
@@ -1709,25 +1709,31 @@ tbody tr:hover { background: var(--bg); }
             <div class="field-row">
               <div class="field">
                 <label>Larghezza (mm)</label>
-                <input type="number" id="eti-w" value="100" min="20" max="210" oninput="etiAggiornaAnteprima()">
+                <input type="number" id="eti-w" value="100" min="20" max="210">
               </div>
               <div class="field">
                 <label>Altezza (mm)</label>
-                <input type="number" id="eti-h" value="30" min="10" max="297" oninput="etiAggiornaAnteprima()">
+                <input type="number" id="eti-h" value="30" min="10" max="297">
               </div>
               <div class="field">
                 <label>Quante</label>
-                <input type="number" id="eti-qty" value="1" min="1" max="100" oninput="etiAggiornaAnteprima()">
+                <input type="number" id="eti-qty" value="1" min="1" max="100">
               </div>
             </div>
             <div id="eti-calcolo" style="font-size:12px;color:var(--text3);margin-top:6px"></div>
           </div>
 
-          <!-- Stampa -->
-          <button onclick="etiStampa()" class="btn btn-primary" style="width:100%;justify-content:center;padding:14px;font-size:15px">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
-            Genera PDF e Stampa
-          </button>
+          <!-- Pulsanti -->
+          <div style="display:flex;flex-direction:column;gap:10px;margin-top:4px">
+            <button onclick="etiAggiornaAnteprima()" class="btn btn-primary" style="width:100%;justify-content:center;padding:13px;font-size:15px;background:var(--blue)">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              1. Genera Anteprima
+            </button>
+            <button onclick="etiStampa()" id="eti-btn-stampa" class="btn btn-secondary" style="width:100%;justify-content:center;padding:13px;font-size:15px;opacity:.4;cursor:not-allowed" disabled>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+              2. Scarica PDF e Stampa
+            </button>
+          </div>
         </div>
 
         <!-- ── COLONNA DESTRA: anteprima ── -->
@@ -3713,7 +3719,14 @@ async function etiAggiornaAnteprima() {
     ctx.fillStyle = '#666';
     ctx.font = '10px Arial';
     ctx.fillText('Anteprima non disponibile', 10, canvas.height/2);
+    // Disabilita stampa
+    const btnS = document.getElementById('eti-btn-stampa');
+    if (btnS) { btnS.disabled = true; btnS.style.opacity = '.4'; btnS.style.cursor = 'not-allowed'; }
   }
+
+  // Abilita tasto stampa
+  const btnS = document.getElementById('eti-btn-stampa');
+  if (btnS) { btnS.disabled = false; btnS.style.opacity = '1'; btnS.style.cursor = 'pointer'; }
 }
 
 async function etiStampa() {
