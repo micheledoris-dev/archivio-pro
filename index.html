@@ -1598,100 +1598,114 @@ tbody tr:hover { background: var(--bg); }
       <div class="page-header">
         <div>
           <h1 class="page-title">Generatore Etichette</h1>
-          <p class="page-subtitle">Configura le righe, genera l'anteprima sul foglio A4, poi stampa</p>
+          <p class="page-subtitle">Crea più etichette diverse e stampale tutte su un foglio A4</p>
         </div>
       </div>
 
-      <div style="display:grid;grid-template-columns:420px 1fr;gap:20px;align-items:start">
+      <div style="display:grid;grid-template-columns:440px 1fr;gap:20px;align-items:start">
 
-        <!-- ── SINISTRA: configurazione ── -->
+        <!-- ── SINISTRA: configuratore + carrello ── -->
         <div style="display:flex;flex-direction:column;gap:14px">
 
-          <!-- Tipo -->
+          <!-- Configuratore nuova etichetta -->
           <div class="card">
-            <div class="card-title" style="margin-bottom:10px">Tipo Etichetta</div>
-            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+            <div class="card-title" style="margin-bottom:12px">Nuova Etichetta</div>
+
+            <!-- Tipo -->
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px">
               <div onclick="etiSceglitipo('ripiano')" id="eti-tipo-ripiano"
-                style="border:2px solid var(--blue);background:#eff6ff;border-radius:var(--radius-sm);padding:10px 6px;cursor:pointer;text-align:center;transition:all .15s">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="2" style="margin-bottom:3px"><rect x="2" y="3" width="20" height="4" rx="1"/><rect x="2" y="9" width="20" height="4" rx="1"/></svg>
-                <div style="font-size:11px;font-weight:600;color:var(--blue)">Ripiano</div>
+                style="border:2px solid var(--blue);background:#eff6ff;border-radius:var(--radius-sm);padding:8px 6px;cursor:pointer;text-align:center;transition:all .15s">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="2" style="margin-bottom:2px"><rect x="2" y="3" width="20" height="4" rx="1"/><rect x="2" y="9" width="20" height="4" rx="1"/></svg>
+                <div style="font-size:10px;font-weight:600;color:var(--blue)">Ripiano</div>
               </div>
               <div onclick="etiSceglitipo('valigetta')" id="eti-tipo-valigetta"
-                style="border:2px solid var(--border);border-radius:var(--radius-sm);padding:10px 6px;cursor:pointer;text-align:center;transition:all .15s">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--text2)" stroke-width="2" style="margin-bottom:3px"><rect x="3" y="2" width="18" height="20" rx="1"/><line x1="3" y1="7" x2="21" y2="7"/></svg>
-                <div style="font-size:11px;font-weight:600;color:var(--text2)">Valigetta</div>
+                style="border:2px solid var(--border);border-radius:var(--radius-sm);padding:8px 6px;cursor:pointer;text-align:center;transition:all .15s">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text2)" stroke-width="2" style="margin-bottom:2px"><rect x="3" y="2" width="18" height="20" rx="1"/><line x1="3" y1="7" x2="21" y2="7"/></svg>
+                <div style="font-size:10px;font-weight:600;color:var(--text2)">Valigetta</div>
               </div>
               <div onclick="etiSceglitipo('libera')" id="eti-tipo-libera"
-                style="border:2px solid var(--border);border-radius:var(--radius-sm);padding:10px 6px;cursor:pointer;text-align:center;transition:all .15s">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--text2)" stroke-width="2" style="margin-bottom:3px"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="8" y1="8" x2="16" y2="8"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
-                <div style="font-size:11px;font-weight:600;color:var(--text2)">Libera</div>
+                style="border:2px solid var(--border);border-radius:var(--radius-sm);padding:8px 6px;cursor:pointer;text-align:center;transition:all .15s">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text2)" stroke-width="2" style="margin-bottom:2px"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="8" y1="8" x2="16" y2="8"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+                <div style="font-size:10px;font-weight:600;color:var(--text2)">Libera</div>
               </div>
             </div>
-          </div>
 
-          <!-- Righe testo configurabili -->
-          <div class="card">
-            <div class="card-title" style="margin-bottom:12px">Righe Testo</div>
-            <div id="eti-righe-container" style="display:flex;flex-direction:column;gap:10px">
-              <!-- Le righe vengono generate da JS -->
-            </div>
-          </div>
-
-          <!-- Selezione posizione (per ripiano/valigetta) -->
-          <div class="card" id="eti-pos-card" style="display:none">
-            <div class="card-title" style="margin-bottom:10px">Posizione</div>
-            <div id="eti-form-ripiano" style="display:none">
-              <div class="field-row">
-                <div class="field"><label>Armadio</label>
-                  <select id="eti-armadio-id" onchange="etiAggiornaRipiani(); etiAutocompila()">
-                    <option value="">Seleziona</option>
-                  </select>
+            <!-- Posizione (ripiano/valigetta) -->
+            <div id="eti-pos-card">
+              <div id="eti-form-ripiano">
+                <div class="field-row">
+                  <div class="field"><label>Armadio</label>
+                    <select id="eti-armadio-id" onchange="etiAggiornaRipiani(); etiAutocompila()">
+                      <option value="">Seleziona</option>
+                    </select>
+                  </div>
+                  <div class="field"><label>Ripiano</label>
+                    <select id="eti-ripiano-id" onchange="etiAutocompila()">
+                      <option value="">Seleziona</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+              <div id="eti-form-valigetta" style="display:none">
+                <div class="field-row">
+                  <div class="field"><label>Armadio</label>
+                    <select id="eti-armadio-id-v" onchange="etiAggiornaRipianiV(); etiAutocompilaV()">
+                      <option value="">Seleziona</option>
+                    </select>
+                  </div>
+                  <div class="field"><label>N° Valigetta</label>
+                    <input type="text" id="eti-val-numero" placeholder="es. 001" oninput="etiAutocompilaV()">
+                  </div>
                 </div>
                 <div class="field"><label>Ripiano</label>
-                  <select id="eti-ripiano-id" onchange="etiAutocompila()">
+                  <select id="eti-ripiano-id-v" onchange="etiAutocompilaV()">
                     <option value="">Seleziona</option>
                   </select>
                 </div>
               </div>
             </div>
-            <div id="eti-form-valigetta" style="display:none">
+
+            <!-- Righe testo -->
+            <div id="eti-righe-container" style="display:flex;flex-direction:column;gap:8px;margin-top:10px"></div>
+
+            <!-- Dimensioni + quantità -->
+            <div style="margin-top:12px">
+              <div style="font-size:12px;font-weight:600;color:var(--text2);margin-bottom:6px">Dimensioni</div>
+              <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:8px">
+                <button onclick="etiSetDim(100,30)" class="btn btn-secondary" style="font-size:10px;padding:2px 7px">100×30</button>
+                <button onclick="etiSetDim(60,90)" class="btn btn-secondary" style="font-size:10px;padding:2px 7px">60×90</button>
+                <button onclick="etiSetDim(70,37)" class="btn btn-secondary" style="font-size:10px;padding:2px 7px">70×37</button>
+                <button onclick="etiSetDim(105,148)" class="btn btn-secondary" style="font-size:10px;padding:2px 7px">A6</button>
+                <button onclick="etiSetDim(148,210)" class="btn btn-secondary" style="font-size:10px;padding:2px 7px">A5</button>
+              </div>
               <div class="field-row">
-                <div class="field"><label>Armadio</label>
-                  <select id="eti-armadio-id-v" onchange="etiAggiornaRipianiV(); etiAutocompilaV()">
-                    <option value="">Seleziona</option>
-                  </select>
-                </div>
-                <div class="field"><label>N° Valigetta</label>
-                  <input type="text" id="eti-val-numero" placeholder="es. 001" oninput="etiAutocompilaV()">
-                </div>
-              </div>
-              <div class="field"><label>Ripiano</label>
-                <select id="eti-ripiano-id-v" onchange="etiAutocompilaV()">
-                  <option value="">Seleziona</option>
-                </select>
+                <div class="field"><label>Largh. (mm)</label><input type="number" id="eti-w" value="100" min="20" max="210"></div>
+                <div class="field"><label>Alt. (mm)</label><input type="number" id="eti-h" value="30" min="10" max="297"></div>
+                <div class="field"><label>Quante</label><input type="number" id="eti-qty" value="1" min="1" max="50"></div>
               </div>
             </div>
+
+            <!-- Aggiungi al carrello -->
+            <button onclick="etiAggiungiAlCarrello()" class="btn btn-primary" style="width:100%;justify-content:center;margin-top:12px">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Aggiungi al carrello
+            </button>
           </div>
 
-          <!-- Dimensioni -->
+          <!-- Carrello -->
           <div class="card">
-            <div class="card-title" style="margin-bottom:10px">Dimensioni</div>
-            <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">
-              <button onclick="etiSetDim(100,30)" class="btn btn-secondary" style="font-size:11px;padding:3px 9px">100×30</button>
-              <button onclick="etiSetDim(60,90)" class="btn btn-secondary" style="font-size:11px;padding:3px 9px">60×90</button>
-              <button onclick="etiSetDim(70,37)" class="btn btn-secondary" style="font-size:11px;padding:3px 9px">70×37</button>
-              <button onclick="etiSetDim(105,148)" class="btn btn-secondary" style="font-size:11px;padding:3px 9px">A6</button>
-              <button onclick="etiSetDim(148,210)" class="btn btn-secondary" style="font-size:11px;padding:3px 9px">A5</button>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+              <div class="card-title" style="margin-bottom:0">Carrello <span id="eti-carrello-count" style="background:var(--blue);color:#fff;border-radius:10px;padding:1px 7px;font-size:11px;margin-left:4px">0</span></div>
+              <button onclick="etiSvuotaCarrello()" class="btn btn-secondary" style="font-size:11px;padding:3px 8px">Svuota</button>
             </div>
-            <div class="field-row">
-              <div class="field"><label>Larghezza (mm)</label><input type="number" id="eti-w" value="100" min="20" max="210"></div>
-              <div class="field"><label>Altezza (mm)</label><input type="number" id="eti-h" value="30" min="10" max="297"></div>
-              <div class="field"><label>Quante</label><input type="number" id="eti-qty" value="1" min="1" max="200"></div>
+            <div id="eti-carrello-lista" style="display:flex;flex-direction:column;gap:6px;min-height:60px">
+              <div style="text-align:center;color:var(--text3);font-size:13px;padding:16px 0">
+                Nessuna etichetta — aggiungine una sopra
+              </div>
             </div>
-            <div id="eti-calcolo" style="font-size:12px;color:var(--text3);margin-top:4px"></div>
           </div>
 
-          <!-- Pulsanti -->
+          <!-- Pulsanti stampa -->
           <button onclick="etiGeneraAnteprima()" class="btn btn-primary" style="width:100%;justify-content:center;padding:13px;font-size:15px">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
             Anteprima di stampa
@@ -1704,18 +1718,18 @@ tbody tr:hover { background: var(--bg); }
         </div>
 
         <!-- ── DESTRA: anteprima foglio A4 ── -->
-        <div class="card">
+        <div class="card" style="position:sticky;top:20px">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
             <div class="card-title" style="margin-bottom:0">Anteprima Foglio A4</div>
             <span id="eti-info-foglio" style="font-size:12px;color:var(--text3)"></span>
           </div>
-          <div style="display:flex;justify-content:center;background:#e5e7eb;padding:16px;border-radius:var(--radius-sm)">
-            <div style="background:#fff;box-shadow:0 2px 12px rgba(0,0,0,.15);position:relative;width:100%;max-width:420px;aspect-ratio:210/297">
+          <div style="display:flex;justify-content:center;background:#e5e7eb;padding:12px;border-radius:var(--radius-sm)">
+            <div style="background:#fff;box-shadow:0 2px 12px rgba(0,0,0,.15);width:100%;max-width:380px;aspect-ratio:210/297">
               <canvas id="eti-canvas-a4" style="width:100%;height:100%"></canvas>
             </div>
           </div>
-          <div id="eti-anteprima-msg" style="text-align:center;color:var(--text3);font-size:13px;margin-top:12px;padding:8px">
-            Configura le opzioni e clicca "Anteprima di stampa"
+          <div id="eti-anteprima-msg" style="text-align:center;color:var(--text3);font-size:13px;margin-top:10px">
+            Aggiungi etichette al carrello e clicca "Anteprima di stampa"
           </div>
         </div>
 
@@ -3483,34 +3497,34 @@ async function importExcel(input) {
 // =============================================
 let etiTipo = 'ripiano';
 let etiAnteprimaOk = false;
+let etiCarrello = []; // Array di etichette da stampare
 
-// Definizione righe per tipo etichetta
-const ETI_RIGHE = {
+const ETI_RIGHE_DEFAULT = {
   ripiano: [
-    { id: 'r0', label: 'Intestazione archivio', default: 'Pene Detentive Senza Misura', size: 11, bold: false, color: 'gray',  visible: true },
-    { id: 'r1', label: 'Armadio',               default: 'Armadio 2023',               size: 12, bold: true,  color: 'black', visible: true },
-    { id: 'r2', label: 'Ripiano',               default: 'Ripiano 3',                  size: 11, bold: true,  color: 'black', visible: true },
-    { id: 'r3', label: 'Sezione / Note',        default: '',                            size: 11, bold: false, color: 'black', visible: true },
+    { id:'r0', label:'Intestazione', default:'Pene Detentive Senza Misura', size:11, bold:false, color:'gray' },
+    { id:'r1', label:'Armadio',      default:'Armadio 2023',               size:13, bold:true,  color:'black' },
+    { id:'r2', label:'Ripiano',      default:'Ripiano 3',                  size:12, bold:true,  color:'black' },
+    { id:'r3', label:'Note',         default:'',                           size:10, bold:false, color:'black' },
   ],
   valigetta: [
-    { id: 'r0', label: 'Intestazione archivio', default: 'Pene Detentive Senza Misura', size: 11, bold: false, color: 'gray',  visible: true },
-    { id: 'r1', label: 'N° Valigetta',          default: '001',                         size: 18, bold: true,  color: 'black', visible: true },
-    { id: 'r2', label: 'Anno',                  default: 'Anno 2023',                   size: 12, bold: true,  color: 'black', visible: true },
-    { id: 'r3', label: 'Ripiano',               default: 'Ripiano 3',                   size: 11, bold: false, color: 'black', visible: true },
+    { id:'r0', label:'Intestazione', default:'Pene Detentive Senza Misura', size:11, bold:false, color:'gray' },
+    { id:'r1', label:'N° Valigetta', default:'001',                         size:20, bold:true,  color:'black' },
+    { id:'r2', label:'Anno',         default:'Anno 2023',                   size:13, bold:true,  color:'black' },
+    { id:'r3', label:'Ripiano',      default:'Ripiano 3',                   size:11, bold:false, color:'black' },
   ],
   libera: [
-    { id: 'r0', label: 'Riga 1 (grande)',       default: '',                            size: 14, bold: true,  color: 'black', visible: true },
-    { id: 'r1', label: 'Riga 2',                default: '',                            size: 12, bold: false, color: 'black', visible: true },
-    { id: 'r2', label: 'Riga 3',                default: '',                            size: 11, bold: false, color: 'gray',  visible: true },
-    { id: 'r3', label: 'Riga 4 (piccola)',      default: '',                            size: 10, bold: false, color: 'gray',  visible: false },
+    { id:'r0', label:'Riga 1',       default:'',                           size:14, bold:true,  color:'black' },
+    { id:'r1', label:'Riga 2',       default:'',                           size:12, bold:false, color:'black' },
+    { id:'r2', label:'Riga 3',       default:'',                           size:11, bold:false, color:'gray' },
+    { id:'r3', label:'Riga 4',       default:'',                           size:10, bold:false, color:'gray' },
   ],
 };
 
 const COLOR_MAP = {
-  black:    { hex: '#111111', label: 'Nero' },
-  darkblue: { hex: '#1B2A4A', label: 'Blu scuro' },
-  gray:     { hex: '#888888', label: 'Grigio' },
-  lightgray:{ hex: '#AAAAAA', label: 'Grigio chiaro' },
+  black:    { hex:'#111111', pdf:[17,17,17],       label:'Nero' },
+  darkblue: { hex:'#1B2A4A', pdf:[27,42,74],       label:'Blu scuro' },
+  gray:     { hex:'#888888', pdf:[136,136,136],    label:'Grigio' },
+  lightgray:{ hex:'#BBBBBB', pdf:[187,187,187],    label:'Grigio chiaro' },
 };
 
 async function initEtichette() {
@@ -3522,106 +3536,72 @@ async function initEtichette() {
       allArmadi.map(a => `<option value="${a.id}">${escHtml(a.nome)}</option>`).join('');
   });
   etiSceglitipo('ripiano');
-  etiCalcola();
 }
 
 function etiSceglitipo(tipo) {
   etiTipo = tipo;
   ['ripiano','valigetta','libera'].forEach(t => {
-    const btn  = document.getElementById(`eti-tipo-${t}`);
-    if (btn) {
-      btn.style.borderColor = t === tipo ? 'var(--blue)' : 'var(--border)';
-      btn.style.background  = t === tipo ? '#eff6ff' : '';
-      const svg = btn.querySelector('svg');
-      const lbl = btn.querySelector('div');
-      if (svg) svg.style.stroke = t === tipo ? 'var(--blue)' : 'var(--text2)';
-      if (lbl) lbl.style.color  = t === tipo ? 'var(--blue)' : 'var(--text2)';
-    }
+    const btn = document.getElementById(`eti-tipo-${t}`);
+    if (!btn) return;
+    const on = t === tipo;
+    btn.style.borderColor = on ? 'var(--blue)' : 'var(--border)';
+    btn.style.background  = on ? '#eff6ff' : '';
+    btn.querySelector('svg').style.stroke = on ? 'var(--blue)' : 'var(--text2)';
+    btn.querySelector('div').style.color  = on ? 'var(--blue)' : 'var(--text2)';
   });
-
-  // Mostra/nascondi card posizione
-  const posCard = document.getElementById('eti-pos-card');
-  posCard.style.display = tipo !== 'libera' ? 'block' : 'none';
   document.getElementById('eti-form-ripiano').style.display   = tipo === 'ripiano'   ? 'block' : 'none';
   document.getElementById('eti-form-valigetta').style.display = tipo === 'valigetta' ? 'block' : 'none';
-
-  // Genera righe
+  document.getElementById('eti-pos-card').style.display       = tipo !== 'libera'    ? 'block' : 'none';
   etiGeneraRighe(tipo);
-  etiResetStampa();
 }
 
 function etiGeneraRighe(tipo) {
+  const righe = ETI_RIGHE_DEFAULT[tipo] || [];
   const container = document.getElementById('eti-righe-container');
-  const righe = ETI_RIGHE[tipo] || [];
-
   container.innerHTML = righe.map((r, i) => `
-    <div style="background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px">
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
-        <label style="display:flex;align-items:center;gap:5px;font-size:12px;cursor:pointer">
-          <input type="checkbox" id="eti-r${i}-vis" ${r.visible ? 'checked' : ''} onchange="etiResetStampa()">
-          <span style="font-weight:600;color:var(--text2)">${r.label}</span>
-        </label>
-      </div>
-      <input type="text" id="eti-r${i}-testo" value="${escHtml(r.default)}"
-        placeholder="${r.label}..."
-        style="width:100%;margin-bottom:8px;font-size:${Math.min(r.size, 14)}px;${r.bold?'font-weight:600':''}">
+    <div style="background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-sm);padding:8px 10px">
+      <div style="font-size:11px;font-weight:600;color:var(--text2);margin-bottom:5px">${r.label}</div>
+      <input type="text" id="eti-r${i}-testo" value="${escHtml(r.default)}" placeholder="${r.label}..."
+        style="width:100%;margin-bottom:6px;font-size:13px">
       <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-        <div style="display:flex;align-items:center;gap:4px">
-          <label style="font-size:11px;color:var(--text3)">Pt</label>
+        <div style="display:flex;align-items:center;gap:3px">
+          <label style="font-size:10px;color:var(--text3)">Pt</label>
           <input type="number" id="eti-r${i}-size" value="${r.size}" min="6" max="36"
-            style="width:52px;padding:3px 6px;font-size:12px;border:1px solid var(--border);border-radius:4px">
+            style="width:48px;padding:2px 5px;font-size:11px;border:1px solid var(--border);border-radius:4px">
         </div>
-        <div style="display:flex;align-items:center;gap:4px">
-          <label style="font-size:11px;color:var(--text3)">Colore</label>
-          <select id="eti-r${i}-color" style="font-size:11px;padding:3px 6px;border:1px solid var(--border);border-radius:4px">
-            ${Object.entries(COLOR_MAP).map(([k,v]) => `<option value="${k}" ${r.color===k?'selected':''}>${v.label}</option>`).join('')}
-          </select>
-        </div>
-        <label style="display:flex;align-items:center;gap:4px;font-size:11px;cursor:pointer">
-          <input type="checkbox" id="eti-r${i}-bold" ${r.bold ? 'checked' : ''}> <span style="color:var(--text3)">Grassetto</span>
+        <select id="eti-r${i}-color" style="font-size:11px;padding:2px 5px;border:1px solid var(--border);border-radius:4px">
+          ${Object.entries(COLOR_MAP).map(([k,v]) => `<option value="${k}" ${r.color===k?'selected':''}>${v.label}</option>`).join('')}
+        </select>
+        <label style="display:flex;align-items:center;gap:3px;font-size:11px;cursor:pointer">
+          <input type="checkbox" id="eti-r${i}-bold" ${r.bold?'checked':''}> <span style="color:var(--text3)">Grassetto</span>
         </label>
       </div>
     </div>
   `).join('');
 }
 
-function etiGetRighe() {
-  const righe = ETI_RIGHE[etiTipo] || [];
-  return righe.map((r, i) => ({
+function etiGetRigheForm() {
+  return (ETI_RIGHE_DEFAULT[etiTipo] || []).map((r, i) => ({
     testo:   (document.getElementById(`eti-r${i}-testo`)?.value || '').trim(),
     size:    parseInt(document.getElementById(`eti-r${i}-size`)?.value) || r.size,
     color:   document.getElementById(`eti-r${i}-color`)?.value || r.color,
     bold:    document.getElementById(`eti-r${i}-bold`)?.checked ?? r.bold,
-    visible: document.getElementById(`eti-r${i}-vis`)?.checked ?? r.visible,
-  }));
+  })).filter(r => r.testo); // solo righe con testo
 }
 
-function etiAutocompila() {
-  const armId = document.getElementById('eti-armadio-id').value;
-  const ripId = document.getElementById('eti-ripiano-id').value;
-  const arm   = allArmadi.find(a => a.id === armId);
-  const rip   = allRipiani.find(r => r.id === ripId);
-  if (arm) {
-    const el = document.getElementById('eti-r1-testo');
-    if (el) el.value = `Armadio ${arm.nome}`;
+function etiGetQRText() {
+  if (etiTipo === 'ripiano') {
+    const armId = document.getElementById('eti-armadio-id').value;
+    const ripId = document.getElementById('eti-ripiano-id').value;
+    const arm   = allArmadi.find(a => a.id === armId);
+    const rip   = allRipiani.find(r => r.id === ripId);
+    return arm && rip ? `ARCHIVIO|arm:${arm.nome}|rip:${rip.numero}` : 'ARCHIVIO';
+  } else if (etiTipo === 'valigetta') {
+    const num = document.getElementById('eti-val-numero').value.trim() || '---';
+    const armId = document.getElementById('eti-armadio-id-v').value;
+    return `VALIGETTA|num:${num}|arm:${armId}`;
   }
-  if (rip) {
-    const el = document.getElementById('eti-r2-testo');
-    if (el) el.value = `Ripiano ${rip.numero}`;
-  }
-  etiResetStampa();
-}
-
-function etiAutocompilaV() {
-  const armId = document.getElementById('eti-armadio-id-v').value;
-  const ripId = document.getElementById('eti-ripiano-id-v').value;
-  const num   = document.getElementById('eti-val-numero').value.trim();
-  const arm   = allArmadi.find(a => a.id === armId);
-  const rip   = allRipiani.find(r => r.id === ripId);
-  if (num)  { const el = document.getElementById('eti-r1-testo'); if(el) el.value = num; }
-  if (arm)  { const el = document.getElementById('eti-r2-testo'); if(el) el.value = `Anno ${arm.nome}`; }
-  if (rip)  { const el = document.getElementById('eti-r3-testo'); if(el) el.value = `Ripiano ${rip.numero}`; }
-  etiResetStampa();
+  return document.getElementById('eti-r0-testo')?.value.trim() || 'ARCHIVIO';
 }
 
 function etiAggiornaRipiani() {
@@ -3631,7 +3611,6 @@ function etiAggiornaRipiani() {
   sel.innerHTML = '<option value="">Seleziona ripiano</option>' +
     rips.map(r => `<option value="${r.id}">Ripiano ${r.numero}${r.numero===1?' (basso)':r.numero===5?' (alto)':''}</option>`).join('');
 }
-
 function etiAggiornaRipianiV() {
   const id = document.getElementById('eti-armadio-id-v').value;
   const sel = document.getElementById('eti-ripiano-id-v');
@@ -3639,45 +3618,98 @@ function etiAggiornaRipianiV() {
   sel.innerHTML = '<option value="">Seleziona ripiano</option>' +
     rips.map(r => `<option value="${r.id}">Ripiano ${r.numero}${r.numero===1?' (basso)':r.numero===5?' (alto)':''}</option>`).join('');
 }
-
+function etiAutocompila() {
+  const arm = allArmadi.find(a => a.id === document.getElementById('eti-armadio-id').value);
+  const rip = allRipiani.find(r => r.id === document.getElementById('eti-ripiano-id').value);
+  if (arm) { const el = document.getElementById('eti-r1-testo'); if(el) el.value = `Armadio ${arm.nome}`; }
+  if (rip) { const el = document.getElementById('eti-r2-testo'); if(el) el.value = `Ripiano ${rip.numero}`; }
+}
+function etiAutocompilaV() {
+  const num = document.getElementById('eti-val-numero').value.trim();
+  const arm = allArmadi.find(a => a.id === document.getElementById('eti-armadio-id-v').value);
+  const rip = allRipiani.find(r => r.id === document.getElementById('eti-ripiano-id-v').value);
+  if (num) { const el = document.getElementById('eti-r1-testo'); if(el) el.value = num; }
+  if (arm) { const el = document.getElementById('eti-r2-testo'); if(el) el.value = `Anno ${arm.nome}`; }
+  if (rip) { const el = document.getElementById('eti-r3-testo'); if(el) el.value = `Ripiano ${rip.numero}`; }
+}
 function etiSetDim(w, h) {
   document.getElementById('eti-w').value = w;
   document.getElementById('eti-h').value = h;
-  etiCalcola();
-  etiResetStampa();
 }
 
-function etiCalcola() {
-  const w = parseInt(document.getElementById('eti-w').value) || 100;
-  const h = parseInt(document.getElementById('eti-h').value) || 30;
+// ── CARRELLO ──────────────────────────────────────────────────────────────────
+function etiAggiungiAlCarrello() {
+  const w   = parseInt(document.getElementById('eti-w').value) || 100;
+  const h   = parseInt(document.getElementById('eti-h').value) || 30;
   const qty = parseInt(document.getElementById('eti-qty').value) || 1;
-  const margine = 5, gap = 3;
-  const colonne = Math.max(1, Math.floor((210 - margine*2 + gap) / (w + gap)));
-  const righe   = Math.max(1, Math.floor((297 - margine*2 + gap) / (h + gap)));
-  const perFoglio = colonne * righe;
-  const fogli = Math.ceil(qty / perFoglio);
-  document.getElementById('eti-calcolo').textContent =
-    `${colonne}×${righe} = ${perFoglio} per foglio — ${qty} etichette → ${fogli} fogli`;
-  document.getElementById('eti-info-foglio').textContent =
-    `${w}×${h}mm — ${perFoglio}/foglio`;
-  return { w, h, qty, colonne, righe, perFoglio, fogli, margine, gap };
+  const righe = etiGetRigheForm();
+
+  if (!righe.length) { showToast('Inserisci almeno una riga di testo', 'error'); return; }
+
+  etiCarrello.push({
+    id: Date.now(),
+    tipo: etiTipo,
+    w, h, qty,
+    righe,
+    qrText: etiGetQRText(),
+    label: righe.map(r => r.testo).join(' · ').substring(0, 40),
+  });
+
+  etiRenderCarrello();
+  etiResetStampa();
+  showToast(`Etichetta aggiunta al carrello (${etiCarrello.reduce((s,e)=>s+e.qty,0)} totali)`, 'success');
 }
+
+function etiRenderCarrello() {
+  const lista = document.getElementById('eti-carrello-lista');
+  const count = document.getElementById('eti-carrello-count');
+  const totale = etiCarrello.reduce((s,e) => s+e.qty, 0);
+  count.textContent = totale;
+
+  if (!etiCarrello.length) {
+    lista.innerHTML = '<div style="text-align:center;color:var(--text3);font-size:13px;padding:16px 0">Nessuna etichetta — aggiungine una sopra</div>';
+    return;
+  }
+
+  lista.innerHTML = etiCarrello.map((e, i) => `
+    <div style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-sm)">
+      <div style="flex:1;min-width:0">
+        <div style="font-size:12px;font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escHtml(e.label)}</div>
+        <div style="font-size:11px;color:var(--text3);margin-top:1px">${e.w}×${e.h}mm — ${e.qty} pz</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:4px">
+        <button onclick="etiCarrelloMeno(${i})" style="background:none;border:1px solid var(--border);border-radius:4px;width:22px;height:22px;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;color:var(--text2)">−</button>
+        <span style="font-size:12px;font-weight:600;min-width:20px;text-align:center">${e.qty}</span>
+        <button onclick="etiCarrelloPiu(${i})" style="background:none;border:1px solid var(--border);border-radius:4px;width:22px;height:22px;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;color:var(--text2)">+</button>
+        <button onclick="etiCarrelloRimuovi(${i})" style="background:none;border:none;cursor:pointer;color:var(--text3);padding:2px;margin-left:2px" onmouseover="this.style.color='#DC2626'" onmouseout="this.style.color='var(--text3)'">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function etiCarrelloMeno(i) { if(etiCarrello[i].qty > 1) { etiCarrello[i].qty--; etiRenderCarrello(); etiResetStampa(); } }
+function etiCarrelloPiu(i)  { etiCarrello[i].qty++; etiRenderCarrello(); etiResetStampa(); }
+function etiCarrelloRimuovi(i) { etiCarrello.splice(i,1); etiRenderCarrello(); etiResetStampa(); }
+function etiSvuotaCarrello() { etiCarrello = []; etiRenderCarrello(); etiResetStampa(); }
 
 function etiResetStampa() {
   etiAnteprimaOk = false;
   const btn = document.getElementById('eti-btn-stampa');
   if (btn) { btn.disabled = true; btn.style.opacity = '.4'; btn.style.cursor = 'not-allowed'; }
   const msg = document.getElementById('eti-anteprima-msg');
-  if (msg) { msg.textContent = 'Configura le opzioni e clicca "Anteprima di stampa"'; msg.style.color = 'var(--text3)'; }
+  if (msg) { msg.textContent = 'Aggiungi etichette al carrello e clicca "Anteprima di stampa"'; msg.style.color = 'var(--text3)'; }
 }
 
+// ── QR ────────────────────────────────────────────────────────────────────────
 function generateQRCanvas(text, size) {
   return new Promise((resolve, reject) => {
     const div = document.createElement('div');
     div.style.cssText = 'position:absolute;left:-9999px;top:-9999px';
     document.body.appendChild(div);
     try {
-      new QRCode(div, { text: text || 'ARCHIVIO', width: size, height: size, correctLevel: QRCode.CorrectLevel.M });
+      new QRCode(div, { text: text||'ARCHIVIO', width:size, height:size, correctLevel:QRCode.CorrectLevel.M });
       setTimeout(() => {
         const img = div.querySelector('img') || div.querySelector('canvas');
         if (img) {
@@ -3692,103 +3724,122 @@ function generateQRCanvas(text, size) {
   });
 }
 
-function getQRText() {
-  if (etiTipo === 'ripiano') {
-    const armId = document.getElementById('eti-armadio-id').value;
-    const ripId = document.getElementById('eti-ripiano-id').value;
-    const arm   = allArmadi.find(a => a.id === armId);
-    const rip   = allRipiani.find(r => r.id === ripId);
-    return arm && rip ? `ARCHIVIO|arm:${arm.nome}|rip:${rip.numero}` : 'ARCHIVIO';
-  } else if (etiTipo === 'valigetta') {
-    const num = document.getElementById('eti-val-numero').value.trim() || '---';
-    const armId = document.getElementById('eti-armadio-id-v').value;
-    return `VALIGETTA|num:${num}|arm:${armId}`;
-  } else {
-    const r0 = document.getElementById('eti-r0-testo')?.value.trim();
-    return r0 || 'ARCHIVIO';
-  }
-}
-
-// Disegna etichetta su canvas (anteprima)
+// ── DISEGNA ETICHETTA su canvas ───────────────────────────────────────────────
 function disegnaEtichettaCanvas(ctx, x, y, wPx, hPx, righe, qrCanvas) {
-  const pad = Math.max(3, wPx * 0.03);
+  const pad = Math.max(4, wPx * 0.035);
 
-  // Sfondo bianco + bordo
   ctx.fillStyle = '#ffffff';
   ctx.fillRect(x, y, wPx, hPx);
   ctx.strokeStyle = '#222222';
   ctx.lineWidth = 0.8;
   ctx.strokeRect(x+0.5, y+0.5, wPx-1, hPx-1);
 
-  // QR a destra
-  const qrSz = Math.min(hPx - pad*2, wPx * 0.32);
+  const qrSz = Math.min(hPx - pad*2, wPx * 0.30);
   const qrX  = x + wPx - qrSz - pad;
   const qrY  = y + (hPx - qrSz) / 2;
   if (qrCanvas) ctx.drawImage(qrCanvas, qrX, qrY, qrSz, qrSz);
 
-  // Testo
   const textW = qrX - x - pad * 2;
-  const tx = x + pad;
-  const righeVis = righe.filter(r => r.visible && r.testo);
-  const totH = hPx - pad * 2;
-  const lineH = totH / (righeVis.length || 1);
+  const tx    = x + pad;
+  const lineH = (hPx - pad*2) / (righe.length || 1);
 
-  righeVis.forEach((r, i) => {
-    const szPx = Math.max(r.size * 0.8, 6); // scala mm→px canvas
-    ctx.font = `${r.bold ? 'bold ' : ''}${szPx}px Arial`;
+  righe.forEach((r, i) => {
+    const szPx = r.size * 0.75;
+    ctx.font      = `${r.bold?'bold ':''}${Math.max(szPx,6)}px Arial`;
     ctx.fillStyle = COLOR_MAP[r.color]?.hex || '#111111';
-    const yPos = y + pad + lineH * i + lineH * 0.75;
-    ctx.fillText(r.testo, tx, yPos, textW);
+    // Tronca il testo se troppo lungo invece di andare a capo
+    const yPos = y + pad + lineH * i + lineH * 0.78;
+    ctx.save();
+    ctx.rect(tx, y, textW, hPx);
+    ctx.clip();
+    ctx.fillText(r.testo, tx, yPos);
+    ctx.restore();
   });
 
   // Segni ritaglio
   const cl = 4;
-  ctx.strokeStyle = '#cccccc';
-  ctx.lineWidth = 0.4;
+  ctx.strokeStyle = '#cccccc'; ctx.lineWidth = 0.4;
   [[x-cl,y,x+cl,y],[x,y-cl,x,y+cl],[x+wPx-cl,y,x+wPx+cl,y],[x+wPx,y-cl,x+wPx,y+cl],
    [x-cl,y+hPx,x+cl,y+hPx],[x,y+hPx-cl,x,y+hPx+cl],[x+wPx-cl,y+hPx,x+wPx+cl,y+hPx],[x+wPx,y+hPx-cl,x+wPx,y+hPx+cl]
   ].forEach(([x1,y1,x2,y2]) => { ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke(); });
 }
 
+// ── LAYOUT FOGLIO: posiziona etichette diverse ────────────────────────────────
+// Algoritmo: mette le etichette nell'ordine del carrello, riga per riga
+function calcolaLayout() {
+  // Espande il carrello in array piatto
+  const items = [];
+  etiCarrello.forEach(e => {
+    for (let i = 0; i < e.qty; i++) items.push(e);
+  });
+  return items;
+}
+
 async function etiGeneraAnteprima() {
-  const { w, h, qty, colonne, righe: nRighe, perFoglio, margine, gap } = etiCalcola();
-  const righe = etiGetRighe();
+  if (!etiCarrello.length) { showToast('Aggiungi almeno una etichetta al carrello', 'error'); return; }
+
   const msg = document.getElementById('eti-anteprima-msg');
   msg.textContent = 'Generazione anteprima...';
   msg.style.color = 'var(--text3)';
 
   try {
-    const scale = 2; // px per mm
+    const scale = 2;
+    const A4w = 210 * scale, A4h = 297 * scale;
     const canvas = document.getElementById('eti-canvas-a4');
-    canvas.width  = 210 * scale;
-    canvas.height = 297 * scale;
+    canvas.width = A4w; canvas.height = A4h;
     const ctx = canvas.getContext('2d');
     ctx.fillStyle = '#ffffff';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillRect(0, 0, A4w, A4h);
 
-    const qrSzPx = Math.min((h - 4) * scale, w * scale * 0.32);
-    const qrCanvas = await generateQRCanvas(getQRText(), Math.round(qrSzPx));
+    const margine = 5, gap = 3;
+    const items = calcolaLayout();
 
-    const shown = Math.min(qty, perFoglio);
-    for (let i = 0; i < shown; i++) {
-      const col = i % colonne;
-      const row = Math.floor(i / colonne);
-      disegnaEtichettaCanvas(ctx,
-        (margine + col * (w + gap)) * scale,
-        (margine + row * (h + gap)) * scale,
-        w * scale, h * scale,
-        righe, qrCanvas
-      );
+    // Genera QR per ogni tipo di etichetta unica
+    const qrCache = {};
+    for (const e of etiCarrello) {
+      if (!qrCache[e.id]) {
+        const qrSzPx = Math.min((e.h-4)*scale, e.w*scale*0.30);
+        qrCache[e.id] = await generateQRCanvas(e.qrText, Math.round(qrSzPx));
+      }
     }
 
-    if (qty > perFoglio) {
-      ctx.fillStyle = '#888'; ctx.font = '9px Arial'; ctx.textAlign = 'center';
-      ctx.fillText(`Primo foglio di ${Math.ceil(qty/perFoglio)} — ${qty} etichette totali`, 105*scale, 292*scale);
-      ctx.textAlign = 'left';
+    // Posiziona sul foglio — layout a bin packing semplice (riga corrente)
+    let curX = margine * scale;
+    let curY = margine * scale;
+    let rowH  = 0;
+    let count = 0;
+
+    for (const item of items) {
+      const wPx = item.w * scale;
+      const hPx = item.h * scale;
+      const gapPx = gap * scale;
+      const margPx = margine * scale;
+
+      // Se non entra in larghezza → nuova riga
+      if (curX + wPx > (210 - margine) * scale && count > 0) {
+        curX = margPx;
+        curY += rowH + gapPx;
+        rowH = 0;
+      }
+
+      // Se non entra in altezza → stop (primo foglio)
+      if (curY + hPx > (297 - margine) * scale) break;
+
+      disegnaEtichettaCanvas(ctx, curX, curY, wPx, hPx, item.righe, qrCache[item.id]);
+      curX += wPx + gapPx;
+      rowH = Math.max(rowH, hPx);
+      count++;
     }
 
-    msg.textContent = `✓ Anteprima pronta — ${shown} etichette sul primo foglio`;
+    const totale = items.length;
+    const info = count < totale
+      ? `${count} di ${totale} etichette sul foglio (le restanti su fogli successivi)`
+      : `✓ Tutte le ${totale} etichette sul foglio`;
+
+    msg.textContent = info;
     msg.style.color = '#16a34a';
+    document.getElementById('eti-info-foglio').textContent = `${totale} etichette totali`;
+
     etiAnteprimaOk = true;
     const btn = document.getElementById('eti-btn-stampa');
     if (btn) { btn.disabled = false; btn.style.opacity = '1'; btn.style.cursor = 'pointer'; }
@@ -3796,31 +3847,47 @@ async function etiGeneraAnteprima() {
   } catch(e) {
     msg.textContent = 'Errore: ' + e.message;
     msg.style.color = '#DC2626';
+    console.error(e);
   }
 }
 
 async function etiStampa() {
   if (!etiAnteprimaOk) { showToast("Prima genera l'anteprima", 'error'); return; }
-  const { w, h, qty, colonne, perFoglio, margine, gap } = etiCalcola();
-  const righe = etiGetRighe();
-  const righeVis = righe.filter(r => r.visible && r.testo);
+  if (!etiCarrello.length) return;
 
   showToast('Generazione PDF...', 'success');
   try {
     const { jsPDF } = window.jspdf;
-    const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+    const doc = new jsPDF({ orientation:'portrait', unit:'mm', format:'a4' });
 
-    const qrCanvas = await generateQRCanvas(getQRText(), 200);
-    const qrDataUrl = qrCanvas.toDataURL('image/png');
+    const margine = 5, gap = 3;
+    const items = calcolaLayout();
 
-    let count = 0;
-    while (count < qty) {
-      if (count > 0 && count % perFoglio === 0) doc.addPage();
-      const pos = count % perFoglio;
-      const col = pos % colonne;
-      const row = Math.floor(pos / colonne);
-      const x = margine + col * (w + gap);
-      const y = margine + row * (h + gap);
+    // Genera QR data URL per ogni etichetta unica
+    const qrCache = {};
+    for (const e of etiCarrello) {
+      if (!qrCache[e.id]) {
+        const qrC = await generateQRCanvas(e.qrText, 200);
+        qrCache[e.id] = qrC.toDataURL('image/png');
+      }
+    }
+
+    let curX = margine, curY = margine, rowH = 0, page = 0;
+
+    for (const item of items) {
+      // Nuova riga
+      if (curX + item.w > 210 - margine) {
+        curX = margine;
+        curY += rowH + gap;
+        rowH = 0;
+      }
+      // Nuova pagina
+      if (curY + item.h > 297 - margine) {
+        doc.addPage();
+        curX = margine; curY = margine; rowH = 0; page++;
+      }
+
+      const x = curX, y = curY, w = item.w, h = item.h;
 
       // Bordo
       doc.setDrawColor(34,34,34); doc.setLineWidth(0.3);
@@ -3834,32 +3901,40 @@ async function etiStampa() {
       ].forEach(([x1,y1,x2,y2]) => doc.line(x1,y1,x2,y2));
 
       // QR
-      const qrSz = Math.min(h-4, w*0.32);
+      const qrSz = Math.min(h-4, w*0.30);
       const qrX  = x + w - qrSz - 2;
-      const qrY  = y + (h - qrSz) / 2;
-      doc.addImage(qrDataUrl, 'PNG', qrX, qrY, qrSz, qrSz);
+      const qrY2 = y + (h - qrSz) / 2;
+      doc.addImage(qrCache[item.id], 'PNG', qrX, qrY2, qrSz, qrSz);
 
-      // Righe testo
+      // Testo — con fitText per evitare a capo
       const textW = qrX - x - 4;
       const tx = x + 2.5;
-      const lineH = (h - 4) / (righeVis.length || 1);
+      const lineH = (h - 4) / (item.righe.length || 1);
 
-      righeVis.forEach((r, i) => {
-        const col3 = COLOR_MAP[r.color]?.hex || '#111111';
-        const rgb  = [parseInt(col3.slice(1,3),16), parseInt(col3.slice(3,5),16), parseInt(col3.slice(5,7),16)];
+      item.righe.forEach((r, i) => {
+        const rgb = COLOR_MAP[r.color]?.pdf || [17,17,17];
         doc.setTextColor(...rgb);
         doc.setFont('helvetica', r.bold ? 'bold' : 'normal');
-        doc.setFontSize(r.size);
-        const yPos = y + 2 + lineH * i + lineH * 0.8;
-        doc.text(r.testo, tx, yPos, { maxWidth: textW });
+
+        // Adatta font size se testo troppo lungo
+        let sz = r.size;
+        doc.setFontSize(sz);
+        while (doc.getTextWidth(r.testo) > textW && sz > 5) {
+          sz -= 0.5;
+          doc.setFontSize(sz);
+        }
+
+        const yPos = y + 2 + lineH * i + lineH * 0.85;
+        doc.text(r.testo, tx, yPos);
       });
 
-      count++;
+      curX += w + gap;
+      rowH = Math.max(rowH, h);
     }
 
-    const nome = `etichette_${w}x${h}mm_${qty}pz.pdf`;
-    doc.save(nome);
-    showToast(`✓ PDF scaricato — ${qty} etichette`, 'success');
+    const totale = etiCarrello.reduce((s,e) => s+e.qty, 0);
+    doc.save(`etichette_${totale}pz_${new Date().toISOString().slice(0,10)}.pdf`);
+    showToast(`✓ PDF scaricato — ${totale} etichette su ${page+1} fogli`, 'success');
 
   } catch(e) {
     showToast('Errore PDF: ' + e.message, 'error');
