@@ -2765,7 +2765,7 @@ function initApp() {
 }
 
 async function loadAll() {
-  await Promise.all([loadPosizioni(), loadFascicoli(), loadPrelievi()]);
+  await Promise.all([loadPosizioni(), loadFascicoli(), loadPrelievi(), loadArmadi()]);
   if (currentUser.ruolo === 'admin') loadUtenti();
   updateDashboard();
 }
@@ -4381,7 +4381,10 @@ async function loadArmadi() {
   } catch(e) {
     console.error('Load armadi:', e);
   }
-  renderArmadi();
+  // Renderizza solo se siamo nella pagina armadi
+  if (document.getElementById('page-armadi')?.classList.contains('active')) {
+    renderArmadi();
+  }
 }
 
 function getSlotRipiano(ripianoId) {
