@@ -2820,7 +2820,7 @@ function cercaRapidoLive(q) {
       </div>
       ${hasRipiano ? `
       <div style="margin-top:6px">
-        <button onclick="mostraInArmadio('${f.ripiano_id}','${escHtml(f.numero)}')"
+        <button onclick="mostraInArmadio('${f.ripiano_id}','${escHtml(f.numero)}','${f.slot_id||''}')"
           style="background:var(--blue);color:#fff;border:none;border-radius:var(--radius-sm);padding:4px 12px;font-size:11px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:5px;transition:opacity .15s"
           onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
@@ -4641,7 +4641,7 @@ async function rimuoviFascicoloDaRipiano(fascId, numero) {
 
 // Illumina ripiano + slot specifico
 function illuminaRipiano(ripianoId, numeroFascicolo, slotId) {
-  // Trova e scrolla al div ripiano
+  // Trova il div ripiano
   const ripianoEl = document.querySelector(`[data-ripiano-id="${ripianoId}"]`);
   if (ripianoEl) ripianoEl.scrollIntoView({ behavior:'smooth', block:'center' });
 
@@ -4653,21 +4653,34 @@ function illuminaRipiano(ripianoId, numeroFascicolo, slotId) {
     if (arrow) arrow.style.transform = 'rotate(90deg)';
   }
 
-  // Lampeggia il bordo del ripiano
-  if (ripianoEl) {
-    setTimeout(() => lampeggia(ripianoEl, '#FEF08A', '#EAB308', false), 100);
-  }
+  // Lampeggia il bordo del ripiano subito
+  if (ripianoEl) lampeggia(ripianoEl, '#FEF08A', '#EAB308', false);
 
-  // Lampeggia lo slot specifico con più intensità
-  if (slotId) {
-    setTimeout(() => {
-      const slotEl = document.querySelector(`[data-slot-id="${slotId}"]`);
-      if (slotEl) {
-        slotEl.setAttribute('title', `📍 ${numeroFascicolo} è qui`);
-        lampeggia(slotEl, '#FEF08A', '#EAB308', true);
-      }
-    }, 500);
-  }
+  // Lampeggia lo slot dopo un po' (DOM deve essere visibile)
+  setTimeout(() => {
+    let slotEl = null;
+
+    // Cerca per slot_id se disponibile
+    if (slotId) {
+      slotEl = document.querySelector(`[data-slot-id="${slotId}"]`);
+    }
+
+    // Se non trovato per slot_id, cerca per ripiano — illumina tutti gli slot occupati
+    if (!slotEl && ripianoId) {
+      const occupati = document.querySelectorAll(`#slots-${ripianoId} [data-slot-num]`);
+      occupati.forEach(el => {
+        if (el.getAttribute('data-slot-id') && el.getAttribute('data-slot-id') !== '') {
+          lampeggia(el, '#FEF08A', '#EAB308', true);
+        }
+      });
+      return;
+    }
+
+    if (slotEl) {
+      slotEl.setAttribute('title', `📍 ${numeroFascicolo} è qui`);
+      lampeggia(slotEl, '#FEF08A', '#EAB308', true);
+    }
+  }, 600);
 }
 
 function lampeggia(el, colore, bordo, forte = false) {
