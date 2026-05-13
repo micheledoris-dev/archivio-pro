@@ -2201,38 +2201,110 @@ tbody tr:hover { background: var(--bg); }
 
 <!-- Modal: Configura Slot -->
 <div class="modal-overlay" id="modal-slot">
-  <div class="modal" style="max-width:420px">
+  <div class="modal" style="max-width:480px">
     <h2 class="modal-title" id="slot-modal-title">Slot</h2>
     <input type="hidden" id="slot-id-hidden">
     <input type="hidden" id="slot-ripiano-id">
     <input type="hidden" id="slot-numero">
 
-    <div class="field">
-      <label>Tipo contenitore</label>
-      <div style="display:flex;flex-direction:column;gap:6px;margin-top:4px">
-        <label style="display:flex;align-items:center;gap:8px;padding:8px 12px;border:2px solid var(--border);border-radius:var(--radius-sm);cursor:pointer">
-          <input type="radio" name="slot-tipo" value="vuoto" style="accent-color:var(--blue)"> ⬜ Vuoto — slot libero
-        </label>
-        <label style="display:flex;align-items:center;gap:8px;padding:8px 12px;border:2px solid var(--border);border-radius:var(--radius-sm);cursor:pointer">
-          <input type="radio" name="slot-tipo" value="valigetta" style="accent-color:var(--blue)"> 📦 Valigetta
-        </label>
-        <label style="display:flex;align-items:center;gap:8px;padding:8px 12px;border:2px solid var(--border);border-radius:var(--radius-sm);cursor:pointer">
-          <input type="radio" name="slot-tipo" value="cartella" style="accent-color:var(--blue)"> 📁 Cartella / Faldone
-        </label>
+    <!-- ── PANNELLO SLOT VUOTO: inserisci fascicolo ── -->
+    <div id="slot-panel-vuoto">
+      <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:var(--radius-sm);padding:10px 14px;margin-bottom:14px;font-size:13px;color:#166534">
+        ⬜ Slot libero — inserisci un fascicolo qui
+      </div>
+
+      <!-- Tipo contenitore -->
+      <div class="field">
+        <label>Tipo contenitore</label>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px">
+          <label style="display:flex;align-items:center;gap:6px;padding:6px 12px;border:2px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;font-size:13px;transition:all .15s" id="slot-tipo-cart-lbl">
+            <input type="radio" name="slot-tipo" value="cartella" checked onchange="slotTipoChange()" style="accent-color:var(--blue)"> 📁 Cartella
+          </label>
+          <label style="display:flex;align-items:center;gap:6px;padding:6px 12px;border:2px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;font-size:13px;transition:all .15s" id="slot-tipo-val-lbl">
+            <input type="radio" name="slot-tipo" value="valigetta" onchange="slotTipoChange()" style="accent-color:var(--blue)"> 📦 Valigetta
+          </label>
+        </div>
+      </div>
+
+      <!-- N° Valigetta (solo se valigetta) -->
+      <div class="field" id="slot-val-num-wrap" style="display:none">
+        <label>N° Valigetta</label>
+        <input type="text" id="slot-val-num" placeholder="es. 001">
+      </div>
+
+      <!-- Dati fascicolo -->
+      <div style="background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px;margin-top:4px">
+        <div style="font-size:12px;font-weight:600;color:var(--text2);margin-bottom:10px;text-transform:uppercase;letter-spacing:.5px">Dati Fascicolo</div>
+        <div class="field-row">
+          <div class="field">
+            <label>N. Sentenza *</label>
+            <input type="text" id="slot-fasc-numero" placeholder="es. 1246" oninput="slotCheckDuplicato()">
+            <div id="slot-fasc-dup" style="font-size:11px;margin-top:2px;min-height:14px"></div>
+          </div>
+          <div class="field">
+            <label>RGNR</label>
+            <input type="text" id="slot-fasc-rgnr" placeholder="es. 1234/2024">
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label>Anno *</label>
+            <input type="number" id="slot-fasc-anno" placeholder="2026" min="1900" max="2100" oninput="slotCheckDuplicato()">
+          </div>
+          <div class="field">
+            <label>RGT *</label>
+            <input type="text" id="slot-fasc-rgt" placeholder="es. 480/24">
+          </div>
+        </div>
+        <div class="field">
+          <label>Note</label>
+          <textarea id="slot-fasc-note" rows="2" placeholder="Note opzionali..."></textarea>
+        </div>
+      </div>
+
+      <div class="modal-actions" style="margin-top:12px">
+        <button class="btn btn-secondary" onclick="closeModal('modal-slot')">Annulla</button>
+        <button class="btn btn-primary" onclick="salvaSlotConFascicolo()" style="background:#0F766E">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+          Deposita qui
+        </button>
       </div>
     </div>
 
-    <div class="field">
-      <label>Etichetta / Numero</label>
-      <input type="text" id="slot-etichetta" placeholder="es. 001 oppure Faldone 2024">
+    <!-- ── PANNELLO SLOT OCCUPATO: mostra fascicoli ── -->
+    <div id="slot-panel-occupato" style="display:none">
+      <div id="slot-occupato-badge" style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:var(--radius-sm);padding:10px 14px;margin-bottom:14px;font-size:13px;color:#1e40af">
+        📦 Slot occupato
+      </div>
+
+      <!-- Lista fascicoli -->
+      <div id="slot-fascicoli-list" style="border:1px solid var(--border);border-radius:var(--radius-sm);max-height:200px;overflow-y:auto;margin-bottom:14px"></div>
+
+      <!-- Configura tipo slot -->
+      <div style="border-top:1px solid var(--border);padding-top:12px">
+        <div style="font-size:12px;font-weight:600;color:var(--text2);margin-bottom:8px">Configurazione slot</div>
+        <div class="field-row">
+          <div class="field">
+            <label>Tipo</label>
+            <select id="slot-tipo-sel" style="border:1px solid var(--border);border-radius:var(--radius-sm);padding:7px 10px;font-size:13px;width:100%">
+              <option value="vuoto">⬜ Vuoto</option>
+              <option value="cartella">📁 Cartella</option>
+              <option value="valigetta">📦 Valigetta</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Etichetta / N°</label>
+            <input type="text" id="slot-etichetta" placeholder="es. 001">
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn btn-secondary" onclick="closeModal('modal-slot')">Chiudi</button>
+        <button class="btn btn-primary" onclick="salvaSlot()">Salva configurazione</button>
+      </div>
     </div>
 
-    <div id="slot-fascicoli-list" style="margin-bottom:12px;border:1px solid var(--border);border-radius:var(--radius-sm);max-height:140px;overflow-y:auto"></div>
-
-    <div class="modal-actions">
-      <button class="btn btn-secondary" onclick="closeModal('modal-slot')">Annulla</button>
-      <button class="btn btn-primary" onclick="salvaSlot()">Salva Slot</button>
-    </div>
   </div>
 </div>
 
@@ -4574,35 +4646,168 @@ function toggleRipianoSlot(ripianoId) {
   if (arrow) arrow.style.transform = aperto ? '' : 'rotate(90deg)';
 }
 
+function slotTipoChange() {
+  const val = document.querySelector('input[name="slot-tipo"]:checked')?.value;
+  document.getElementById('slot-val-num-wrap').style.display = val === 'valigetta' ? 'block' : 'none';
+}
+
+function slotCheckDuplicato() {
+  const numero = document.getElementById('slot-fasc-numero').value.trim();
+  const anno   = parseInt(document.getElementById('slot-fasc-anno').value);
+  const el     = document.getElementById('slot-fasc-dup');
+  if (!numero || !anno) { el.textContent = ''; return; }
+  const exists = allFascicoli.find(f => f.numero === numero && f.anno === anno);
+  if (exists) {
+    el.innerHTML = `<span style="color:#D97706">⚠️ Già presente — ${getPosizioneFascicolo(exists)}</span>`;
+  } else {
+    el.innerHTML = `<span style="color:#16a34a">✓ Nuovo fascicolo</span>`;
+  }
+}
+
 function apriSlot(ripianoId, nomeArmadio, numRipiano, numSlot, slotId, tipoAttuale, etichettaAttuale) {
   selectedRipianoId = ripianoId;
   document.getElementById('slot-modal-title').textContent = `Armadio ${nomeArmadio} — Ripiano ${numRipiano} — Slot ${numSlot}`;
-  document.getElementById('slot-id-hidden').value = slotId;
+  document.getElementById('slot-id-hidden').value  = slotId;
   document.getElementById('slot-ripiano-id').value = ripianoId;
-  document.getElementById('slot-numero').value = numSlot;
+  document.getElementById('slot-numero').value     = numSlot;
 
-  // Tipo
-  document.querySelectorAll('input[name="slot-tipo"]').forEach(r => r.checked = r.value === tipoAttuale);
-  document.getElementById('slot-etichetta').value = etichettaAttuale || '';
-
-  // Fascicoli in questo slot
   const fascInSlot = slotId ? allFascicoli.filter(f => f.slot_id === slotId) : [];
-  const listaEl = document.getElementById('slot-fascicoli-list');
-  listaEl.innerHTML = fascInSlot.length
-    ? fascInSlot.map(f => `<div style="padding:5px 8px;font-size:12px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between">
-        <span><strong>${escHtml(f.numero)}</strong><span style="color:var(--text3);margin-left:4px">/${f.anno}</span></span>
-        <span style="font-size:10px;padding:1px 6px;border-radius:8px;${f.stato==='disponibile'?'background:#dcfce7;color:#16a34a':'background:#fff7ed;color:#ea580c'}">${f.stato==='disponibile'?'Disponibile':'In prelievo'}</span>
-      </div>`).join('')
-    : `<div style="padding:8px;text-align:center;color:var(--text3);font-size:12px">Nessun fascicolo in questo slot</div>`;
+  const slotVuoto  = tipoAttuale === 'vuoto' && fascInSlot.length === 0;
+
+  if (slotVuoto) {
+    // Pannello inserimento
+    document.getElementById('slot-panel-vuoto').style.display    = 'block';
+    document.getElementById('slot-panel-occupato').style.display = 'none';
+    // Reset form
+    ['slot-fasc-numero','slot-fasc-rgnr','slot-fasc-rgt','slot-fasc-note','slot-val-num'].forEach(id => {
+      const el = document.getElementById(id); if(el) el.value = '';
+    });
+    document.getElementById('slot-fasc-anno').value = new Date().getFullYear();
+    document.getElementById('slot-fasc-dup').textContent = '';
+    document.getElementById('slot-val-num-wrap').style.display = 'none';
+    document.querySelector('input[name="slot-tipo"][value="cartella"]').checked = true;
+    setTimeout(() => document.getElementById('slot-fasc-numero').focus(), 100);
+
+  } else {
+    // Pannello occupato
+    document.getElementById('slot-panel-vuoto').style.display    = 'none';
+    document.getElementById('slot-panel-occupato').style.display = 'block';
+
+    // Badge tipo
+    const icona = tipoAttuale === 'valigetta' ? '📦 Valigetta' : tipoAttuale === 'cartella' ? '📁 Cartella' : '⬜ Slot';
+    const etiq  = etichettaAttuale ? ` — ${etichettaAttuale}` : '';
+    document.getElementById('slot-occupato-badge').innerHTML =
+      `<strong>${icona}${etiq}</strong> — ${fascInSlot.length} fascicolo/i presenti`;
+
+    // Lista fascicoli
+    const listaEl = document.getElementById('slot-fascicoli-list');
+    if (fascInSlot.length) {
+      listaEl.innerHTML = fascInSlot.map(f => `
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;border-bottom:1px solid var(--border);font-size:12px">
+          <div>
+            <strong>${escHtml(f.numero)}</strong>
+            <span style="color:var(--text3);margin-left:4px">/${f.anno}</span>
+            ${f.rgnr ? `<span style="color:var(--text3);margin-left:4px">— ${escHtml(f.rgnr)}</span>` : ''}
+            <div style="font-size:11px;color:var(--text3)">${escHtml(f.richiesta||'')}</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px">
+            <span style="font-size:10px;padding:1px 7px;border-radius:8px;${f.stato==='disponibile'?'background:#dcfce7;color:#16a34a':'background:#fff7ed;color:#ea580c'}">${f.stato==='disponibile'?'Disponibile':'In prelievo'}</span>
+            <button onclick="rimuoviDaSlot('${f.id}','${escHtml(f.numero)}')"
+              title="Rimuovi da questo slot"
+              style="background:none;border:none;cursor:pointer;color:var(--text3);padding:2px"
+              onmouseover="this.style.color='#DC2626'" onmouseout="this.style.color='var(--text3)'">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+          </div>
+        </div>`).join('');
+    } else {
+      listaEl.innerHTML = `<div style="padding:10px;text-align:center;color:var(--text3);font-size:12px">Nessun fascicolo collegato</div>`;
+    }
+
+    // Configura tipo/etichetta
+    const selTipo = document.getElementById('slot-tipo-sel');
+    if (selTipo) selTipo.value = tipoAttuale || 'vuoto';
+    document.getElementById('slot-etichetta').value = etichettaAttuale || '';
+  }
 
   openModal('modal-slot');
+}
+
+async function salvaSlotConFascicolo() {
+  const ripianoId   = document.getElementById('slot-ripiano-id').value;
+  const numSlot     = parseInt(document.getElementById('slot-numero').value);
+  const slotIdEsist = document.getElementById('slot-id-hidden').value;
+  const tipo        = document.querySelector('input[name="slot-tipo"]:checked')?.value || 'cartella';
+  const valNum      = document.getElementById('slot-val-num').value.trim();
+  const numero      = document.getElementById('slot-fasc-numero').value.trim();
+  const rgnr        = document.getElementById('slot-fasc-rgnr').value.trim();
+  const anno        = parseInt(document.getElementById('slot-fasc-anno').value);
+  const rgt         = document.getElementById('slot-fasc-rgt').value.trim();
+  const note        = document.getElementById('slot-fasc-note').value.trim();
+
+  if (!numero || !anno || !rgt) { showToast('Compila N. Sentenza, Anno e RGT', 'error'); return; }
+
+  try {
+    // 1. Crea o aggiorna lo slot
+    let slotId = slotIdEsist;
+    if (!slotId) {
+      const created = await api('slot_ripiano', {
+        method: 'POST',
+        body: { ripiano_id: ripianoId, numero: numSlot, tipo, etichetta: valNum || null }
+      });
+      slotId = Array.isArray(created) ? created[0]?.id : created?.id;
+    } else {
+      await api('slot_ripiano', {
+        method: 'PATCH',
+        body: { tipo, etichetta: valNum || null },
+        params: `id=eq.${slotId}`
+      });
+    }
+
+    // 2. Crea il fascicolo collegato allo slot
+    await api('fascicoli', {
+      method: 'POST',
+      body: {
+        numero, anno, richiesta: rgt,
+        rgnr: rgnr || null,
+        note: note || null,
+        stato: 'disponibile',
+        ripiano_id: ripianoId,
+        slot_id: slotId,
+        tipo_contenitore: tipo,
+        valigetta_numero: valNum || null,
+      }
+    });
+
+    showToast(`Fascicolo ${numero}/${anno} depositato nello slot ${numSlot} ✓`, 'success');
+    closeModal('modal-slot');
+    await loadAll();
+    renderArmadi();
+  } catch(e) {
+    if (e.message?.includes('duplicate')) {
+      showToast('Fascicolo già presente — usa Modifica per aggiornarlo', 'error');
+    } else {
+      showToast('Errore: ' + e.message, 'error');
+    }
+  }
+}
+
+async function rimuoviDaSlot(fascId, numero) {
+  if (!confirm(`Rimuovere ${numero} da questo slot?`)) return;
+  try {
+    await api('fascicoli', { method: 'PATCH', body: { slot_id: null }, params: `id=eq.${fascId}` });
+    showToast(`${numero} rimosso dallo slot`, 'success');
+    await loadAll();
+    closeModal('modal-slot');
+    renderArmadi();
+  } catch(e) { showToast('Errore: ' + e.message, 'error'); }
 }
 
 async function salvaSlot() {
   const slotId    = document.getElementById('slot-id-hidden').value;
   const ripianoId = document.getElementById('slot-ripiano-id').value;
   const numero    = parseInt(document.getElementById('slot-numero').value);
-  const tipo      = document.querySelector('input[name="slot-tipo"]:checked')?.value || 'vuoto';
+  const tipo      = document.getElementById('slot-tipo-sel')?.value || 'vuoto';
   const etichetta = document.getElementById('slot-etichetta').value.trim();
 
   try {
@@ -4614,6 +4819,7 @@ async function salvaSlot() {
     showToast('Slot aggiornato', 'success');
     closeModal('modal-slot');
     await loadArmadi();
+    renderArmadi();
   } catch(e) { showToast('Errore: ' + e.message, 'error'); }
 }
 
