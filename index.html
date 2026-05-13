@@ -2297,6 +2297,16 @@ tbody tr:hover { background: var(--bg); }
             <input type="text" id="slot-etichetta" placeholder="es. 001">
           </div>
         </div>
+        <div class="field-row">
+          <div class="field">
+            <label>Capienza massima <span style="color:var(--text3);font-size:11px">(fascicoli)</span></label>
+            <input type="number" id="slot-capacita-max" placeholder="es. 5" min="1" max="50"
+              style="border:1px solid var(--border);border-radius:var(--radius-sm);padding:7px 10px;font-size:13px;width:100%">
+          </div>
+          <div class="field" style="display:flex;align-items:flex-end">
+            <div id="slot-capacita-info" style="font-size:12px;color:var(--text3);padding-bottom:8px"></div>
+          </div>
+        </div>
       </div>
 
       <div class="modal-actions">
@@ -4608,19 +4618,22 @@ function renderArmadi() {
               <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:4px">
                 ${slots.map(slot => {
                   const fascInSlot = slot.id ? allFascicoli.filter(f => f.slot_id === slot.id) : [];
-                  const colore = slot.tipo === 'valigetta' ? '#3b82f6' : slot.tipo === 'cartella' ? '#0F766E' : '#e5e7eb';
-                  const testo  = slot.tipo === 'valigetta' ? '📦' : slot.tipo === 'cartella' ? '📁' : '';
+                  const capMax  = slot.capacita_max ? parseInt(slot.capacita_max) : null;
+                  const isPieno = capMax && fascInSlot.length >= capMax;
+                  const colore  = isPieno ? '#ef4444' : slot.tipo === 'valigetta' ? '#3b82f6' : slot.tipo === 'cartella' ? '#0F766E' : '#e5e7eb';
+                  const testo   = isPieno ? '🔴' : slot.tipo === 'valigetta' ? '📦' : slot.tipo === 'cartella' ? '📁' : '';
+                  const capLabel = capMax ? ' '+fascInSlot.length+'/'+capMax : (fascInSlot.length > 0 ? ' '+fascInSlot.length : '');
                   return `<div
                     data-slot-id="${slot.id || ''}"
                     data-slot-num="${slot.numero}"
                     data-ripiano-id="${rip.id}"
-                    onclick="apriSlot('${rip.id}','${arm.nome}',${rip.numero},${slot.numero},'${slot.id||''}','${slot.tipo}','${escHtml(slot.etichetta||'')}')"
+                    onclick="apriSlot('${rip.id}','${arm.nome}',${rip.numero},${slot.numero},'${slot.id||''}','${slot.tipo}','${escHtml(slot.etichetta||'')}',${slot.capacita_max||'null'})"
                     title="${slot.tipo !== 'vuoto' ? escHtml(slot.etichetta||slot.tipo) : 'Slot vuoto — clicca per configurare'}"
-                    style="height:48px;border-radius:4px;border:1.5px solid ${slot.tipo!=='vuoto'?colore:'#d1d5db'};background:${slot.tipo!=='vuoto'?colore+'22':'#f9fafb'};cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:all .15s;position:relative"
+                    style="height:48px;border-radius:4px;border:1.5px solid ${isPieno?'#ef4444':slot.tipo!=='vuoto'?colore:'#d1d5db'};background:${isPieno?'#fef2f2':slot.tipo!=='vuoto'?colore+'22':'#f9fafb'};cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:all .15s;position:relative"
                     onmouseover="this.style.borderColor='var(--blue)';this.style.background='#eff6ff'"
                     onmouseout="this.style.borderColor='${slot.tipo!=='vuoto'?colore:'#d1d5db'}';this.style.background='${slot.tipo!=='vuoto'?colore+'22':'#f9fafb'}'">
                     <span style="font-size:14px">${testo}</span>
-                    <span style="font-size:9px;font-weight:600;color:${slot.tipo!=='vuoto'?colore:'#9ca3af'}">${slot.numero}</span>
+                    <span style="font-size:9px;font-weight:600;color:${isPieno?'#ef4444':slot.tipo!=='vuoto'?colore:'#9ca3af'}">${slot.numero}${capLabel}</span>
                     ${fascInSlot.length ? `<span style="position:absolute;top:2px;right:2px;background:#3b82f6;color:#fff;border-radius:6px;font-size:8px;padding:0 4px;font-weight:700">${fascInSlot.length}</span>` : ''}
                   </div>`;
                 }).join('')}
@@ -4664,7 +4677,7 @@ function slotCheckDuplicato() {
   }
 }
 
-function apriSlot(ripianoId, nomeArmadio, numRipiano, numSlot, slotId, tipoAttuale, etichettaAttuale) {
+function apriSlot(ripianoId, nomeArmadio, numRipiano, numSlot, slotId, tipoAttuale, etichettaAttuale, capacitaMax) {
   selectedRipianoId = ripianoId;
   document.getElementById('slot-modal-title').textContent = `Armadio ${nomeArmadio} — Ripiano ${numRipiano} — Slot ${numSlot}`;
   document.getElementById('slot-id-hidden').value  = slotId;
@@ -4672,13 +4685,13 @@ function apriSlot(ripianoId, nomeArmadio, numRipiano, numSlot, slotId, tipoAttua
   document.getElementById('slot-numero').value     = numSlot;
 
   const fascInSlot = slotId ? allFascicoli.filter(f => f.slot_id === slotId) : [];
+  const capMax     = capacitaMax ? parseInt(capacitaMax) : null;
+  const isPieno    = capMax && fascInSlot.length >= capMax;
   const slotVuoto  = tipoAttuale === 'vuoto' && fascInSlot.length === 0;
 
   if (slotVuoto) {
-    // Pannello inserimento
     document.getElementById('slot-panel-vuoto').style.display    = 'block';
     document.getElementById('slot-panel-occupato').style.display = 'none';
-    // Reset form
     ['slot-fasc-numero','slot-fasc-rgnr','slot-fasc-rgt','slot-fasc-note','slot-val-num'].forEach(id => {
       const el = document.getElementById(id); if(el) el.value = '';
     });
@@ -4689,15 +4702,17 @@ function apriSlot(ripianoId, nomeArmadio, numRipiano, numSlot, slotId, tipoAttua
     setTimeout(() => document.getElementById('slot-fasc-numero').focus(), 100);
 
   } else {
-    // Pannello occupato
     document.getElementById('slot-panel-vuoto').style.display    = 'none';
     document.getElementById('slot-panel-occupato').style.display = 'block';
 
-    // Badge tipo
+    // Badge con info capienza
     const icona = tipoAttuale === 'valigetta' ? '📦 Valigetta' : tipoAttuale === 'cartella' ? '📁 Cartella' : '⬜ Slot';
     const etiq  = etichettaAttuale ? ` — ${etichettaAttuale}` : '';
+    const capInfo = capMax
+      ? ` &nbsp;|&nbsp; <span style="font-weight:700;color:${isPieno?'#DC2626':'#16a34a'}">${fascInSlot.length}/${capMax} fascicoli${isPieno?' 🔴 PIENO':''}</span>`
+      : ` &nbsp;|&nbsp; ${fascInSlot.length} fascicoli`;
     document.getElementById('slot-occupato-badge').innerHTML =
-      `<strong>${icona}${etiq}</strong> — ${fascInSlot.length} fascicolo/i presenti`;
+      `<strong>${icona}${etiq}</strong>${capInfo}`;
 
     // Lista fascicoli
     const listaEl = document.getElementById('slot-fascicoli-list');
@@ -4724,10 +4739,13 @@ function apriSlot(ripianoId, nomeArmadio, numRipiano, numSlot, slotId, tipoAttua
       listaEl.innerHTML = `<div style="padding:10px;text-align:center;color:var(--text3);font-size:12px">Nessun fascicolo collegato</div>`;
     }
 
-    // Configura tipo/etichetta
+    // Configura
     const selTipo = document.getElementById('slot-tipo-sel');
     if (selTipo) selTipo.value = tipoAttuale || 'vuoto';
-    document.getElementById('slot-etichetta').value = etichettaAttuale || '';
+    document.getElementById('slot-etichetta').value     = etichettaAttuale || '';
+    document.getElementById('slot-capacita-max').value  = capMax || '';
+    document.getElementById('slot-capacita-info').textContent =
+      capMax ? `${fascInSlot.length} di ${capMax} occupati` : 'Nessun limite impostato';
   }
 
   openModal('modal-slot');
@@ -4746,6 +4764,18 @@ async function salvaSlotConFascicolo() {
   const note        = document.getElementById('slot-fasc-note').value.trim();
 
   if (!numero || !anno || !rgt) { showToast('Compila N. Sentenza, Anno e RGT', 'error'); return; }
+
+  // Controlla capienza se slot esistente
+  if (slotIdEsist) {
+    const slotInfo = allSlot.find(s => s.id === slotIdEsist);
+    if (slotInfo?.capacita_max) {
+      const attuali = allFascicoli.filter(f => f.slot_id === slotIdEsist).length;
+      if (attuali >= slotInfo.capacita_max) {
+        showToast(`🔴 Slot pieno — capacità massima: ${slotInfo.capacita_max} fascicoli`, 'error');
+        return;
+      }
+    }
+  }
 
   try {
     // 1. Crea o aggiorna lo slot
@@ -4809,14 +4839,15 @@ async function salvaSlot() {
   const numero    = parseInt(document.getElementById('slot-numero').value);
   const tipo      = document.getElementById('slot-tipo-sel')?.value || 'vuoto';
   const etichetta = document.getElementById('slot-etichetta').value.trim();
+  const capMax    = parseInt(document.getElementById('slot-capacita-max').value) || null;
 
   try {
     if (slotId) {
-      await api('slot_ripiano', { method:'PATCH', body:{ tipo, etichetta: etichetta||null }, params:`id=eq.${slotId}` });
+      await api('slot_ripiano', { method:'PATCH', body:{ tipo, etichetta: etichetta||null, capacita_max: capMax }, params:`id=eq.${slotId}` });
     } else {
-      await api('slot_ripiano', { method:'POST', body:{ ripiano_id: ripianoId, numero, tipo, etichetta: etichetta||null } });
+      await api('slot_ripiano', { method:'POST', body:{ ripiano_id: ripianoId, numero, tipo, etichetta: etichetta||null, capacita_max: capMax } });
     }
-    showToast('Slot aggiornato', 'success');
+    showToast('Slot aggiornato ✓', 'success');
     closeModal('modal-slot');
     await loadArmadi();
     renderArmadi();
