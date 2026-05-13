@@ -2372,8 +2372,8 @@ tbody tr:hover { background: var(--bg); }
           <input type="hidden" id="dep-slot-id">
         </div>
         <div class="field-row">
-          <div class="field"><label>Contenitore</label><select id="dep-tipo-cont" onchange="document.getElementById('dep-valigetta-wrap').style.display=this.value==='valigetta'?'block':'none'"><option value="cartella">Cartella archivio</option><option value="valigetta">Valigetta</option><option value="raccoglitore">Raccoglitore</option><option value="scatola">Scatola</option><option value="pila">Pila sul ripiano</option></select></div>
-          <div class="field" id="dep-valigetta-wrap" style="display:none"><label>N° Valigetta</label><input type="text" id="dep-valigetta-num" placeholder="es. 0001"></div>
+          <div class="field"><label>Contenitore</label><select id="dep-tipo-cont" onchange="depTipoContChange()"><option value="cartella">Cartella archivio</option><option value="valigetta">Valigetta</option><option value="raccoglitore">Raccoglitore</option><option value="scatola">Scatola</option><option value="pila">Pila sul ripiano</option></select></div>
+          <div class="field" id="dep-valigetta-wrap" style="display:none"><label>N° Valigetta <span style="color:var(--text3);font-size:11px">(auto da slot)</span></label><input type="text" id="dep-valigetta-num" placeholder="es. 001"></div>
         </div>
       </div>
       <div id="dep-pos-scaffale" style="display:none">
@@ -3423,18 +3423,46 @@ function aggiornaSlotSelect(prefix) {
   }).join('');
 }
 
+function depTipoContChange() {
+  const tipo = document.getElementById('dep-tipo-cont').value;
+  const wrap = document.getElementById('dep-valigetta-wrap');
+  if (wrap) wrap.style.display = tipo === 'valigetta' ? 'block' : 'none';
+
+  // Auto-numera valigetta dallo slot selezionato
+  if (tipo === 'valigetta') {
+    const slotSel = document.querySelector('#dep-slot-grid .slot-selected') ||
+                    document.querySelector('#dep-slot-grid [style*="outline"]');
+    if (slotSel) {
+      const num = slotSel.getAttribute('data-slot-num');
+      const valInput = document.getElementById('dep-valigetta-num');
+      if (valInput && num) valInput.value = String(num).padStart(3,'0');
+    }
+  }
+}
+
 function selezionaSlot(prefix, slotId, numero, el) {
   // Deseleziona tutti
   el.closest('[id$="-slot-grid"]').querySelectorAll('div').forEach(d => {
     d.style.outline = 'none';
     d.style.boxShadow = '';
+    d.classList.remove('slot-selected');
   });
   // Seleziona questo
   el.style.outline = '3px solid var(--blue)';
   el.style.boxShadow = '0 0 0 4px #3b82f640';
+  el.classList.add('slot-selected');
   // Salva hidden
   const hidden = document.getElementById(`${prefix}-slot-id`);
   if (hidden) hidden.value = slotId;
+
+  // Auto-numera valigetta se tipo = valigetta
+  if (prefix === 'dep') {
+    const tipoSel = document.getElementById('dep-tipo-cont');
+    if (tipoSel && tipoSel.value === 'valigetta') {
+      const valInput = document.getElementById('dep-valigetta-num');
+      if (valInput && !valInput.value) valInput.value = String(numero).padStart(3,'0');
+    }
+  }
 }
 
 function aggiornaRipianiSelect() {
@@ -4290,14 +4318,37 @@ async function eseguiDeposita() {
 
   if (depPercorso === 'armadio') {
     const ripId  = document.getElementById('dep-ripiano-id').value;
-    const slotId = document.getElementById('dep-slot-id')?.value || null;
+    let   slotId = document.getElementById('dep-slot-id')?.value || null;
+    const numSlot = document.querySelector('#dep-slot-grid [style*="outline"]')?.getAttribute('data-slot-num') ||
+                    document.querySelector('#dep-slot-grid .slot-selected')?.getAttribute('data-slot-num') || null;
+
     if (!document.getElementById('dep-armadio-id').value) { showToast('Seleziona un armadio', 'error'); return; }
     if (!ripId) { showToast('Seleziona un ripiano', 'error'); return; }
-    data.ripiano_id      = ripId;
-    data.slot_id         = slotId || null;
+    if (!slotId && !numSlot) { showToast('Clicca uno slot nella griglia', 'error'); return; }
+
+    // Se slot non ha ancora ID in DB, crealo ora
+    if (!slotId && numSlot) {
+      const tipo = document.getElementById('dep-tipo-cont').value;
+      const valNum = document.getElementById('dep-valigetta-num')?.value.trim() || String(numSlot).padStart(3,'0');
+      try {
+        const created = await api('slot_ripiano', {
+          method: 'POST',
+          body: { ripiano_id: ripId, numero: parseInt(numSlot), tipo, etichetta: valNum || null }
+        });
+        slotId = Array.isArray(created) ? created[0]?.id : created?.id;
+      } catch(e) { /* slot già esiste, cerca */ }
+
+      if (!slotId) {
+        const existing = allSlot.find(s => s.ripiano_id === ripId && s.numero === parseInt(numSlot));
+        slotId = existing?.id || null;
+      }
+    }
+
+    data.ripiano_id       = ripId;
+    data.slot_id          = slotId || null;
     data.tipo_contenitore = document.getElementById('dep-tipo-cont').value;
     data.valigetta_numero = document.getElementById('dep-valigetta-num')?.value.trim() || null;
-    data.posizione_id    = null;
+    data.posizione_id     = null;
   } else if (depPercorso === 'scaffale') {
     const posId = document.getElementById('dep-posizione-id').value;
     if (!posId) { showToast('Seleziona una posizione', 'error'); return; }
@@ -5076,22 +5127,22 @@ function lampeggia(el, colore, bordo, forte = false) {
     if (count % 2 === 1) {
       el.style.background   = colore;
       el.style.borderColor  = bordo;
-      el.style.boxShadow    = forte ? `0 0 0 4px ${bordo}80` : `0 0 0 2px ${bordo}60`;
+      el.style.boxShadow    = forte ? `0 0 0 6px ${bordo}90` : `0 0 0 3px ${bordo}70`;
     } else {
       el.style.background   = origBg;
       el.style.borderColor  = origBorder;
       el.style.boxShadow    = origShadow;
     }
-    if (count >= 8) {
+    if (count >= 16) {
       clearInterval(blink);
-      el.style.background   = forte ? '#FEFCE8' : '#FEFCE8';
+      el.style.background   = '#FEFCE8';
       el.style.borderColor  = bordo;
-      el.style.boxShadow    = `0 0 0 2px ${bordo}40`;
+      el.style.boxShadow    = forte ? `0 0 0 4px ${bordo}60` : `0 0 0 2px ${bordo}40`;
       setTimeout(() => {
         el.style.background   = origBg;
         el.style.borderColor  = origBorder;
         el.style.boxShadow    = origShadow;
-      }, 5000);
+      }, 15000);
     }
   }, 300);
 }
