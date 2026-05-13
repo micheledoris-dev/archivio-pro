@@ -3380,8 +3380,8 @@ function tornaAlPasso1() {
 
 function aggiornaSlotSelect(prefix) {
   const ripianoId = document.getElementById(`${prefix === 'f' ? 'f' : 'dep'}-ripiano-id`).value;
-  const wrap = document.getElementById(`${prefix}-slot-wrap`);
-  const grid = document.getElementById(`${prefix}-slot-grid`);
+  const wrap   = document.getElementById(`${prefix}-slot-wrap`);
+  const grid   = document.getElementById(`${prefix}-slot-grid`);
   const hidden = document.getElementById(`${prefix}-slot-id`);
 
   if (!ripianoId) { if(wrap) wrap.style.display = 'none'; return; }
@@ -3390,19 +3390,35 @@ function aggiornaSlotSelect(prefix) {
   if(wrap) wrap.style.display = 'block';
   if(hidden) hidden.value = '';
 
+  // Etichetta sopra la griglia
+  const wrapLabel = document.getElementById(`${prefix}-slot-label`);
+  if (wrapLabel) wrapLabel.textContent = 'Clicca lo slot dove depositi il fascicolo';
+
   grid.innerHTML = slots.map(slot => {
-    const colore = slot.tipo === 'valigetta' ? '#3b82f6' : slot.tipo === 'cartella' ? '#0F766E' : '#e5e7eb';
-    const icona  = slot.tipo === 'valigetta' ? '📦' : slot.tipo === 'cartella' ? '📁' : '';
-    const label  = slot.etichetta || (slot.tipo !== 'vuoto' ? slot.tipo : '');
+    const fascInSlot = slot.id ? allFascicoli.filter(f => f.slot_id === slot.id) : [];
+    const capMax  = slot.capacita_max ? parseInt(slot.capacita_max) : null;
+    const isPieno = capMax && fascInSlot.length >= capMax;
+    const colore  = isPieno ? '#ef4444' : slot.tipo === 'valigetta' ? '#3b82f6' : slot.tipo === 'cartella' ? '#0F766E' : '#e5e7eb';
+    const icona   = isPieno ? '🔴' : slot.tipo === 'valigetta' ? '📦' : slot.tipo === 'cartella' ? '📁' : '';
+    const label   = slot.etichetta || (slot.tipo !== 'vuoto' ? slot.tipo : '');
+    const capLabel = capMax ? `${fascInSlot.length}/${capMax}` : (fascInSlot.length > 0 ? `${fascInSlot.length}` : '');
+
+    // Tooltip con fascicoli presenti
+    const fascTooltip = fascInSlot.length
+      ? fascInSlot.map(f => `${f.numero}/${f.anno}`).join(', ')
+      : 'Vuoto';
+
     return `<div
       data-slot-id="${slot.id || ''}"
       data-slot-num="${slot.numero}"
-      onclick="selezionaSlot('${prefix}', '${slot.id || ''}', ${slot.numero}, this)"
-      style="height:52px;border-radius:6px;border:2px solid ${slot.tipo!=='vuoto'?colore:'#d1d5db'};background:${slot.tipo!=='vuoto'?colore+'22':'#f9fafb'};cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:all .15s"
-      title="${label || 'Slot ' + slot.numero}">
-      <span style="font-size:14px">${icona}</span>
-      <span style="font-size:9px;font-weight:700;color:${slot.tipo!=='vuoto'?colore:'#9ca3af'}">${slot.numero}</span>
-      ${label ? `<span style="font-size:8px;color:${colore};overflow:hidden;max-width:100%;text-overflow:ellipsis;white-space:nowrap;padding:0 2px">${escHtml(label)}</span>` : ''}
+      onclick="${isPieno ? `showToast('Slot pieno — max ${capMax} fascicoli','error')` : `selezionaSlot('${prefix}', '${slot.id || ''}', ${slot.numero}, this)`}"
+      title="Slot ${slot.numero}${label?' — '+label:''}\n${fascTooltip}${capMax?' ('+fascInSlot.length+'/'+capMax+')':''}"
+      style="height:56px;border-radius:6px;border:2px solid ${slot.tipo!=='vuoto'||isPieno?colore:'#d1d5db'};background:${isPieno?'#fef2f2':slot.tipo!=='vuoto'?colore+'22':'#f9fafb'};cursor:${isPieno?'not-allowed':'pointer'};display:flex;flex-direction:column;align-items:center;justify-content:center;transition:all .15s;position:relative;opacity:${isPieno?'.7':'1'}"
+      ${!isPieno ? `onmouseover="this.style.borderColor='var(--blue)';this.style.background='#eff6ff'" onmouseout="this.style.borderColor='${slot.tipo!=='vuoto'?colore:'#d1d5db'}';this.style.background='${slot.tipo!=='vuoto'?colore+'22':'#f9fafb'}'"` : ''}>
+      <span style="font-size:14px">${icona || slot.numero}</span>
+      ${label ? `<span style="font-size:8px;font-weight:600;color:${isPieno?'#ef4444':colore};overflow:hidden;max-width:100%;text-overflow:ellipsis;white-space:nowrap;padding:0 2px">${escHtml(label)}</span>` : ''}
+      ${capLabel ? `<span style="font-size:8px;color:${isPieno?'#ef4444':'#6b7280'}">${capLabel}</span>` : ''}
+      ${fascInSlot.length > 0 ? `<span style="position:absolute;top:2px;right:2px;background:${isPieno?'#ef4444':'#3b82f6'};color:#fff;border-radius:6px;font-size:8px;padding:0 3px;font-weight:700">${fascInSlot.length}</span>` : ''}
     </div>`;
   }).join('');
 }
