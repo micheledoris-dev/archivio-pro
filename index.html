@@ -3202,12 +3202,10 @@ function closeModal(id) {
 }
 
 function getPosizioneFascicolo(f) {
-  // Prima controlla ripiano (armadio)
   if (f.ripiano_id) {
     const rip = allRipiani.find(r => r.id === f.ripiano_id);
     if (rip) {
-      const arm  = allArmadi.find(a => a.id === rip.armadio_id);
-      // Cerca lo slot associato
+      const arm = allArmadi.find(a => a.id === rip.armadio_id);
       let slotLabel = '';
       if (f.slot_id) {
         const slot = allSlot.find(s => s.id === f.slot_id);
@@ -3216,12 +3214,17 @@ function getPosizioneFascicolo(f) {
           slotLabel = ` · ${slot.tipo !== 'vuoto' ? (slot.tipo === 'valigetta' ? 'Val.' : 'Cart.') : 'Slot'}${etich}`;
         }
       } else if (f.tipo_contenitore) {
-        slotLabel = ` · ${f.tipo_contenitore}`;
+        const numVal = f.valigetta_numero ? ` ${f.valigetta_numero}` : '';
+        const tipoLabel = f.tipo_contenitore === 'valigetta' ? `Val.${numVal}` :
+                          f.tipo_contenitore === 'cartella'  ? `Cartella${numVal}` :
+                          f.tipo_contenitore === 'raccoglitore' ? `Raccoglitore${numVal}` :
+                          f.tipo_contenitore === 'scatola'   ? `Scatola${numVal}` :
+                          f.tipo_contenitore;
+        slotLabel = ` · ${tipoLabel}`;
       }
       return arm ? `Armadio ${arm.nome} · Rip. ${rip.numero}${slotLabel}` : `Ripiano ${rip.numero}${slotLabel}`;
     }
   }
-  // Poi scaffale
   if (f.posizioni?.codice) return f.posizioni.codice;
   if (f.posizione_id) {
     const pos = allPosizioni.find(p => p.id === f.posizione_id);
@@ -3329,6 +3332,20 @@ function editFascicolo(id) {
   document.getElementById('f-richiesta').value = f.richiesta;
   document.getElementById('f-note').value      = f.note || '';
 
+  // Precompila tipo contenitore e numero valigetta
+  if (percorso === 'armadio') {
+    setTimeout(() => {
+      const selTipo = document.getElementById('f-tipo-contenitore');
+      if (selTipo && f.tipo_contenitore) {
+        selTipo.value = f.tipo_contenitore;
+        const valWrap = document.getElementById('f-valigetta-field');
+        if (valWrap) valWrap.style.display = f.tipo_contenitore === 'valigetta' ? 'block' : 'none';
+      }
+      const valNum = document.getElementById('f-valigetta-numero');
+      if (valNum) valNum.value = f.valigetta_numero || '';
+    }, 100);
+  }
+
   // Ripristina posizione scaffale
   if (percorso === 'scaffale' && f.posizione_id) {
     setTimeout(() => {
@@ -3369,17 +3386,20 @@ async function saveFascicolo() {
   }
 
   // Dati posizione in base al percorso
-  let posizione_id = null, ripiano_id = null, tipo_contenitore = null;
+  let posizione_id = null, ripiano_id = null, tipo_contenitore = null, valigetta_numero = null;
 
   if (editId) {
-    // Modifica — usa posizione scaffale
-    posizione_id = document.getElementById('f-posizione').value || null;
+    posizione_id    = document.getElementById('f-posizione')?.value || null;
+    ripiano_id      = document.getElementById('f-ripiano-id')?.value || null;
+    tipo_contenitore = document.getElementById('f-tipo-contenitore')?.value || null;
+    valigetta_numero = document.getElementById('f-valigetta-numero')?.value.trim() || null;
   } else if (fascioloPercorso === 'scaffale') {
     posizione_id = document.getElementById('f-posizione').value;
     if (!posizione_id) { showToast('Seleziona una posizione', 'error'); return; }
   } else if (fascioloPercorso === 'armadio') {
-    ripiano_id = document.getElementById('f-ripiano-id').value;
+    ripiano_id       = document.getElementById('f-ripiano-id').value;
     tipo_contenitore = document.getElementById('f-tipo-contenitore').value;
+    valigetta_numero = document.getElementById('f-valigetta-numero')?.value.trim() || null;
     if (!document.getElementById('f-armadio-id').value) { showToast('Seleziona un armadio', 'error'); return; }
     if (!ripiano_id) { showToast('Seleziona un ripiano', 'error'); return; }
   }
@@ -3390,6 +3410,7 @@ async function saveFascicolo() {
     posizione_id: posizione_id || null,
     ripiano_id: ripiano_id || null,
     tipo_contenitore: tipo_contenitore || null,
+    valigetta_numero: valigetta_numero || null,
     note: note || null
   };
   
@@ -4100,6 +4121,7 @@ async function eseguiDeposita() {
     if (!ripId) { showToast('Seleziona un ripiano', 'error'); return; }
     data.ripiano_id = ripId;
     data.tipo_contenitore = document.getElementById('dep-tipo-cont').value;
+    data.valigetta_numero = document.getElementById('dep-valigetta-num')?.value.trim() || null;
     data.posizione_id = null;
   } else if (depPercorso === 'scaffale') {
     const posId = document.getElementById('dep-posizione-id').value;
