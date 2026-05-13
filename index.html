@@ -1942,15 +1942,21 @@ tbody tr:hover { background: var(--bg); }
           </div>
           <div class="field">
             <label>Ripiano *</label>
-            <select id="f-ripiano-id">
+            <select id="f-ripiano-id" onchange="aggiornaSlotSelect('f')">
               <option value="">Prima seleziona armadio</option>
             </select>
           </div>
         </div>
+        <!-- Slot visivo -->
+        <div id="f-slot-wrap" style="display:none;margin-bottom:10px">
+          <label style="font-size:12px;font-weight:600;color:var(--text2);margin-bottom:6px;display:block">Slot sul ripiano — clicca per selezionare</label>
+          <div id="f-slot-grid" style="display:grid;grid-template-columns:repeat(6,1fr);gap:6px"></div>
+          <input type="hidden" id="f-slot-id">
+        </div>
         <div class="field-row">
           <div class="field">
             <label>Contenitore</label>
-            <select id="f-tipo-contenitore">
+            <select id="f-tipo-contenitore" onchange="document.getElementById('f-valigetta-field').style.display=this.value==='valigetta'?'block':'none'">
               <option value="cartella">Cartella archivio</option>
               <option value="valigetta">Valigetta</option>
               <option value="raccoglitore">Raccoglitore</option>
@@ -2272,7 +2278,13 @@ tbody tr:hover { background: var(--bg); }
       <div id="dep-pos-armadio" style="display:none">
         <div class="field-row">
           <div class="field"><label>Armadio *</label><select id="dep-armadio-id" onchange="depAggiornaRipiani()"><option value="">Seleziona</option></select></div>
-          <div class="field"><label>Ripiano *</label><select id="dep-ripiano-id"><option value="">Prima seleziona armadio</option></select></div>
+          <div class="field"><label>Ripiano *</label><select id="dep-ripiano-id" onchange="aggiornaSlotSelect('dep')"><option value="">Prima seleziona armadio</option></select></div>
+        </div>
+        <!-- Slot visivo deposita -->
+        <div id="dep-slot-wrap" style="display:none;margin-bottom:10px">
+          <label style="font-size:12px;font-weight:600;color:var(--text2);margin-bottom:6px;display:block">Slot sul ripiano — clicca per selezionare</label>
+          <div id="dep-slot-grid" style="display:grid;grid-template-columns:repeat(6,1fr);gap:6px"></div>
+          <input type="hidden" id="dep-slot-id">
         </div>
         <div class="field-row">
           <div class="field"><label>Contenitore</label><select id="dep-tipo-cont" onchange="document.getElementById('dep-valigetta-wrap').style.display=this.value==='valigetta'?'block':'none'"><option value="cartella">Cartella archivio</option><option value="valigetta">Valigetta</option><option value="raccoglitore">Raccoglitore</option><option value="scatola">Scatola</option><option value="pila">Pila sul ripiano</option></select></div>
@@ -3281,6 +3293,49 @@ function tornaAlPasso1() {
   document.getElementById('f-step2').style.display = 'none';
 }
 
+function aggiornaSlotSelect(prefix) {
+  const ripianoId = document.getElementById(`${prefix === 'f' ? 'f' : 'dep'}-ripiano-id`).value;
+  const wrap = document.getElementById(`${prefix}-slot-wrap`);
+  const grid = document.getElementById(`${prefix}-slot-grid`);
+  const hidden = document.getElementById(`${prefix}-slot-id`);
+
+  if (!ripianoId) { if(wrap) wrap.style.display = 'none'; return; }
+
+  const slots = getSlotRipiano(ripianoId);
+  if(wrap) wrap.style.display = 'block';
+  if(hidden) hidden.value = '';
+
+  grid.innerHTML = slots.map(slot => {
+    const colore = slot.tipo === 'valigetta' ? '#3b82f6' : slot.tipo === 'cartella' ? '#0F766E' : '#e5e7eb';
+    const icona  = slot.tipo === 'valigetta' ? '📦' : slot.tipo === 'cartella' ? '📁' : '';
+    const label  = slot.etichetta || (slot.tipo !== 'vuoto' ? slot.tipo : '');
+    return `<div
+      data-slot-id="${slot.id || ''}"
+      data-slot-num="${slot.numero}"
+      onclick="selezionaSlot('${prefix}', '${slot.id || ''}', ${slot.numero}, this)"
+      style="height:52px;border-radius:6px;border:2px solid ${slot.tipo!=='vuoto'?colore:'#d1d5db'};background:${slot.tipo!=='vuoto'?colore+'22':'#f9fafb'};cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:all .15s"
+      title="${label || 'Slot ' + slot.numero}">
+      <span style="font-size:14px">${icona}</span>
+      <span style="font-size:9px;font-weight:700;color:${slot.tipo!=='vuoto'?colore:'#9ca3af'}">${slot.numero}</span>
+      ${label ? `<span style="font-size:8px;color:${colore};overflow:hidden;max-width:100%;text-overflow:ellipsis;white-space:nowrap;padding:0 2px">${escHtml(label)}</span>` : ''}
+    </div>`;
+  }).join('');
+}
+
+function selezionaSlot(prefix, slotId, numero, el) {
+  // Deseleziona tutti
+  el.closest('[id$="-slot-grid"]').querySelectorAll('div').forEach(d => {
+    d.style.outline = 'none';
+    d.style.boxShadow = '';
+  });
+  // Seleziona questo
+  el.style.outline = '3px solid var(--blue)';
+  el.style.boxShadow = '0 0 0 4px #3b82f640';
+  // Salva hidden
+  const hidden = document.getElementById(`${prefix}-slot-id`);
+  if (hidden) hidden.value = slotId;
+}
+
 function aggiornaRipianiSelect() {
   const armadioId = document.getElementById('f-armadio-id').value;
   const sel = document.getElementById('f-ripiano-id');
@@ -3365,7 +3420,20 @@ function editFascicolo(id) {
           aggiornaRipianiSelect();
           setTimeout(() => {
             const selRip = document.getElementById('f-ripiano-id');
-            if (selRip) selRip.value = f.ripiano_id;
+            if (selRip) {
+              selRip.value = f.ripiano_id;
+              // Aggiorna slot grid
+              aggiornaSlotSelect('f');
+              // Preseleziona lo slot corretto
+              if (f.slot_id) {
+                setTimeout(() => {
+                  const slotEl = document.querySelector(`#f-slot-grid [data-slot-id="${f.slot_id}"]`);
+                  if (slotEl) {
+                    selezionaSlot('f', f.slot_id, 0, slotEl);
+                  }
+                }, 100);
+              }
+            }
           }, 50);
         }
       }, 50);
@@ -3389,8 +3457,8 @@ async function saveFascicolo() {
   let posizione_id = null, ripiano_id = null, tipo_contenitore = null, valigetta_numero = null;
 
   if (editId) {
-    posizione_id    = document.getElementById('f-posizione')?.value || null;
-    ripiano_id      = document.getElementById('f-ripiano-id')?.value || null;
+    posizione_id     = document.getElementById('f-posizione')?.value || null;
+    ripiano_id       = document.getElementById('f-ripiano-id')?.value || null;
     tipo_contenitore = document.getElementById('f-tipo-contenitore')?.value || null;
     valigetta_numero = document.getElementById('f-valigetta-numero')?.value.trim() || null;
   } else if (fascioloPercorso === 'scaffale') {
@@ -3404,11 +3472,15 @@ async function saveFascicolo() {
     if (!ripiano_id) { showToast('Seleziona un ripiano', 'error'); return; }
   }
 
+  // Slot id — da campo nascosto se presente
+  const slotIdVal = document.getElementById('f-slot-id')?.value || null;
+
   const data = {
     numero, anno, richiesta,
     rgnr: rgnr || null,
     posizione_id: posizione_id || null,
     ripiano_id: ripiano_id || null,
+    slot_id: slotIdVal || null,
     tipo_contenitore: tipo_contenitore || null,
     valigetta_numero: valigetta_numero || null,
     note: note || null
@@ -4116,13 +4188,15 @@ async function eseguiDeposita() {
   const data = { numero, anno, richiesta: rgt, rgnr: rgnr||null, note: note||null, stato: 'disponibile' };
 
   if (depPercorso === 'armadio') {
-    const ripId = document.getElementById('dep-ripiano-id').value;
+    const ripId  = document.getElementById('dep-ripiano-id').value;
+    const slotId = document.getElementById('dep-slot-id')?.value || null;
     if (!document.getElementById('dep-armadio-id').value) { showToast('Seleziona un armadio', 'error'); return; }
     if (!ripId) { showToast('Seleziona un ripiano', 'error'); return; }
-    data.ripiano_id = ripId;
+    data.ripiano_id      = ripId;
+    data.slot_id         = slotId || null;
     data.tipo_contenitore = document.getElementById('dep-tipo-cont').value;
     data.valigetta_numero = document.getElementById('dep-valigetta-num')?.value.trim() || null;
-    data.posizione_id = null;
+    data.posizione_id    = null;
   } else if (depPercorso === 'scaffale') {
     const posId = document.getElementById('dep-posizione-id').value;
     if (!posId) { showToast('Seleziona una posizione', 'error'); return; }
