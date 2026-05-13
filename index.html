@@ -2193,6 +2193,43 @@ tbody tr:hover { background: var(--bg); }
   </div>
 </div>
 
+<!-- Modal: Configura Slot -->
+<div class="modal-overlay" id="modal-slot">
+  <div class="modal" style="max-width:420px">
+    <h2 class="modal-title" id="slot-modal-title">Slot</h2>
+    <input type="hidden" id="slot-id-hidden">
+    <input type="hidden" id="slot-ripiano-id">
+    <input type="hidden" id="slot-numero">
+
+    <div class="field">
+      <label>Tipo contenitore</label>
+      <div style="display:flex;flex-direction:column;gap:6px;margin-top:4px">
+        <label style="display:flex;align-items:center;gap:8px;padding:8px 12px;border:2px solid var(--border);border-radius:var(--radius-sm);cursor:pointer">
+          <input type="radio" name="slot-tipo" value="vuoto" style="accent-color:var(--blue)"> ⬜ Vuoto — slot libero
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;padding:8px 12px;border:2px solid var(--border);border-radius:var(--radius-sm);cursor:pointer">
+          <input type="radio" name="slot-tipo" value="valigetta" style="accent-color:var(--blue)"> 📦 Valigetta
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;padding:8px 12px;border:2px solid var(--border);border-radius:var(--radius-sm);cursor:pointer">
+          <input type="radio" name="slot-tipo" value="cartella" style="accent-color:var(--blue)"> 📁 Cartella / Faldone
+        </label>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Etichetta / Numero</label>
+      <input type="text" id="slot-etichetta" placeholder="es. 001 oppure Faldone 2024">
+    </div>
+
+    <div id="slot-fascicoli-list" style="margin-bottom:12px;border:1px solid var(--border);border-radius:var(--radius-sm);max-height:140px;overflow-y:auto"></div>
+
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeModal('modal-slot')">Annulla</button>
+      <button class="btn btn-primary" onclick="salvaSlot()">Salva Slot</button>
+    </div>
+  </div>
+</div>
+
 <!-- Modal: Riconsegna Fascicolo -->
 <!-- ═══ MODAL: DEPOSITA ═══════════════════════════════════════════════════ -->
 <div class="modal-overlay" id="modal-deposita">
@@ -2794,16 +2831,11 @@ function cercaRapidoLive(q) {
   }).join('');
 }
 
-function mostraInArmadio(ripianoId, numeroFascicolo) {
-  // Chiudi la ricerca
+function mostraInArmadio(ripianoId, numeroFascicolo, slotId) {
   document.getElementById('cerca-rapido-risultati').style.display = 'none';
   document.getElementById('cerca-rapido-input').value = '';
-
-  // Vai alla pagina armadi
   goTo('armadi');
-
-  // Aspetta che gli armadi siano renderizzati, poi fai highlight
-  setTimeout(() => illuminaRipiano(ripianoId, numeroFascicolo), 800);
+  setTimeout(() => illuminaRipiano(ripianoId, numeroFascicolo, slotId || null), 800);
 }
 
 function illuminaRipiano(ripianoId, numeroFascicolo) {
@@ -4113,7 +4145,7 @@ function cercaPerPrelievo() {
   const btnMostra = document.getElementById('pre-btn-mostra');
   if (f.ripiano_id) {
     btnMostra.style.display = 'inline-flex';
-    btnMostra.onclick = () => { closeModal('modal-preleva'); mostraInArmadio(f.ripiano_id, f.numero); };
+    btnMostra.onclick = () => { closeModal('modal-preleva'); mostraInArmadio(f.ripiano_id, f.numero, f.slot_id||null); };
   } else {
     btnMostra.style.display = 'none';
   }
@@ -4297,16 +4329,27 @@ async function eseguiRestituzione() {
 let allArmadi = [];
 let allRipiani = [];
 let allValigette = [];
+let allSlot = [];
 let selectedRipianoId = null;
 
 async function loadArmadi() {
   try {
     allArmadi  = await api('armadi',  { params: 'select=*&order=ordine.asc' }) || [];
     allRipiani = await api('ripiani', { params: 'select=*&order=armadio_id.asc,numero.asc' }) || [];
+    allSlot    = await api('slot_ripiano', { params: 'select=*&order=ripiano_id.asc,numero.asc' }) || [];
   } catch(e) {
     console.error('Load armadi:', e);
   }
   renderArmadi();
+}
+
+function getSlotRipiano(ripianoId) {
+  // Restituisce array di 6 slot, creando vuoti se mancanti
+  const esistenti = allSlot.filter(s => s.ripiano_id === ripianoId);
+  return Array.from({length: 6}, (_, i) => {
+    const n = i + 1;
+    return esistenti.find(s => s.numero === n) || { id: null, ripiano_id: ripianoId, numero: n, tipo: 'vuoto', etichetta: '' };
+  });
 }
 
 function renderArmadi() {
@@ -4320,14 +4363,10 @@ function renderArmadi() {
 
   grid.innerHTML = allArmadi.map(arm => {
     const ripiani = allRipiani.filter(r => r.armadio_id === arm.id);
-    const fascInArmadio = allFascicoli.filter(f => {
-      const rip = ripiani.find(r => r.id === f.ripiano_id);
-      return !!rip;
-    });
+    const fascInArmadio = allFascicoli.filter(f => ripiani.find(r => r.id === f.ripiano_id));
 
     return `
     <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;box-shadow:0 1px 6px rgba(0,0,0,.06)">
-      <!-- Header armadio -->
       <div style="background:var(--blue);padding:12px 16px;display:flex;align-items:center;justify-content:space-between">
         <div>
           <div style="font-weight:700;font-size:15px;color:#fff">Armadio ${escHtml(arm.nome)}</div>
@@ -4337,40 +4376,105 @@ function renderArmadi() {
           ${fascInArmadio.length} fasc.
         </div>
       </div>
-
-      <!-- Ripiani -->
       <div style="padding:10px">
-        ${ripiani.length ? [...ripiani].sort((a,b) => b.numero - a.numero).map(rip => {
-          const fascSuRipiano = allFascicoli.filter(f => f.ripiano_id === rip.id);
-          const count = fascSuRipiano.length;
-          const pct = Math.min(count * 8, 100); // indicatore visivo riempimento
+        ${[...ripiani].sort((a,b) => b.numero - a.numero).map(rip => {
+          const slots = getSlotRipiano(rip.id);
+          const occupati = slots.filter(s => s.tipo !== 'vuoto').length;
           return `
-          <div onclick="apriRipiano('${rip.id}', '${escHtml(arm.nome)}', ${rip.numero})"
-            data-ripiano-id="${rip.id}"
-            style="display:flex;align-items:center;gap:10px;padding:8px 10px;margin-bottom:4px;border-radius:var(--radius-sm);border:1.5px solid var(--border);cursor:pointer;transition:all .15s;background:var(--bg)"
-            onmouseover="this.style.borderColor='var(--blue)';this.style.background='var(--blue-light,#eff6ff)'"
-            onmouseout="this.style.borderColor='var(--border)';this.style.background='var(--bg)'">
-            <!-- Numero ripiano -->
-            <div style="width:26px;height:26px;border-radius:50%;background:var(--blue);color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">
-              ${rip.numero}
+          <div style="margin-bottom:6px;border:1.5px solid var(--border);border-radius:var(--radius-sm);overflow:hidden"
+            data-ripiano-id="${rip.id}">
+            <!-- Header ripiano -->
+            <div style="display:flex;align-items:center;gap:8px;padding:5px 8px;background:var(--bg);cursor:pointer"
+              onclick="toggleRipianoSlot('${rip.id}')">
+              <div style="width:22px;height:22px;border-radius:50%;background:var(--blue);color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">${rip.numero}</div>
+              <span style="font-size:12px;font-weight:500;color:var(--text2);flex:1">${escHtml(rip.etichetta || rip.numero + '° Ripiano')}</span>
+              <span style="font-size:11px;color:var(--text3)">${occupati}/6 slot</span>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--text3)" stroke-width="2" id="arrow-${rip.id}" style="transition:transform .2s"><polyline points="9 18 15 12 9 6"/></svg>
             </div>
-            <!-- Barra riempimento -->
-            <div style="flex:1">
-              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px">
-                <span style="font-size:12px;font-weight:500;color:var(--text2)">${escHtml(rip.etichetta || rip.numero + '° Ripiano')}</span>
-                <span style="font-size:11px;color:var(--text3)">${count} fasc.</span>
+            <!-- Slot 6 caselle -->
+            <div id="slots-${rip.id}" style="display:none;padding:6px 8px;background:#fff;border-top:1px solid var(--border)">
+              <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:4px">
+                ${slots.map(slot => {
+                  const fascInSlot = slot.id ? allFascicoli.filter(f => f.slot_id === slot.id) : [];
+                  const colore = slot.tipo === 'valigetta' ? '#3b82f6' : slot.tipo === 'cartella' ? '#0F766E' : '#e5e7eb';
+                  const testo  = slot.tipo === 'valigetta' ? '📦' : slot.tipo === 'cartella' ? '📁' : '';
+                  return `<div
+                    data-slot-id="${slot.id || ''}"
+                    data-slot-num="${slot.numero}"
+                    data-ripiano-id="${rip.id}"
+                    onclick="apriSlot('${rip.id}','${arm.nome}',${rip.numero},${slot.numero},'${slot.id||''}','${slot.tipo}','${escHtml(slot.etichetta||'')}')"
+                    title="${slot.tipo !== 'vuoto' ? escHtml(slot.etichetta||slot.tipo) : 'Slot vuoto — clicca per configurare'}"
+                    style="height:48px;border-radius:4px;border:1.5px solid ${slot.tipo!=='vuoto'?colore:'#d1d5db'};background:${slot.tipo!=='vuoto'?colore+'22':'#f9fafb'};cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:all .15s;position:relative"
+                    onmouseover="this.style.borderColor='var(--blue)';this.style.background='#eff6ff'"
+                    onmouseout="this.style.borderColor='${slot.tipo!=='vuoto'?colore:'#d1d5db'}';this.style.background='${slot.tipo!=='vuoto'?colore+'22':'#f9fafb'}'">
+                    <span style="font-size:14px">${testo}</span>
+                    <span style="font-size:9px;font-weight:600;color:${slot.tipo!=='vuoto'?colore:'#9ca3af'}">${slot.numero}</span>
+                    ${fascInSlot.length ? `<span style="position:absolute;top:2px;right:2px;background:#3b82f6;color:#fff;border-radius:6px;font-size:8px;padding:0 4px;font-weight:700">${fascInSlot.length}</span>` : ''}
+                  </div>`;
+                }).join('')}
               </div>
-              <div style="height:5px;background:var(--border);border-radius:3px;overflow:hidden">
-                <div style="height:100%;width:${pct}%;background:${pct > 80 ? '#ef4444' : pct > 50 ? '#f59e0b' : '#3b82f6'};border-radius:3px;transition:width .3s"></div>
-              </div>
+              ${slots.some(s=>s.tipo!=='vuoto') ? `
+              <div style="margin-top:6px;font-size:10px;color:var(--text3)">
+                ${slots.filter(s=>s.tipo!=='vuoto').map(s=>`<span style="margin-right:8px">${s.numero}: ${s.etichetta||s.tipo}</span>`).join('')}
+              </div>` : ''}
             </div>
-            <!-- Freccia -->
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text3)" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
           </div>`;
-        }).join('') : `<div style="padding:12px;text-align:center;color:var(--text3);font-size:13px">Nessun ripiano</div>`}
+        }).join('')}
       </div>
     </div>`;
   }).join('');
+}
+
+function toggleRipianoSlot(ripianoId) {
+  const el = document.getElementById(`slots-${ripianoId}`);
+  const arrow = document.getElementById(`arrow-${ripianoId}`);
+  if (!el) return;
+  const aperto = el.style.display !== 'none';
+  el.style.display = aperto ? 'none' : 'block';
+  if (arrow) arrow.style.transform = aperto ? '' : 'rotate(90deg)';
+}
+
+function apriSlot(ripianoId, nomeArmadio, numRipiano, numSlot, slotId, tipoAttuale, etichettaAttuale) {
+  selectedRipianoId = ripianoId;
+  document.getElementById('slot-modal-title').textContent = `Armadio ${nomeArmadio} — Ripiano ${numRipiano} — Slot ${numSlot}`;
+  document.getElementById('slot-id-hidden').value = slotId;
+  document.getElementById('slot-ripiano-id').value = ripianoId;
+  document.getElementById('slot-numero').value = numSlot;
+
+  // Tipo
+  document.querySelectorAll('input[name="slot-tipo"]').forEach(r => r.checked = r.value === tipoAttuale);
+  document.getElementById('slot-etichetta').value = etichettaAttuale || '';
+
+  // Fascicoli in questo slot
+  const fascInSlot = slotId ? allFascicoli.filter(f => f.slot_id === slotId) : [];
+  const listaEl = document.getElementById('slot-fascicoli-list');
+  listaEl.innerHTML = fascInSlot.length
+    ? fascInSlot.map(f => `<div style="padding:5px 8px;font-size:12px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between">
+        <span><strong>${escHtml(f.numero)}</strong><span style="color:var(--text3);margin-left:4px">/${f.anno}</span></span>
+        <span style="font-size:10px;padding:1px 6px;border-radius:8px;${f.stato==='disponibile'?'background:#dcfce7;color:#16a34a':'background:#fff7ed;color:#ea580c'}">${f.stato==='disponibile'?'Disponibile':'In prelievo'}</span>
+      </div>`).join('')
+    : `<div style="padding:8px;text-align:center;color:var(--text3);font-size:12px">Nessun fascicolo in questo slot</div>`;
+
+  openModal('modal-slot');
+}
+
+async function salvaSlot() {
+  const slotId    = document.getElementById('slot-id-hidden').value;
+  const ripianoId = document.getElementById('slot-ripiano-id').value;
+  const numero    = parseInt(document.getElementById('slot-numero').value);
+  const tipo      = document.querySelector('input[name="slot-tipo"]:checked')?.value || 'vuoto';
+  const etichetta = document.getElementById('slot-etichetta').value.trim();
+
+  try {
+    if (slotId) {
+      await api('slot_ripiano', { method:'PATCH', body:{ tipo, etichetta: etichetta||null }, params:`id=eq.${slotId}` });
+    } else {
+      await api('slot_ripiano', { method:'POST', body:{ ripiano_id: ripianoId, numero, tipo, etichetta: etichetta||null } });
+    }
+    showToast('Slot aggiornato', 'success');
+    closeModal('modal-slot');
+    await loadArmadi();
+  } catch(e) { showToast('Errore: ' + e.message, 'error'); }
 }
 
 function apriRipiano(ripianoId, nomeArmadio, numRipiano) {
@@ -4381,7 +4485,6 @@ function apriRipiano(ripianoId, nomeArmadio, numRipiano) {
   document.getElementById('rip-anno').value = '';
   document.getElementById('rip-fascicolo-trovato').style.display = 'none';
 
-  // Lista fascicoli già su questo ripiano
   const fascSuRipiano = allFascicoli.filter(f => f.ripiano_id === ripianoId);
   const listEl = document.getElementById('ripiano-fascicoli-list');
   if (fascSuRipiano.length) {
@@ -4397,10 +4500,9 @@ function apriRipiano(ripianoId, nomeArmadio, numRipiano) {
             </div>
             <div style="display:flex;align-items:center;gap:6px">
               <span style="font-size:10px;padding:1px 7px;border-radius:8px;${f.stato === 'disponibile' ? 'background:#dcfce7;color:#16a34a' : 'background:#fff7ed;color:#ea580c'}">${f.stato === 'disponibile' ? 'Disponibile' : 'In prelievo'}</span>
-              <button onclick="rimuoviFascicoloDaRipiano('${f.id}', '${escHtml(f.numero)}')" 
+              <button onclick="rimuoviFascicoloDaRipiano('${f.id}', '${escHtml(f.numero)}')"
                 style="background:none;border:none;cursor:pointer;color:var(--text3);padding:2px;border-radius:4px;line-height:1"
-                title="Rimuovi da questo ripiano"
-                onmouseover="this.style.color='var(--red,#dc2626)'" 
+                onmouseover="this.style.color='var(--red,#dc2626)'"
                 onmouseout="this.style.color='var(--text3)'">
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
               </button>
@@ -4410,7 +4512,6 @@ function apriRipiano(ripianoId, nomeArmadio, numRipiano) {
   } else {
     listEl.innerHTML = `<div style="text-align:center;color:var(--text3);font-size:13px;padding:8px 0">Nessun fascicolo su questo ripiano</div>`;
   }
-
   openModal('modal-ripiano');
 }
 
@@ -4418,11 +4519,7 @@ function cercaFascicoloPerRipiano(numero) {
   const anno = document.getElementById('rip-anno').value;
   const el = document.getElementById('rip-fascicolo-trovato');
   if (!numero || numero.length < 2) { el.style.display = 'none'; return; }
-
-  const match = allFascicoli.find(f =>
-    f.numero === numero && (!anno || String(f.anno) === String(anno))
-  );
-
+  const match = allFascicoli.find(f => f.numero === numero && (!anno || String(f.anno) === String(anno)));
   if (match) {
     const posCorrente = match.ripiano_id
       ? (() => {
@@ -4430,7 +4527,6 @@ function cercaFascicoloPerRipiano(numero) {
           const a = r ? allArmadi.find(x => x.id === r.armadio_id) : null;
           return a ? `Armadio ${a.nome}, Ripiano ${r.numero}` : 'Posizione sconosciuta';
         })() : 'Non ancora collocato';
-
     el.style.display = 'block';
     el.style.borderColor = '#16a34a';
     el.innerHTML = `<span style="color:#16a34a">✓ Trovato:</span> <strong>${escHtml(match.numero)}/${match.anno}</strong> — ${escHtml(match.richiesta || '')}
@@ -4447,25 +4543,17 @@ function cercaFascicoloPerRipiano(numero) {
 
 async function collocaFascicoloSuRipiano() {
   const numero = document.getElementById('rip-numero').value.trim();
-  const anno = parseInt(document.getElementById('rip-anno').value);
-  const tipo = document.getElementById('rip-tipo').value;
-
+  const anno   = parseInt(document.getElementById('rip-anno').value);
+  const tipo   = document.getElementById('rip-tipo').value;
   if (!numero || !anno) { showToast('Inserisci numero e anno', 'error'); return; }
   if (!selectedRipianoId) { showToast('Nessun ripiano selezionato', 'error'); return; }
-
   const fasc = allFascicoli.find(f => f.numero === numero && f.anno === anno);
-  if (!fasc) { showToast('Fascicolo non trovato — verificare numero e anno', 'error'); return; }
-
+  if (!fasc) { showToast('Fascicolo non trovato', 'error'); return; }
   try {
-    await api('fascicoli', {
-      method: 'PATCH',
-      body: { ripiano_id: selectedRipianoId, tipo_contenitore: tipo },
-      params: `id=eq.${fasc.id}`
-    });
+    await api('fascicoli', { method:'PATCH', body:{ ripiano_id: selectedRipianoId, tipo_contenitore: tipo }, params:`id=eq.${fasc.id}` });
     showToast(`Fascicolo ${numero}/${anno} collocato`, 'success');
     await loadFascicoli();
     await loadArmadi();
-    // Aggiorna la lista nel modal
     const rip = allRipiani.find(r => r.id === selectedRipianoId);
     const arm = rip ? allArmadi.find(a => a.id === rip.armadio_id) : null;
     if (rip && arm) apriRipiano(selectedRipianoId, arm.nome, rip.numero);
@@ -4475,18 +4563,71 @@ async function collocaFascicoloSuRipiano() {
 async function rimuoviFascicoloDaRipiano(fascId, numero) {
   if (!confirm(`Rimuovere il fascicolo ${numero} da questo ripiano?`)) return;
   try {
-    await api('fascicoli', {
-      method: 'PATCH',
-      body: { ripiano_id: null },
-      params: `id=eq.${fascId}`
-    });
-    showToast(`Fascicolo ${numero} rimosso dal ripiano`, 'success');
+    await api('fascicoli', { method:'PATCH', body:{ ripiano_id: null }, params:`id=eq.${fascId}` });
+    showToast(`Fascicolo ${numero} rimosso`, 'success');
     await loadFascicoli();
     await loadArmadi();
     const rip = allRipiani.find(r => r.id === selectedRipianoId);
     const arm = rip ? allArmadi.find(a => a.id === rip.armadio_id) : null;
     if (rip && arm) apriRipiano(selectedRipianoId, arm.nome, rip.numero);
   } catch(e) { showToast('Errore: ' + e.message, 'error'); }
+}
+
+// Illumina ripiano + slot specifico
+function illuminaRipiano(ripianoId, numeroFascicolo, slotId) {
+  // Apri il ripiano se chiuso
+  const slotsEl = document.getElementById(`slots-${ripianoId}`);
+  const arrow   = document.getElementById(`arrow-${ripianoId}`);
+  if (slotsEl && slotsEl.style.display === 'none') {
+    slotsEl.style.display = 'block';
+    if (arrow) arrow.style.transform = 'rotate(90deg)';
+  }
+
+  // Trova il div ripiano
+  const ripianoEl = document.querySelector(`[data-ripiano-id="${ripianoId}"]`);
+  if (ripianoEl) {
+    ripianoEl.scrollIntoView({ behavior:'smooth', block:'center' });
+    lampeggia(ripianoEl, '#FEF08A', '#EAB308');
+  }
+
+  // Illumina lo slot specifico
+  if (slotId) {
+    setTimeout(() => {
+      const slotEl = document.querySelector(`[data-slot-id="${slotId}"]`);
+      if (slotEl) lampeggia(slotEl, '#FEF08A', '#EAB308', true);
+    }, 400);
+  }
+}
+
+function lampeggia(el, colore, bordo, forte = false) {
+  const origBg     = el.style.background || '';
+  const origBorder = el.style.borderColor || '';
+  const origShadow = el.style.boxShadow || '';
+  el.setAttribute('title', el.getAttribute('title') || '← qui!');
+  let count = 0;
+  const blink = setInterval(() => {
+    count++;
+    if (count % 2 === 1) {
+      el.style.background   = colore;
+      el.style.borderColor  = bordo;
+      el.style.boxShadow    = forte ? `0 0 0 4px ${bordo}80` : `0 0 0 2px ${bordo}60`;
+    } else {
+      el.style.background   = origBg;
+      el.style.borderColor  = origBorder;
+      el.style.boxShadow    = origShadow;
+    }
+    if (count >= 8) {
+      clearInterval(blink);
+      el.style.background   = forte ? '#FEFCE8' : '#FEFCE8';
+      el.style.borderColor  = bordo;
+      el.style.boxShadow    = `0 0 0 2px ${bordo}40`;
+      setTimeout(() => {
+        el.style.background   = origBg;
+        el.style.borderColor  = origBorder;
+        el.style.boxShadow    = origShadow;
+      }, 5000);
+    }
+  }, 300);
 }
 
 // =============================================
