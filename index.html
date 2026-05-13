@@ -3310,58 +3310,50 @@ function editFascicolo(id) {
   const f = allFascicoli.find(x => x.id === id);
   if (!f) return;
 
-  // Imposta percorso in base alla posizione esistente
-  fascioloPercorso = f.ripiano_id ? 'armadio' : (f.posizione_id ? 'scaffale' : 'nessuno');
+  // Determina percorso in base alla posizione esistente
+  const percorso = f.ripiano_id ? 'armadio' : (f.posizione_id ? 'scaffale' : 'nessuno');
 
+  // Apri il modal e vai allo step1 prima, poi scegli percorso
   openModal('modal-fascicolo');
-
-  // Vai direttamente allo step2 saltando lo step1
-  document.getElementById('f-step1').style.display = 'none';
-  document.getElementById('f-step2').style.display = 'block';
-  document.getElementById('f-step-modifica').style.display = 'none';
-
-  // Badge percorso
-  const labels = { armadio: '🗄️ Armadio', scaffale: '📁 Scaffale', nessuno: '📋 Dati' };
-  document.getElementById('f-percorso-label').textContent = labels[fascioloPercorso] || 'Modifica';
-  document.getElementById('f-percorso-badge').style.display = 'inline-flex';
-
-  // Mostra sezione posizione corretta
-  document.getElementById('f-sezione-scaffale').style.display = fascioloPercorso === 'scaffale' ? 'block' : 'none';
-  document.getElementById('f-sezione-armadio').style.display  = fascioloPercorso === 'armadio'  ? 'block' : 'none';
-
-  // Popola campi
+  document.getElementById('modal-fascicolo-title').textContent = 'Modifica Fascicolo';
+  document.getElementById('save-fascicolo-label').textContent  = 'Salva';
   document.getElementById('fascicolo-edit-id').value = f.id;
+
+  // scegliPercorso gestisce step1→step2 e popola i select
+  scegliPercorso(percorso);
+
+  // Popola i campi dati dopo che scegliPercorso li ha resettati
   document.getElementById('f-numero').value    = f.numero;
   document.getElementById('f-rgnr').value      = f.rgnr || '';
   document.getElementById('f-anno').value      = f.anno;
   document.getElementById('f-richiesta').value = f.richiesta;
   document.getElementById('f-note').value      = f.note || '';
 
-  // Posizione scaffale
-  if (fascioloPercorso === 'scaffale') {
-    const sel = document.getElementById('f-posizione');
-    sel.innerHTML = '<option value="">Seleziona posizione</option>' +
-      allPosizioni.map(p => `<option value="${p.id}"${p.id===f.posizione_id?' selected':''}>${escHtml(p.codice)}${p.descrizione?' – '+escHtml(p.descrizione):''}</option>`).join('');
+  // Ripristina posizione scaffale
+  if (percorso === 'scaffale' && f.posizione_id) {
+    setTimeout(() => {
+      const sel = document.getElementById('f-posizione');
+      if (sel) sel.value = f.posizione_id;
+    }, 50);
   }
 
-  // Posizione armadio
-  if (fascioloPercorso === 'armadio' && f.ripiano_id) {
+  // Ripristina posizione armadio
+  if (percorso === 'armadio' && f.ripiano_id) {
     const rip = allRipiani.find(r => r.id === f.ripiano_id);
-    const sel = document.getElementById('f-armadio-id');
-    if (sel && rip) {
-      sel.innerHTML = '<option value="">Seleziona armadio</option>' +
-        allArmadi.map(a => `<option value="${a.id}"${a.id===rip.armadio_id?' selected':''}>${escHtml(a.nome)}</option>`).join('');
-      // Popola ripiani
-      aggiornaRipianiSelect();
+    if (rip) {
       setTimeout(() => {
-        const selRip = document.getElementById('f-ripiano-id');
-        if (selRip) selRip.value = f.ripiano_id;
+        const selArm = document.getElementById('f-armadio-id');
+        if (selArm) {
+          selArm.value = rip.armadio_id;
+          aggiornaRipianiSelect();
+          setTimeout(() => {
+            const selRip = document.getElementById('f-ripiano-id');
+            if (selRip) selRip.value = f.ripiano_id;
+          }, 50);
+        }
       }, 50);
     }
   }
-
-  document.getElementById('modal-fascicolo-title').textContent = 'Modifica Fascicolo';
-  document.getElementById('save-fascicolo-label').textContent  = 'Salva';
 }
 
 async function saveFascicolo() {
