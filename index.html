@@ -2199,6 +2199,9 @@ tbody tr:hover { background: var(--bg); }
   </div>
 </div>
 
+<!-- Tooltip slot -->
+<div id="slot-tooltip" style="display:none;position:fixed;z-index:9999;background:#1e293b;color:#fff;border-radius:8px;padding:10px 14px;font-size:12px;max-width:220px;box-shadow:0 4px 20px rgba(0,0,0,.3);pointer-events:none"></div>
+
 <!-- Modal: Configura Slot -->
 <div class="modal-overlay" id="modal-slot">
   <div class="modal" style="max-width:480px">
@@ -4542,6 +4545,58 @@ async function eseguiRestituzione() {
   } catch(e) { showToast('Errore: ' + e.message, 'error'); }
 }
 
+let tooltipTimer = null;
+
+function mostraTooltipSlot(el, slotId, numSlot) {
+  clearTimeout(tooltipTimer);
+  tooltipTimer = setTimeout(() => {
+    const tooltip = document.getElementById('slot-tooltip');
+    if (!tooltip) return;
+
+    const slot = allSlot.find(s => s.id === slotId);
+    const fascInSlot = slotId ? allFascicoli.filter(f => f.slot_id === slotId) : [];
+    const capMax = slot?.capacita_max ? parseInt(slot.capacita_max) : null;
+    const isPieno = capMax && fascInSlot.length >= capMax;
+
+    // Contenuto tooltip
+    let html = `<div style="font-weight:700;margin-bottom:6px;border-bottom:1px solid rgba(255,255,255,.2);padding-bottom:5px">
+      Slot ${numSlot}${slot?.etichetta ? ' — ' + escHtml(slot.etichetta) : ''}
+      ${capMax ? `<span style="margin-left:6px;font-size:10px;background:${isPieno?'#ef4444':'#16a34a'};border-radius:4px;padding:1px 5px">${fascInSlot.length}/${capMax}</span>` : ''}
+    </div>`;
+
+    if (fascInSlot.length === 0) {
+      html += `<div style="color:rgba(255,255,255,.6);font-size:11px">Slot vuoto</div>`;
+    } else {
+      html += fascInSlot.map(f => `
+        <div style="margin-bottom:4px;padding:3px 0;border-bottom:1px solid rgba(255,255,255,.1)">
+          <span style="font-weight:600">${escHtml(f.numero)}</span>
+          <span style="color:rgba(255,255,255,.6);margin-left:4px">/${f.anno}</span>
+          ${f.rgnr ? `<span style="color:rgba(255,255,255,.5);margin-left:4px;font-size:10px">${escHtml(f.rgnr)}</span>` : ''}
+          <span style="float:right;font-size:10px;padding:1px 5px;border-radius:4px;background:${f.stato==='disponibile'?'#16a34a':'#ea580c'}">${f.stato==='disponibile'?'✓':'⏳'}</span>
+        </div>`).join('');
+      if (isPieno) html += `<div style="margin-top:4px;color:#fca5a5;font-size:10px;font-weight:600">🔴 Slot pieno</div>`;
+    }
+
+    tooltip.innerHTML = html;
+
+    // Posizione tooltip vicino all'elemento
+    const rect = el.getBoundingClientRect();
+    const tx = Math.min(rect.left, window.innerWidth - 230);
+    const ty = rect.bottom + 6;
+    tooltip.style.left = tx + 'px';
+    tooltip.style.top  = ty + 'px';
+    tooltip.style.display = 'block';
+  }, 300);
+}
+
+function nascondiTooltipSlot() {
+  clearTimeout(tooltipTimer);
+  tooltipTimer = setTimeout(() => {
+    const tooltip = document.getElementById('slot-tooltip');
+    if (tooltip) tooltip.style.display = 'none';
+  }, 100);
+}
+
 // =============================================
 // ARMADI
 // =============================================
@@ -4630,11 +4685,11 @@ function renderArmadi() {
                     onclick="apriSlot('${rip.id}','${arm.nome}',${rip.numero},${slot.numero},'${slot.id||''}','${slot.tipo}','${escHtml(slot.etichetta||'')}',${slot.capacita_max||'null'})"
                     title="${slot.tipo !== 'vuoto' ? escHtml(slot.etichetta||slot.tipo) : 'Slot vuoto — clicca per configurare'}"
                     style="height:48px;border-radius:4px;border:1.5px solid ${isPieno?'#ef4444':slot.tipo!=='vuoto'?colore:'#d1d5db'};background:${isPieno?'#fef2f2':slot.tipo!=='vuoto'?colore+'22':'#f9fafb'};cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:all .15s;position:relative"
-                    onmouseover="this.style.borderColor='var(--blue)';this.style.background='#eff6ff'"
-                    onmouseout="this.style.borderColor='${slot.tipo!=='vuoto'?colore:'#d1d5db'}';this.style.background='${slot.tipo!=='vuoto'?colore+'22':'#f9fafb'}'">
+                    onmouseover="mostraTooltipSlot(this,'${slot.id||''}',${slot.numero})"
+                    onmouseout="nascondiTooltipSlot()">
                     <span style="font-size:14px">${testo}</span>
                     <span style="font-size:9px;font-weight:600;color:${isPieno?'#ef4444':slot.tipo!=='vuoto'?colore:'#9ca3af'}">${slot.numero}${capLabel}</span>
-                    ${fascInSlot.length ? `<span style="position:absolute;top:2px;right:2px;background:#3b82f6;color:#fff;border-radius:6px;font-size:8px;padding:0 4px;font-weight:700">${fascInSlot.length}</span>` : ''}
+                    ${fascInSlot.length ? `<span style="position:absolute;top:2px;right:2px;background:${isPieno?'#ef4444':'#3b82f6'};color:#fff;border-radius:6px;font-size:8px;padding:0 4px;font-weight:700">${fascInSlot.length}</span>` : ''}
                   </div>`;
                 }).join('')}
               </div>
