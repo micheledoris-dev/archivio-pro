@@ -4317,37 +4317,49 @@ async function eseguiDeposita() {
   const data = { numero, anno, richiesta: rgt, rgnr: rgnr||null, note: note||null, stato: 'disponibile' };
 
   if (depPercorso === 'armadio') {
-    const ripId  = document.getElementById('dep-ripiano-id').value;
-    let   slotId = document.getElementById('dep-slot-id')?.value || null;
-    const numSlot = document.querySelector('#dep-slot-grid [style*="outline"]')?.getAttribute('data-slot-num') ||
-                    document.querySelector('#dep-slot-grid .slot-selected')?.getAttribute('data-slot-num') || null;
+    const ripId   = document.getElementById('dep-ripiano-id').value;
+    const slotId  = document.getElementById('dep-slot-id')?.value || null;
+    const slotSel = document.querySelector('#dep-slot-grid .slot-selected') ||
+                    document.querySelector('#dep-slot-grid [style*="outline: 3px"]');
+    const numSlot = slotSel?.getAttribute('data-slot-num') || null;
+    const slotIdSel = slotSel?.getAttribute('data-slot-id') || slotId || null;
 
     if (!document.getElementById('dep-armadio-id').value) { showToast('Seleziona un armadio', 'error'); return; }
     if (!ripId) { showToast('Seleziona un ripiano', 'error'); return; }
-    if (!slotId && !numSlot) { showToast('Clicca uno slot nella griglia', 'error'); return; }
+    if (!numSlot) { showToast('Clicca uno slot nella griglia', 'error'); return; }
 
-    // Se slot non ha ancora ID in DB, crealo ora
-    if (!slotId && numSlot) {
-      const tipo = document.getElementById('dep-tipo-cont').value;
-      const valNum = document.getElementById('dep-valigetta-num')?.value.trim() || String(numSlot).padStart(3,'0');
+    const tipo   = document.getElementById('dep-tipo-cont').value;
+    const valNum = document.getElementById('dep-valigetta-num')?.value.trim() || String(numSlot).padStart(3,'0');
+
+    let finalSlotId = slotIdSel;
+
+    // Se slot non ha ancora ID in DB, crealo
+    if (!finalSlotId) {
       try {
         const created = await api('slot_ripiano', {
           method: 'POST',
           body: { ripiano_id: ripId, numero: parseInt(numSlot), tipo, etichetta: valNum || null }
         });
-        slotId = Array.isArray(created) ? created[0]?.id : created?.id;
-      } catch(e) { /* slot già esiste, cerca */ }
-
-      if (!slotId) {
-        const existing = allSlot.find(s => s.ripiano_id === ripId && s.numero === parseInt(numSlot));
-        slotId = existing?.id || null;
+        finalSlotId = Array.isArray(created) ? created[0]?.id : created?.id;
+      } catch(e) {
+        // Potrebbe esistere già — ricarica e cerca quello esatto
+        await loadArmadi();
+        const found = allSlot.find(s => s.ripiano_id === ripId && s.numero === parseInt(numSlot));
+        finalSlotId = found?.id || null;
       }
+    } else {
+      // Aggiorna tipo ed etichetta dello slot esistente
+      await api('slot_ripiano', {
+        method: 'PATCH',
+        body: { tipo, etichetta: valNum || null },
+        params: `id=eq.${finalSlotId}`
+      });
     }
 
     data.ripiano_id       = ripId;
-    data.slot_id          = slotId || null;
-    data.tipo_contenitore = document.getElementById('dep-tipo-cont').value;
-    data.valigetta_numero = document.getElementById('dep-valigetta-num')?.value.trim() || null;
+    data.slot_id          = finalSlotId || null;
+    data.tipo_contenitore = tipo;
+    data.valigetta_numero = valNum || null;
     data.posizione_id     = null;
   } else if (depPercorso === 'scaffale') {
     const posId = document.getElementById('dep-posizione-id').value;
@@ -4850,10 +4862,10 @@ function apriSlot(ripianoId, nomeArmadio, numRipiano, numSlot, slotId, tipoAttua
           <div style="display:flex;align-items:center;gap:6px">
             <span style="font-size:10px;padding:1px 7px;border-radius:8px;${f.stato==='disponibile'?'background:#dcfce7;color:#16a34a':'background:#fff7ed;color:#ea580c'}">${f.stato==='disponibile'?'Disponibile':'In prelievo'}</span>
             <button onclick="rimuoviDaSlot('${f.id}','${escHtml(f.numero)}')"
-              title="Rimuovi da questo slot"
+              title="Preleva questo fascicolo"
               style="background:none;border:none;cursor:pointer;color:var(--text3);padding:2px"
-              onmouseover="this.style.color='#DC2626'" onmouseout="this.style.color='var(--text3)'">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              onmouseover="this.style.color='#0F766E'" onmouseout="this.style.color='var(--text3)'">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
             </button>
           </div>
         </div>`).join('');
@@ -4944,15 +4956,18 @@ async function salvaSlotConFascicolo() {
   }
 }
 
-async function rimuoviDaSlot(fascId, numero) {
-  if (!confirm(`Rimuovere ${numero} da questo slot?`)) return;
-  try {
-    await api('fascicoli', { method: 'PATCH', body: { slot_id: null }, params: `id=eq.${fascId}` });
-    showToast(`${numero} rimosso dallo slot`, 'success');
-    await loadAll();
-    closeModal('modal-slot');
-    renderArmadi();
-  } catch(e) { showToast('Errore: ' + e.message, 'error'); }
+function rimuoviDaSlot(fascId, numero) {
+  // Non eliminare direttamente — apri il modal prelievo
+  closeModal('modal-slot');
+  // Precompila il modal preleva con questo fascicolo
+  const f = allFascicoli.find(x => x.id === fascId);
+  if (!f) { showToast('Fascicolo non trovato', 'error'); return; }
+  apriPreleva();
+  setTimeout(() => {
+    document.getElementById('pre-numero').value = f.numero;
+    document.getElementById('pre-anno').value   = f.anno;
+    cercaPerPrelievo();
+  }, 150);
 }
 
 async function salvaSlot() {
