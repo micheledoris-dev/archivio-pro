@@ -2808,7 +2808,7 @@ async function doForgotPassword() {
 
   try {
     const { error } = await sbClient.auth.resetPasswordForEmail(email, {
-      redirectTo: 'https://archiviofascicoli.netlify.app'
+      redirectTo: 'https://md-fascicoli.org'
     });
     if (error) { errEl.textContent = error.message; errEl.style.display = 'block'; }
     else { okEl.textContent = 'Email inviata! Controlla la tua casella di posta.'; okEl.style.display = 'block'; }
