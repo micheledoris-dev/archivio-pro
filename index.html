@@ -3723,7 +3723,9 @@ async function confirmDelete() {
 
 // Export Excel
 function exportExcel() {
-  const data = allFascicoli.map(f => ({
+  const data = [...allFascicoli]
+  .sort((a, b) => Number(a.anno) - Number(b.anno) || Number(a.numero) - Number(b.numero))
+  .map(f => ({
     'N. Sentenza': f.numero,
     'RGNR': f.rgnr || '',
     'Anno': f.anno,
