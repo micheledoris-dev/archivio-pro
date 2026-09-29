@@ -3724,16 +3724,18 @@ async function confirmDelete() {
 // Export Excel
 function exportExcel() {
   const data = [...allFascicoli]
-  .sort((a, b) => Number(a.anno) - Number(b.anno) || Number(a.numero) - Number(b.numero))
-  .map(f => ({
-    'N. Sentenza': f.numero,
-    'RGNR': f.rgnr || '',
-    'Anno': f.anno,
-    'RGT': f.richiesta,
-    'Posizione': getPosizioneFascicolo(f),
-    'Stato': f.stato === 'disponibile' ? 'Disponibile' : 'In prelievo',
-    'Note': f.note || ''
-  }));
+    .sort((a, b) => Number(a.anno) - Number(b.anno) || Number(a.numero) - Number(b.numero))
+    .map((f, index) => ({
+      'Numero progr.': index + 1,
+      'N. Sentenza': f.numero,
+      'Anno': f.anno,
+      'RGNR': f.rgnr || '',
+      'RGT': f.richiesta,
+      'Posizione': getPosizioneFascicolo(f),
+      'Stato': f.stato === 'disponibile' ? 'Disponibile' : 'In prelievo',
+      'Note': f.note || ''
+    }));
+
   const ws = XLSX.utils.json_to_sheet(data);
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, 'Fascicoli');
