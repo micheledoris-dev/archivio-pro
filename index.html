@@ -1333,6 +1333,9 @@ tbody tr:hover { background: var(--bg); }
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
             Stampa selezionati (<span id="sel-count">0</span>)
           </button>
+          <button class="btn btn-secondary" onclick="stampaRegistro()" title="Anteprima e stampa del registro">
+            Stampa registro
+          </button>
           <button class="btn btn-secondary" onclick="exportExcel()">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
             Export
@@ -3741,6 +3744,79 @@ function exportExcel() {
   XLSX.utils.book_append_sheet(wb, ws, 'Fascicoli');
   XLSX.writeFile(wb, `fascicoli_${new Date().toISOString().split('T')[0]}.xlsx`);
   showToast('Export completato', 'success');
+}
+
+// Stampa professionale del registro, senza modificare dati o ordinamento del sito.
+function stampaRegistro() {
+  const fascicoli = [...allFascicoli]
+    .filter(f => !f.eliminato)
+    .sort((a, b) => Number(a.anno) - Number(b.anno) || Number(a.numero) - Number(b.numero));
+
+  const pulisci = valore => String(valore ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+
+  // Apriamo la finestra immediatamente al clic per evitare il blocco popup.
+  const finestra = window.open('', '_blank');
+  if (!finestra) {
+    showToast('Consenti i popup per stampare il registro', 'error');
+    return;
+  }
+  const dataStampa = new Date().toLocaleDateString('it-IT');
+  const righe = fascicoli.map((f, i) => `
+    <tr>
+      <td class="centro">${i + 1}</td>
+      <td class="centro">${pulisci(f.numero)}</td>
+      <td class="centro">${pulisci(f.anno)}</td>
+      <td>${pulisci(f.rgnr)}</td>
+      <td>${pulisci(f.richiesta)}</td>
+      <td>${pulisci(getPosizioneFascicolo(f))}</td>
+      <td>${f.stato === 'disponibile' ? 'Disponibile' : 'In prelievo'}</td>
+      <td class="note">${pulisci(f.note)}</td>
+    </tr>`).join('');
+
+  finestra.document.open();
+  finestra.document.write(`<!DOCTYPE html>
+<html lang="it"><head><meta charset="UTF-8">
+<title>Archivio Pro - Registro fascicoli</title>
+<style>
+  @page { size: A4 landscape; margin: 12mm 9mm; }
+  * { box-sizing: border-box; }
+  body { font-family: Arial, sans-serif; color: #202020; margin: 0; font-size: 8pt; }
+  h1 { font-size: 17pt; margin: 0 0 4px; }
+  .sottotitolo { font-size: 10pt; margin-bottom: 12px; }
+  .informazioni { display: flex; justify-content: space-between; border-bottom: 1px solid #555; padding-bottom: 8px; margin-bottom: 12px; }
+  table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+  thead { display: table-header-group; }
+  th { background: #e5e7eb !important; font-weight: bold; border: 1px solid #aaa; padding: 6px 4px; text-align: left; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  td { border: 1px solid #ccc; padding: 5px 4px; vertical-align: top; overflow-wrap: anywhere; white-space: pre-wrap; }
+  tbody tr:nth-child(even) { background: #f5f5f5; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  tr { break-inside: avoid; page-break-inside: avoid; }
+  .centro { text-align: center; }
+  .note { line-height: 1.3; }
+  .azioni { text-align: right; margin-bottom: 16px; }
+  .azioni button { padding: 9px 18px; cursor: pointer; font-size: 13px; }
+  @media print { .azioni { display: none; } }
+</style></head><body>
+<div class="azioni"><button onclick="window.print()">STAMPA / SALVA PDF</button></div>
+<h1>ARCHIVIO PRO</h1>
+<div class="sottotitolo">Registro fascicoli - Sezione Penale</div>
+<div class="informazioni">
+  <span>Fascicoli: <strong>${fascicoli.length}</strong></span>
+  <span>Ordinamento: Anno / Numero sentenza</span>
+  <span>Data stampa: ${dataStampa}</span>
+</div>
+<table><colgroup>
+  <col style="width:4%"><col style="width:7%"><col style="width:6%"><col style="width:10%">
+  <col style="width:9%"><col style="width:11%"><col style="width:10%"><col style="width:43%">
+</colgroup><thead><tr>
+  <th>N.</th><th>Sentenza</th><th>Anno</th><th>RGNR</th><th>RGT</th><th>Posizione</th><th>Stato</th><th>Note</th>
+</tr></thead><tbody>${righe}</tbody></table>
+</body></html>`);
+  finestra.document.close();
 }
 
 // Import Excel
