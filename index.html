@@ -1333,8 +1333,8 @@ tbody tr:hover { background: var(--bg); }
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
             Stampa selezionati (<span id="sel-count">0</span>)
           </button>
-          <button class="btn btn-secondary" onclick="stampaRegistro()" title="Anteprima e stampa del registro">
-            Stampa registro
+          <button class="btn btn-secondary" onclick="apriCentroStampe()" title="Registri, inventari ed etichette">
+            Centro Stampe
           </button>
           <button class="btn btn-secondary" onclick="exportExcel()">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
@@ -3817,6 +3817,117 @@ function stampaRegistro() {
 </tr></thead><tbody>${righe}</tbody></table>
 </body></html>`);
   finestra.document.close();
+}
+
+// CENTRO STAMPE - funzioni di sola lettura: nessuna chiamata di scrittura al database.
+function csEsc(v) {
+  return String(v ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+function csOrdina(fs) {
+  return [...fs].sort((a,b) => Number(a.anno)-Number(b.anno) ||
+    Number(a.numero)-Number(b.numero) || String(a.numero).localeCompare(String(b.numero),'it'));
+}
+function csAttivi() { return allFascicoli.filter(f => !f.eliminato); }
+function csGruppi() {
+  const groups = new Map();
+  // Prima le posizioni effettivamente configurate: confronto tramite ID, mai tramite testo.
+  allPosizioni.forEach(p => groups.set('p:'+p.id, {label:p.codice || 'Posizione senza codice', rows:[]}));
+  csAttivi().forEach(f => {
+    let key, label;
+    if (f.posizione_id) {
+      key = 'p:'+f.posizione_id;
+      const p = allPosizioni.find(x => x.id === f.posizione_id);
+      label = p?.codice || f.posizioni?.codice || 'Posizione non più configurata';
+    } else if (f.slot_id) {
+      key = 's:'+f.slot_id; label = getPosizioneFascicolo(f);
+    } else if (f.ripiano_id) {
+      key = 'r:'+f.ripiano_id; label = getPosizioneFascicolo(f);
+    } else {
+      key = 'non-assegnata'; label = 'Senza posizione assegnata';
+    }
+    if (!groups.has(key)) groups.set(key, {label, rows:[]});
+    groups.get(key).rows.push(f);
+  });
+  return [...groups.entries()].map(([key,g]) => ({key,label:g.label,rows:csOrdina(g.rows)}))
+    .sort((a,b)=>a.label.localeCompare(b.label,'it',{numeric:true}));
+}
+function apriCentroStampe() {
+  document.getElementById('cs-overlay')?.remove();
+  const overlay = document.createElement('div');
+  overlay.id = 'cs-overlay';
+  overlay.style.cssText = 'position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;padding:16px';
+  const gruppi = csGruppi();
+  const anni = [...new Set(csAttivi().map(f=>String(f.anno)))].sort((a,b)=>Number(a)-Number(b));
+  overlay.innerHTML = `<div role="dialog" aria-modal="true" aria-label="Centro Stampe" style="background:var(--surface,#fff);color:var(--text,#222);width:min(650px,100%);max-height:90vh;overflow:auto;padding:24px;border-radius:14px;box-shadow:0 20px 70px #0005">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:12px"><h2 style="margin:0">Centro Stampe</h2><button type="button" class="btn btn-secondary" onclick="chiudiCentroStampe()">Chiudi ×</button></div>
+    <p style="margin:12px 0;color:var(--text3,#666)">Anteprima, stampa e salvataggio PDF. Nessuna modifica ai fascicoli.</p>
+    <label style="display:block;margin:12px 0 5px">Tipo di documento</label>
+    <select id="cs-tipo" class="form-input" style="width:100%;padding:10px" onchange="csAggiornaScelte()">
+      <option value="generale">Registro generale</option>
+      <option value="singola">Registro di una posizione</option>
+      <option value="tutte">Tutte le posizioni (una sezione per posizione)</option>
+      <option value="anno">Registro per anno</option>
+      <option value="prelievi">Fascicoli in prelievo</option>
+      <option value="inventario">Inventario fisico con caselle di verifica</option>
+      <option value="vuote">Elenco posizioni configurate vuote</option>
+      <option value="etichette">Etichette delle posizioni</option>
+    </select>
+    <div id="cs-scelta-pos" style="display:none;margin-top:14px"><label for="cs-pos">Posizione</label><select id="cs-pos" class="form-input" style="width:100%;padding:10px">${gruppi.map(g=>`<option value="${csEsc(g.key)}">${csEsc(g.label)} (${g.rows.length})</option>`).join('')}</select></div>
+    <div id="cs-scelta-anno" style="display:none;margin-top:14px"><label for="cs-anno">Anno</label><select id="cs-anno" class="form-input" style="width:100%;padding:10px">${anni.map(a=>`<option value="${csEsc(a)}">${csEsc(a)}</option>`).join('')}</select></div>
+    <div id="cs-scelta-verifica" style="display:none;margin-top:14px"><label for="cs-verifica">Inventario da verificare</label><select id="cs-verifica" class="form-input" style="width:100%;padding:10px"><option value="tutte">Tutte le posizioni</option>${gruppi.map(g=>`<option value="${csEsc(g.key)}">${csEsc(g.label)}</option>`).join('')}</select></div>
+    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:24px;flex-wrap:wrap"><button type="button" class="btn btn-secondary" onclick="chiudiCentroStampe()">Annulla</button><button type="button" class="btn btn-primary" onclick="csGenera()">Apri anteprima</button></div>
+  </div>`;
+  overlay.addEventListener('click',e=>{if(e.target===overlay) chiudiCentroStampe();});
+  document.body.appendChild(overlay);
+}
+function chiudiCentroStampe() { document.getElementById('cs-overlay')?.remove(); }
+function csAggiornaScelte() {
+  const tipo = document.getElementById('cs-tipo').value;
+  document.getElementById('cs-scelta-pos').style.display = tipo==='singola'?'block':'none';
+  document.getElementById('cs-scelta-anno').style.display = tipo==='anno'?'block':'none';
+  document.getElementById('cs-scelta-verifica').style.display = tipo==='inventario'?'block':'none';
+}
+function csTabella(fs, verifica=false) {
+  const rows=csOrdina(fs);
+  return `<table><colgroup><col style="width:4%"><col style="width:7%"><col style="width:6%"><col style="width:10%"><col style="width:9%"><col style="width:14%"><col style="width:10%"><col style="width:${verifica?'29':'40'}%">${verifica?'<col style="width:5%"><col style="width:6%">':''}</colgroup>
+  <thead><tr><th>N.</th><th>Sentenza</th><th>Anno</th><th>RGNR</th><th>RGT</th><th>Posizione</th><th>Stato</th><th>Note</th>${verifica?'<th>Pres.</th><th>Ass.</th>':''}</tr></thead>
+  <tbody>${rows.map((f,i)=>`<tr><td class="c">${i+1}</td><td class="c">${csEsc(f.numero)}</td><td class="c">${csEsc(f.anno)}</td><td>${csEsc(f.rgnr)}</td><td>${csEsc(f.richiesta)}</td><td>${csEsc(getPosizioneFascicolo(f))}</td><td>${f.stato==='disponibile'?'Disponibile':'In prelievo'}</td><td>${csEsc(f.note)}</td>${verifica?'<td class="c">□</td><td class="c">□</td>':''}</tr>`).join('') || `<tr><td colspan="${verifica?10:8}">Nessun fascicolo presente</td></tr>`}</tbody></table>`;
+}
+function csSezione(label,fs,verifica=false) {
+  return `<section class="gruppo"><h2>${csEsc(label)}</h2><p>Fascicoli: ${fs.length}</p>${csTabella(fs,verifica)}${verifica?'<p class="firma">Data verifica: __________________ &nbsp; Operatore: __________________ &nbsp; Firma: __________________</p>':''}</section>`;
+}
+function csGenera() {
+  const tipo=document.getElementById('cs-tipo').value;
+  const key=document.getElementById('cs-pos').value;
+  const anno=document.getElementById('cs-anno').value;
+  const verificaKey=document.getElementById('cs-verifica').value;
+  const groups=csGruppi();
+  let titolo='',contenuto='';
+  const fs=csAttivi();
+  if(tipo==='generale') { titolo='Registro generale'; contenuto=csTabella(fs); }
+  if(tipo==='singola') { const g=groups.find(x=>x.key===key); if(!g) return; titolo='Posizione '+g.label; contenuto=csSezione(g.label,g.rows); }
+  if(tipo==='tutte') { titolo='Registro completo per posizioni'; contenuto=groups.map(g=>csSezione(g.label,g.rows)).join(''); }
+  if(tipo==='anno') { titolo='Registro anno '+anno; contenuto=csTabella(fs.filter(f=>String(f.anno)===anno)); }
+  if(tipo==='prelievi') {
+    titolo='Fascicoli in prelievo';
+    const prestiti=allPrelievi.filter(p=>p.stato==='in_corso');
+    const inCorso=new Map(prestiti.map(p=>[p.fascicolo_id,p]));
+    const out=csOrdina(fs.filter(f=>f.stato==='in_prestito'||inCorso.has(f.id)));
+    contenuto=`<table><thead><tr><th>Sentenza</th><th>Anno</th><th>Posizione</th><th>Prelevato da</th><th>Motivazione</th><th>Note</th></tr></thead><tbody>${out.map(f=>{const p=inCorso.get(f.id);return `<tr><td>${csEsc(f.numero)}</td><td>${csEsc(f.anno)}</td><td>${csEsc(getPosizioneFascicolo(f))}</td><td>${csEsc(p?.prelevato_da)}</td><td>${csEsc(p?.motivazione)}</td><td>${csEsc(f.note)}</td></tr>`;}).join('')||'<tr><td colspan="6">Nessun fascicolo in prelievo</td></tr>'}</tbody></table>`;
+  }
+  if(tipo==='inventario') { titolo='Inventario di verifica'; contenuto=groups.filter(g=>verificaKey==='tutte'||g.key===verificaKey).map(g=>csSezione(g.label,g.rows,true)).join(''); }
+  if(tipo==='vuote') { titolo='Posizioni configurate vuote'; const empty=groups.filter(g=>g.key.startsWith('p:')&&!g.rows.length); contenuto=`<table><thead><tr><th>N.</th><th>Posizione</th><th>Fascicoli</th></tr></thead><tbody>${empty.map((g,i)=>`<tr><td>${i+1}</td><td>${csEsc(g.label)}</td><td>0</td></tr>`).join('')||'<tr><td colspan="3">Nessuna posizione configurata vuota</td></tr>'}</tbody></table>`; }
+  if(tipo==='etichette') { titolo='Etichette posizioni'; contenuto='<div class="etichette">'+groups.filter(g=>g.key.startsWith('p:')).map(g=>`<div class="etichetta"><div>ARCHIVIO PRO · SEZIONE PENALE</div><strong>${csEsc(g.label)}</strong><div>Fascicoli: ${g.rows.length}</div></div>`).join('')+'</div>'; }
+  const w=window.open('','_blank');
+  if(!w) { showToast('Consenti i popup per aprire l’anteprima di stampa','error'); return; }
+  const today=new Date().toLocaleDateString('it-IT');
+  w.document.open();
+  w.document.write(`<!DOCTYPE html><html lang="it"><head><meta charset="UTF-8"><title>Archivio Pro - ${csEsc(titolo)}</title><style>
+  @page{size:A4 landscape;margin:11mm 9mm}*{box-sizing:border-box}body{font:8pt Arial,sans-serif;color:#222;margin:0}h1{font-size:16pt;margin:0 0 4px}h2{font-size:12pt;margin:0 0 5px}p{margin:4px 0 9px}.meta{display:flex;justify-content:space-between;border-bottom:1px solid #555;padding-bottom:8px;margin-bottom:12px}.azioni{text-align:right;margin-bottom:14px}.azioni button{padding:9px 16px;cursor:pointer}table{width:100%;border-collapse:collapse;table-layout:fixed}thead{display:table-header-group}th,td{border:1px solid #bbb;padding:5px 4px;vertical-align:top;overflow-wrap:anywhere}th{background:#e5e7eb;text-align:left}td{white-space:pre-wrap}tbody tr:nth-child(even){background:#f5f5f5}tr{break-inside:avoid;page-break-inside:avoid}.c{text-align:center}.gruppo{break-before:page;page-break-before:always}.gruppo:first-of-type{break-before:auto;page-break-before:auto}.firma{margin-top:18px}.etichette{display:grid;grid-template-columns:repeat(2,1fr);gap:12mm}.etichetta{border:2px solid #333;padding:12mm;break-inside:avoid;min-height:43mm}.etichetta strong{display:block;font-size:24pt;margin:8px 0}th,tbody tr:nth-child(even){-webkit-print-color-adjust:exact;print-color-adjust:exact}@media print{.azioni{display:none}}
+  </style></head><body><div class="azioni"><button onclick="window.print()">STAMPA / SALVA PDF</button></div><h1>ARCHIVIO PRO</h1><div class="meta"><strong>${csEsc(titolo)}</strong><span>Data: ${today}</span><span>Ordinamento: anno / sentenza</span></div>${contenuto}</body></html>`);
+  w.document.close();
+  chiudiCentroStampe();
 }
 
 // Import Excel
