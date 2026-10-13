@@ -1,0 +1,29 @@
+
+name: Controllo Supabase Archivio Pro
+
+on:
+  schedule:
+    - cron: '17 7 */3 * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  controllo:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Verifica connessione Supabase
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+        run: |
+          test -n "$SUPABASE_URL"
+          test -n "$SUPABASE_ANON_KEY"
+          curl --fail --silent --show-error \
+            --max-time 30 \
+            --retry 2 \
+            -H "apikey: $SUPABASE_ANON_KEY" \
+            "$SUPABASE_URL/rest/v1/" > /dev/null
+          echo "Controllo Supabase completato"
