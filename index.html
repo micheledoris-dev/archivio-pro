@@ -1135,6 +1135,10 @@ tbody tr:hover { background: var(--bg); }
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
         Cerca
       </div>
+      <div class="nav-item" data-page="assise" onclick="goTo('assise')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v16H4zM7 9h10M7 13h10M7 17h7"/></svg>
+        Ricognizione Assise
+      </div>
       <div class="nav-item" data-page="posizioni" onclick="goTo('posizioni')">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
         Posizioni
@@ -1322,6 +1326,27 @@ tbody tr:hover { background: var(--bg); }
     </div>
 
     <!-- ============ FASCICOLI ============ -->
+    <div class="page" id="page-assise">
+      <div class="page-header"><div><h1 class="page-title">Ricognizione Assise</h1><p class="page-subtitle">Catalogo separato dall'archivio principale · v1.1.3</p></div></div>
+      <div class="card" style="padding:20px;margin-bottom:16px">
+        <h3 style="margin-bottom:10px">Ricerca documenti</h3>
+        <input id="assise-q" type="search" placeholder="Cerca RG, sentenza, irrevocabilità, gruppo, note..." oninput="assiseRender()" style="width:100%;padding:12px;border:1px solid var(--border);border-radius:8px">
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:10px;align-items:center">
+          <select id="assise-area" onchange="assiseRender()" style="padding:10px;border:1px solid var(--border);border-radius:8px"><option value="">Tutte le partizioni</option><option>Fascicoli</option><option>Liqidazioni</option><option>Sentenze</option></select>
+          <button class="btn btn-secondary" onclick="assiseCarica()">Aggiorna dal database</button>
+          <span id="assise-count" style="font-size:13px;color:var(--text3)"></span>
+        </div>
+        <div id="assise-risultati" style="overflow-x:auto;margin-top:14px">Apri questa sezione per caricare il catalogo.</div>
+      </div>
+      <div class="card" style="padding:20px">
+        <h3 style="margin-bottom:8px">Importa Ricognizione Assise.xlsx</h3>
+        <p style="font-size:13px;color:var(--text3);margin-bottom:12px">Importazione separata, senza alterare fascicoli, armadi o posizioni esistenti. Prima controlla il file e il database; poi conferma esplicitamente.</p>
+        <input type="file" id="assise-file" accept=".xlsx,.xls" onchange="assiseAnalizza(this)" style="max-width:100%">
+        <div id="assise-anteprima" style="margin-top:12px;font-size:13px"></div>
+        <button class="btn btn-primary" id="assise-importa" onclick="assiseSalva()" disabled style="margin-top:12px">Conferma importazione</button>
+        <p id="assise-stato" style="margin-top:12px;font-size:13px;color:var(--text3)" aria-live="polite">Nessuna operazione eseguita.</p>
+      </div>
+    </div>
     <div class="page" id="page-fascicoli">
       <div class="page-header">
         <div>
@@ -3019,12 +3044,13 @@ function goTo(page) {
   document.getElementById('page-' + page).classList.add('active');
   document.querySelectorAll(`[data-page="${page}"]`).forEach(n => n.classList.add('active'));
   
+  if (page === 'assise') assiseCarica();
   if (page === 'fascicoli') renderFascicoli();
   if (page === 'armadi') loadArmadi();
   if (page === 'etichette') initEtichette();
   if (page === 'posizioni') { showPositionList(); loadPosizioni().then(() => renderPosizioni()); }
   if (page === 'prelievi') renderPrelievi('in_corso');
-  if (page === 'utenti') renderUtenti();
+  if (page === 'utenti') refreshUtenti();
 }
 
 // =============================================
@@ -6113,17 +6139,30 @@ function handleQRResult(text) {
 // =============================================
 // UTENTI
 // =============================================
+let utentiLoadError = null;
+async function refreshUtenti() {
+  const tbody = document.getElementById('utenti-tbody');
+  tbody.innerHTML = '<tr><td colspan="4">Caricamento utenti…</td></tr>';
+  await loadUtenti();
+  renderUtenti();
+}
 async function loadUtenti() {
+  utentiLoadError = null;
   try {
     allUtenti = await api('utenti', { params: 'select=*&order=created_at.asc' }) || [];
   } catch(e) {
     console.error('Load utenti:', e);
+    utentiLoadError = e.message || 'Accesso non disponibile';
     allUtenti = [];
   }
 }
 
 function renderUtenti() {
   const tbody = document.getElementById('utenti-tbody');
+  if (utentiLoadError) {
+    tbody.innerHTML = '<tr><td colspan="4">Impossibile caricare gli utenti: '+escHtml(utentiLoadError)+'</td></tr>';
+    return;
+  }
   if (allUtenti.length === 0) {
     tbody.innerHTML = '<tr><td colspan="4"><div class="empty-state"><p>Nessun utente</p></div></td></tr>';
     return;
@@ -6676,6 +6715,132 @@ window.addEventListener('DOMContentLoaded', async () => {
   sessionStorage.removeItem('archivio_user');
   sessionStorage.removeItem('archivio_token');
 });
+
+// RICOGNIZIONE ASSISE v1.1.3 - identità per contenuto, indipendente dalla riga.
+let assiseRows=[], assiseSaved=[], assiseReady=false, assiseBusy=false, assiseAnalysis=0;
+const assiseEsc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const assiseNorm=v=>String(v??'').trim();
+function assiseDate(v){
+  if(v instanceof Date && !isNaN(v))return v.toLocaleDateString('it-IT');
+  if(typeof v==='number' && v>20000 && v<90000){
+    const d=new Date(Date.UTC(1899,11,30)+Math.floor(v)*86400000);
+    return d.toLocaleDateString('it-IT',{timeZone:'UTC'});
+  }
+  const x=assiseNorm(v);
+  if(/^\d{4}-\d{2}-\d{2}$/.test(x))return x.slice(8)+'/'+x.slice(5,7)+'/'+x.slice(0,4);
+  return x;
+}
+function assisePartizione(name){
+  const n=String(name).toLowerCase();
+  if(n.includes('fascicol'))return 'Fascicoli';
+  if(n.includes('liqidaz')||n.includes('liquidaz'))return 'Liqidazioni';
+  if(n.includes('sentenz'))return 'Sentenze';
+  return null;
+}
+async function assiseKey(r){
+  // PROG, foglio e riga sono riferimenti di provenienza, non identità.
+  // Conserva distinte le righe con note, gruppo o altri contenuti differenti.
+  const extra=Object.keys(r.dati||{}).filter(k=>k!=='PROG').sort().map(k=>[k,assiseNorm(r.dati[k])]);
+  const content=JSON.stringify([r.area,extra]);
+  if(!globalThis.crypto?.subtle)throw new Error('Aprire Archivio Pro tramite HTTPS per verificare i duplicati');
+  const digest=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(content));
+  return 'assise-v112:'+Array.from(new Uint8Array(digest),b=>b.toString(16).padStart(2,'0')).join('');
+}
+async function assiseAnalizza(input){
+  if(assiseBusy)return;
+  const analysis=++assiseAnalysis;
+  const file=input.files?.[0], out=document.getElementById('assise-anteprima');
+  assiseRows=[];assiseReady=false;document.getElementById('assise-importa').disabled=true;
+  out.textContent='';
+  if(!file)return;
+  if(typeof XLSX==='undefined'){out.textContent='Libreria XLSX non disponibile.';return;}
+  try{
+    const wb=XLSX.read(await file.arrayBuffer(),{type:'array',cellDates:false});
+    const counts={}, seen=new Set(), parsed=[];
+    for(const foglio of wb.SheetNames){
+      const area=assisePartizione(foglio);if(!area)continue;
+      const ws=wb.Sheets[foglio], matrix=XLSX.utils.sheet_to_json(ws,{header:1,defval:'',raw:true,blankrows:true,range:0});
+      if(!matrix.length)continue;
+      const headers=matrix[0].map(x=>assiseNorm(x).toUpperCase());
+      for(let i=1;i<matrix.length;i++){
+        const cells=matrix[i]||[];
+        if(!cells.some(v=>assiseNorm(v)))continue;
+        const val=(name,n=0)=>{let count=0;for(let j=0;j<headers.length;j++){if(headers[j]===name){if(count++===n)return cells[j]??'';}}return '';};
+        let rg=assiseNorm(val('RG')),sentenza=assiseNorm(val('SENT'));
+        if(area==='Sentenze'){
+          const annoRG=assiseNorm(val('ANNO',0)),annoS=assiseNorm(val('ANNO',1));
+          if(rg&&annoRG)rg+='/'+annoRG;
+          if(sentenza&&annoS)sentenza+='/'+annoS;
+        }
+        const dati={};headers.forEach((h,j)=>{if(h)dati[h+(headers.slice(0,j).filter(x=>x===h).length?'_'+(headers.slice(0,j).filter(x=>x===h).length+1):'')]=cells[j]??'';});
+        const r={area,rg,sentenza,irrevocabilita:assiseNorm(val('IRREVOCABILITA')),atti_archivio:assiseDate(val('ATTI IN ARCHIVIO')),gruppo:assiseNorm(val('GRUPPO')),note:assiseNorm(val('NOTE')),foglio,riga:i+1,dati};
+        r.chiave=await assiseKey(r);
+        if(analysis!==assiseAnalysis)return;
+        r.duplicato=seen.has(r.chiave);seen.add(r.chiave);
+        if(!rg&&!sentenza)r.incompleto=true;
+        parsed.push(r);counts[area]=(counts[area]||0)+1;
+      }
+    }
+    if(analysis!==assiseAnalysis)return;
+    assiseRows=parsed;
+    out.innerHTML='<strong>'+assiseRows.length+' righe lette</strong> · '+Object.entries(counts).map(([k,v])=>assiseEsc(k)+': '+v).join(' · ')+
+      '<div style="margin-top:8px">Senza RG e sentenza: '+assiseRows.filter(r=>r.incompleto).length+' · duplicati esatti nel file: '+assiseRows.filter(r=>r.duplicato).length+'</div>';
+    document.getElementById('assise-stato').textContent='Anteprima pronta. Controllo autorizzazione e tabella…';
+    const {error}=await sbClient.from('ricognizione_assise').select('chiave').limit(1);
+    if(analysis!==assiseAnalysis)return;
+    if(error)throw new Error('Catalogo non pronto o accesso negato: '+error.message);
+    assiseReady=true;
+    document.getElementById('assise-importa').disabled=currentUser?.ruolo!=='admin'||!assiseRows.some(r=>!r.incompleto&&!r.duplicato);
+    document.getElementById('assise-stato').textContent='Database raggiungibile. Il salvataggio richiede conferma e permessi amministratore.';
+  }catch(e){if(analysis===assiseAnalysis)document.getElementById('assise-stato').textContent='Importazione non disponibile: '+e.message;}
+}
+async function assiseSalva(){
+  if(assiseBusy||!assiseReady||!assiseRows.length)return;
+  if(currentUser?.ruolo!=='admin'){document.getElementById('assise-stato').textContent='Importazione riservata all’amministratore.';return;}
+  const rows=assiseRows.filter(r=>!r.incompleto&&!r.duplicato);
+  if(!confirm('Importare '+rows.length+' documenti in Ricognizione Assise, senza modificare l’archivio principale? I record già presenti saranno ignorati.'))return;
+  const btn=document.getElementById('assise-importa'),st=document.getElementById('assise-stato');btn.disabled=true;
+  assiseBusy=true;document.getElementById('assise-file').disabled=true;
+  let inserted=0;
+  try{
+    const legacy=await sbClient.from('ricognizione_assise').select('chiave').not('chiave','like','assise-v112:%').limit(1);
+    if(legacy.error)throw legacy.error;
+    if(legacy.data?.length)throw new Error('Sono presenti importazioni di una versione precedente. Occorre riconciliarle prima di importare: nessuna nuova riga è stata inviata');
+    for(let i=0;i<rows.length;i+=50){
+      const payload=rows.slice(i,i+50).map(r=>({chiave:r.chiave,area:r.area,rg:r.rg,sentenza:r.sentenza,irrevocabilita:r.irrevocabilita,atti_archivio:r.atti_archivio,gruppo:r.gruppo,note:r.note,foglio:r.foglio,riga:r.riga,dati:r.dati}));
+      const {data,error}=await sbClient.from('ricognizione_assise').upsert(payload,{onConflict:'chiave',ignoreDuplicates:true}).select('chiave');
+      if(error)throw error;
+      inserted+=(data||[]).length;
+      st.textContent='Elaborate '+Math.min(i+50,rows.length)+' / '+rows.length+' righe.';
+    }
+    st.textContent='Operazione completata. Nuovi record: '+inserted+'. Già presenti o ignorati: '+(rows.length-inserted)+'.';
+    await assiseCarica();
+  }catch(e){st.textContent='Importazione interrotta: '+e.message+'. Nuove righe confermate: '+inserted+'. Alcuni lotti potrebbero essere già salvati; puoi ripetere lo stesso file senza duplicare le righe. Nessun dato dell’archivio principale è stato modificato.';}
+  finally{assiseBusy=false;btn.disabled=false;document.getElementById('assise-file').disabled=false;}
+}
+async function assiseCarica(){
+  const out=document.getElementById('assise-risultati');
+  if(!out)return;
+  out.textContent='Caricamento dal database…';
+  try{
+    let all=[],from=0;
+    while(true){
+      const {data,error}=await sbClient.from('ricognizione_assise').select('chiave,area,rg,sentenza,irrevocabilita,atti_archivio,gruppo,note,foglio,riga').order('chiave').range(from,from+499);
+      if(error)throw error;
+      all.push(...(data||[]));if(!data||data.length<500)break;
+      from+=500;if(from>50000)throw new Error('Limite di sicurezza superato');
+    }
+    assiseSaved=all;assiseRender();
+  }catch(e){out.textContent='Catalogo non disponibile: '+e.message+'. Non caricare dati finché il database non è pronto.';document.getElementById('assise-count').textContent='';}
+}
+function assiseRender(){
+  const q=(document.getElementById('assise-q')?.value||'').toLocaleLowerCase('it').trim(),area=document.getElementById('assise-area')?.value||'';
+  const rows=assiseSaved.filter(r=>(!area||r.area===area)&&(!q||[r.rg,r.sentenza,r.irrevocabilita,r.atti_archivio,r.gruppo,r.note,r.area].some(v=>String(v??'').toLocaleLowerCase('it').includes(q))));
+  document.getElementById('assise-count').textContent=rows.length+' risultati · '+assiseSaved.length+' documenti nel catalogo';
+  document.getElementById('assise-risultati').innerHTML='<table><thead><tr><th>Partizione</th><th>RG</th><th>Sentenza</th><th>Irrevocabilità</th><th>Atti in archivio</th><th>Archivio / Gruppo</th><th>Note</th></tr></thead><tbody>'+
+    rows.slice(0,250).map(r=>'<tr>'+[r.area,r.rg,r.sentenza,r.irrevocabilita,r.atti_archivio,r.gruppo,r.note].map(v=>'<td>'+assiseEsc(v||'—')+'</td>').join('')+'</tr>').join('')+
+    '</tbody></table>'+(rows.length>250?'<p>Visualizzati i primi 250 risultati. Restringi la ricerca.</p>':'');
+}
 </script>
 </body>
 </html>
