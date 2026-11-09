@@ -1238,7 +1238,7 @@ tbody tr:hover { background: var(--bg); }
           <div class="stat-label">Posizioni</div>
         </div>
       </div>
-<h2 style="font-size:18px;margin:8px 0 12px">Ricognizione Assise</h2><div class="stats-grid assise-stats"><div class="stat-card">
+<h2 style="font-size:18px;margin:8px 0 12px">Ricognizione Assise</h2><button type="button" class="btn btn-primary" onclick="goTo('assise')" style="margin:0 0 14px">Apri Ricognizione Assise</button><div class="stats-grid assise-stats"><div class="stat-card">
           <div class="stat-icon">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
           </div>
@@ -1357,7 +1357,7 @@ tbody tr:hover { background: var(--bg); }
 
     <!-- ============ FASCICOLI ============ -->
     <div class="page" id="page-assise">
-      <div class="page-header"><div><h1 class="page-title">Ricognizione Assise</h1><p class="page-subtitle">Catalogo separato dall'archivio principale · v1.1.5</p></div></div>
+      <div class="page-header"><div><h1 class="page-title">Ricognizione Assise</h1><p class="page-subtitle">Catalogo separato dall'archivio principale · v1.1.6</p></div></div>
 <h2 style="font-size:18px;margin:8px 0 12px">Ricognizione Assise</h2><div class="stats-grid assise-stats"><div class="stat-card">
           <div class="stat-icon">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
@@ -1910,6 +1910,10 @@ tbody tr:hover { background: var(--bg); }
     <button class="bottom-nav-item" data-page="fascicoli" onclick="goTo('fascicoli')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
       Fascicoli
+    </button>
+    <button type="button" class="bottom-nav-item" data-page="assise" onclick="goTo('assise')" aria-label="Ricognizione Assise">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 7h8M8 12h8M8 17h5"/></svg>
+      Assise
     </button>
     <button class="bottom-nav-item" data-page="posizioni" onclick="goTo('posizioni')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
@@ -6769,7 +6773,7 @@ window.addEventListener('DOMContentLoaded', async () => {
   sessionStorage.removeItem('archivio_token');
 });
 
-// RICOGNIZIONE ASSISE v1.1.5 - identità per contenuto, indipendente dalla riga.
+// RICOGNIZIONE ASSISE v1.1.6 - identità per contenuto, indipendente dalla riga.
 let assiseRows=[], assiseSaved=[], assiseReady=false, assiseBusy=false, assiseAnalysis=0;
 const assiseEsc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const assiseNorm=v=>String(v??'').trim();
@@ -6922,7 +6926,7 @@ async function assiseAggiornaContatori(){
  }catch(e){if(richiesta===assiseContatoriRichiesta)mostra(null,null,null,'Contatori non disponibili. Riprova con Aggiorna dal database in Ricognizione Assise.');}
 }
 
-// Prelievi Assise v1.1.5: storico persistente, scritture solo tramite RPC.
+// Prelievi Assise v1.1.6: storico persistente, scritture solo tramite RPC.
 let assiseLoans=new Map(), assiseLoansReady=false, assiseLoanError='', assiseLoanForm=null;
 let assiseHistoryKey='', assiseHistoryOffset=0, assiseHistoryToken=0, assiseHistoryBusy=false;
 function assiseOggi(){
