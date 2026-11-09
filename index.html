@@ -1130,7 +1130,7 @@ tbody tr:hover { background: var(--bg); }
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <rect x="2" y="2" width="20" height="20" rx="3"/><path d="M7 8h10M7 12h6M7 16h8"/>
       </svg>
-      <span class="sidebar-brand-text">Archivio Pro<small style="display:block;font-size:11px;font-weight:400;color:var(--text3)">Versione 1.1.7</small></span>
+      <span class="sidebar-brand-text">Archivio Pro<small style="display:block;font-size:11px;font-weight:400;color:var(--text3)">Versione 1.1.8</small></span>
     </div>
     <div class="sidebar-nav">
       <div class="nav-item active" data-page="dashboard" onclick="goTo('dashboard')">
@@ -1203,7 +1203,7 @@ tbody tr:hover { background: var(--bg); }
     <div class="page active" id="page-dashboard">
       <div class="page-header">
         <div>
-          <h1 class="page-title">Scrivania</h1><p style="font-size:12px;color:var(--text3);margin-top:4px">Archivio Pro · Versione 1.1.7</p>
+          <h1 class="page-title">Scrivania</h1><p style="font-size:12px;color:var(--text3);margin-top:4px">Archivio Pro · Versione 1.1.8</p>
           <p class="page-subtitle">Panoramica dell'archivio</p>
         </div>
       </div>
@@ -1357,7 +1357,7 @@ tbody tr:hover { background: var(--bg); }
 
     <!-- ============ FASCICOLI ============ -->
     <div class="page" id="page-assise">
-      <div class="page-header"><div><h1 class="page-title">Ricognizione Assise</h1><p class="page-subtitle">Catalogo separato dall'archivio principale · v1.1.7</p></div></div>
+      <div class="page-header"><div><h1 class="page-title">Ricognizione Assise</h1><p class="page-subtitle">Catalogo separato dall'archivio principale · v1.1.8</p></div></div>
 <h2 style="font-size:18px;margin:8px 0 12px">Ricognizione Assise</h2><div class="stats-grid assise-stats"><div class="stat-card">
           <div class="stat-icon">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
@@ -3160,6 +3160,13 @@ async function loadFascicoli() {
   }
 }
 
+function fascicoloRitiratoDa(f){
+ if(f.stato==='disponibile')return '';
+ const attivi=allPrelievi.filter(p=>p.fascicolo_id===f.id&&['in_corso','in corso'].includes(p.stato));
+ const nomi=[...new Set(attivi.map(p=>p.prelevato_da).filter(Boolean))];
+ return '<div style="font-size:12px;margin-top:6px;white-space:normal;overflow-wrap:anywhere">'+(nomi.length?'Ritirato da: <strong>'+nomi.map(escHtml).join(', ')+'</strong>':'Nominativo non disponibile · consulta Prelievi')+'</div>';
+}
+
 function renderFascicoli(list = null) {
   const data = list || allFascicoli;
   const tbody = document.getElementById('fascicoli-tbody');
@@ -3187,7 +3194,7 @@ function renderFascicoli(list = null) {
       <td>${f.anno}</td>
       <td>${escHtml(f.richiesta)}</td>
       <td><span class="tag">${escHtml(posCodice)}</span></td>
-      <td>${badge}</td>
+      <td>${badge}${fascicoloRitiratoDa(f)}</td>
       <td style="color:var(--text3);font-size:12px;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${escHtml(f.note || '')}">${escHtml(f.note || '—')}</td>
       <td>
         <div class="actions-cell">
@@ -3230,6 +3237,7 @@ function renderFascicoliCards(data) {
         </label>
         ${badge}
       </div>
+      ${fascicoloRitiratoDa(f)}
       <div class="fascicolo-card-row">
         <span>Anno <strong>${f.anno}</strong></span>
         &middot;
@@ -5577,7 +5585,7 @@ function showPositionDetail(posId) {
       <td><strong>${escHtml(f.numero)}</strong></td>
       <td style="color:var(--text3)">Anno ${f.anno} • ${escHtml(f.richiesta)}</td>
       <td style="color:var(--text3);font-size:12px;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${escHtml(f.note || '')}">${escHtml(f.note || '—')}</td>
-      <td>${badge}</td>
+      <td>${badge}${fascicoloRitiratoDa(f)}</td>
       <td>${prelevaBtn}</td>
     </tr>`;
   }).join('');
@@ -6774,7 +6782,7 @@ window.addEventListener('DOMContentLoaded', async () => {
   sessionStorage.removeItem('archivio_token');
 });
 
-// RICOGNIZIONE ASSISE v1.1.7 - identità per contenuto, indipendente dalla riga.
+// RICOGNIZIONE ASSISE v1.1.8 - identità per contenuto, indipendente dalla riga.
 let assiseRows=[], assiseSaved=[], assiseReady=false, assiseBusy=false, assiseAnalysis=0;
 const assiseEsc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const assiseNorm=v=>String(v??'').trim();
@@ -6927,7 +6935,7 @@ async function assiseAggiornaContatori(){
  }catch(e){if(richiesta===assiseContatoriRichiesta)mostra(null,null,null,'Contatori non disponibili. Riprova con Aggiorna dal database in Ricognizione Assise.');}
 }
 
-// Prelievi Assise v1.1.7: storico persistente, scritture solo tramite RPC.
+// Prelievi Assise v1.1.8: storico persistente, scritture solo tramite RPC.
 let assiseLoans=new Map(), assiseLoansReady=false, assiseLoanError='', assiseLoanForm=null;
 let assiseHistoryKey='', assiseHistoryOffset=0, assiseHistoryToken=0, assiseHistoryBusy=false;
 function assiseOggi(){
@@ -7032,7 +7040,7 @@ async function qrLottoApri(posId){
  const st=qrLotto;
  document.getElementById('qr-lotto-form').reset();
  document.getElementById('qr-lotto-data').value=assiseOggi();document.getElementById('qr-lotto-data').max=assiseOggi();
- document.getElementById('qr-lotto-lista').innerHTML='Caricamento…';
+ document.getElementById('qr-lotto-lista').innerHTML='Caricamento…';document.getElementById('qr-lotto-conteggio').textContent='';
  document.getElementById('qr-lotto-msg').textContent='';document.getElementById('qr-lotto-campi').disabled=true;
  dlg.showModal();
  try{
@@ -7044,10 +7052,16 @@ async function qrLottoApri(posId){
   if(qrLotto!==st)return;
   st.righe=rows.filter(f=>!f.eliminato);
   document.getElementById('qr-lotto-lista').innerHTML=st.righe.map((f,i)=>`<label style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)"><input type="checkbox" name="qr-scelta" value="${i}" ${f.stato==='disponibile'?'':'disabled'} style="width:22px;height:22px"><span>${escHtml(f.numero)} / ${escHtml(f.anno)}${f.stato==='disponibile'?'':' — non disponibile'}</span></label>`).join('')||'Nessun fascicolo in questa posizione.';
-  document.getElementById('qr-lotto-campi').disabled=false;
+  document.getElementById('qr-lotto-campi').disabled=false;qrLottoConta();
  }catch(e){if(qrLotto===st)document.getElementById('qr-lotto-msg').textContent='Elenco non disponibile: '+e.message;}
 }
-function qrLottoTutti(value){document.querySelectorAll('#qr-lotto-lista input:not(:disabled)').forEach(el=>el.checked=value);}
+function qrLottoConta(){
+ const tot=qrLotto?.righe.length||0,disponibili=qrLotto?.righe.filter(f=>f.stato==='disponibile').length||0;
+ const scelti=document.querySelectorAll('#qr-lotto-lista input:checked').length;
+ document.getElementById('qr-lotto-conteggio').textContent=tot+' fascicoli · '+disponibili+' disponibili · '+scelti+' selezionati';
+ document.getElementById('qr-lotto-save').textContent='Conferma prelievo ('+scelti+')';
+}
+function qrLottoTutti(value){document.querySelectorAll('#qr-lotto-lista input:not(:disabled)').forEach(el=>el.checked=value);qrLottoConta();}
 async function qrLottoSalva(event){
  event.preventDefault();const st=qrLotto;if(!st||st.busy)return;
  const msg=document.getElementById('qr-lotto-msg');
@@ -7095,7 +7109,7 @@ async function qrLottoSalva(event){
 <h2 id="qr-lotto-title">Prelievo multiplo</h2><p>Archivio principale · scegli i fascicoli da consegnare.</p>
 <fieldset id="qr-lotto-campi" style="border:0;padding:0">
 <div style="display:flex;gap:8px;margin:12px 0"><button type="button" class="btn btn-secondary" onclick="qrLottoTutti(true)">Seleziona tutti</button><button type="button" class="btn btn-secondary" onclick="qrLottoTutti(false)">Deseleziona tutti</button></div>
-<div id="qr-lotto-lista" style="max-height:230px;overflow:auto"></div>
+<p id="qr-lotto-conteggio" role="status" aria-live="polite" style="margin:12px 0;font-weight:600"></p><div id="qr-lotto-lista" onchange="qrLottoConta()"></div>
 <label for="qr-lotto-persona">Chi ritira</label><input id="qr-lotto-persona" required maxlength="200" autocomplete="off">
 <label for="qr-lotto-data">Data prelievo</label><input type="date" id="qr-lotto-data" required>
 <label for="qr-lotto-motivo">Motivazione</label><input id="qr-lotto-motivo" required maxlength="500">
