@@ -1070,6 +1070,11 @@ tbody tr:hover { background: var(--bg); }
 .assise-dialog [hidden] { display: none !important; }
 .assise-stats { grid-template-columns: repeat(3,minmax(0,1fr)); }
 @media(max-width:600px) { .assise-stats { grid-template-columns:1fr; } }
+
+.assise-note-row { display:grid; grid-template-columns:minmax(100px,180px) minmax(40px,1fr) 38px; gap:10px; align-items:center; margin-bottom:10px; font-size:12px; }
+.assise-note-label { text-align:right; overflow-wrap:anywhere; }
+.assise-note-track { background:var(--surface2); height:20px; border-radius:4px; }
+@media(max-width:600px) { .assise-note-row { grid-template-columns:minmax(0,1fr) 38px;gap:6px; } .assise-note-label {grid-column:1/-1;text-align:left;} }
 </style>
 </head>
 <body>
@@ -1130,7 +1135,7 @@ tbody tr:hover { background: var(--bg); }
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <rect x="2" y="2" width="20" height="20" rx="3"/><path d="M7 8h10M7 12h6M7 16h8"/>
       </svg>
-      <span class="sidebar-brand-text">Archivio Pro<small style="display:block;font-size:11px;font-weight:400;color:var(--text3)">Versione 1.1.8</small></span>
+      <span class="sidebar-brand-text">Archivio Pro<small style="display:block;font-size:11px;font-weight:400;color:var(--text3)">Versione 1.1.9</small></span>
     </div>
     <div class="sidebar-nav">
       <div class="nav-item active" data-page="dashboard" onclick="goTo('dashboard')">
@@ -1203,7 +1208,7 @@ tbody tr:hover { background: var(--bg); }
     <div class="page active" id="page-dashboard">
       <div class="page-header">
         <div>
-          <h1 class="page-title">Scrivania</h1><p style="font-size:12px;color:var(--text3);margin-top:4px">Archivio Pro · Versione 1.1.8</p>
+          <h1 class="page-title">Scrivania</h1><p style="font-size:12px;color:var(--text3);margin-top:4px">Archivio Pro · Versione 1.1.9</p>
           <p class="page-subtitle">Panoramica dell'archivio</p>
         </div>
       </div>
@@ -1346,18 +1351,27 @@ tbody tr:hover { background: var(--bg); }
       <!-- Grafico Note -->
       <div class="card" style="margin-top:14px">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
-          <div class="card-title" style="margin-bottom:0">Distribuzione Note</div>
+          <div class="card-title" style="margin-bottom:0">Distribuzione Note · Archivio principale</div>
           <span style="font-size:11px;color:var(--text3)" id="note-chart-subtitle"></span>
         </div>
         <div id="note-chart-container" style="width:100%;overflow-x:auto">
           <div class="empty-state" style="padding:20px 0"><p>Nessun dato</p></div>
         </div>
       </div>
+      <section class="card" style="margin-top:14px" aria-labelledby="assise-note-title">
+        <h2 class="card-title" id="assise-note-title">Distribuzione Note · Ricognizione Assise</h2>
+        <p style="font-size:12px;color:var(--text3);margin-bottom:12px">Note del catalogo Assise, conteggiate separatamente dall’archivio principale.</p>
+        <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:16px">
+          <span id="assise-note-subtitle" style="font-size:12px;color:var(--text3)"></span>
+          <button type="button" class="btn btn-secondary btn-sm" onclick="assiseCaricaGraficoNote()">Aggiorna grafico</button>
+        </div>
+        <div id="assise-note-chart" role="status">Caricamento…</div>
+      </section>
     </div>
 
     <!-- ============ FASCICOLI ============ -->
     <div class="page" id="page-assise">
-      <div class="page-header"><div><h1 class="page-title">Ricognizione Assise</h1><p class="page-subtitle">Catalogo separato dall'archivio principale · v1.1.8</p></div></div>
+      <div class="page-header"><div><h1 class="page-title">Ricognizione Assise</h1><p class="page-subtitle">Catalogo separato dall'archivio principale · v1.1.9</p></div></div>
 <h2 style="font-size:18px;margin:8px 0 12px">Ricognizione Assise</h2><div class="stats-grid assise-stats"><div class="stat-card">
           <div class="stat-icon">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
@@ -3099,7 +3113,7 @@ function goTo(page) {
   document.getElementById('page-' + page).classList.add('active');
   document.querySelectorAll(`[data-page="${page}"]`).forEach(n => n.classList.add('active'));
   
-  if (page === 'dashboard') assiseAggiornaContatori();
+  if (page === 'dashboard') { assiseAggiornaContatori(); assiseCaricaGraficoNote(); }
   if (page === 'assise') assiseCarica();
   if (page === 'fascicoli') renderFascicoli();
   if (page === 'armadi') loadArmadi();
@@ -3113,6 +3127,7 @@ function goTo(page) {
 // DASHBOARD
 // =============================================
 function updateDashboard() {
+  assiseCaricaGraficoNote();
   assiseAggiornaContatori();
   const totali = allFascicoli.length;
   const inPrelievo = allFascicoli.filter(f => f.stato === 'in_prestito').length;
@@ -6782,7 +6797,7 @@ window.addEventListener('DOMContentLoaded', async () => {
   sessionStorage.removeItem('archivio_token');
 });
 
-// RICOGNIZIONE ASSISE v1.1.8 - identità per contenuto, indipendente dalla riga.
+// RICOGNIZIONE ASSISE v1.1.9 - identità per contenuto, indipendente dalla riga.
 let assiseRows=[], assiseSaved=[], assiseReady=false, assiseBusy=false, assiseAnalysis=0;
 const assiseEsc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const assiseNorm=v=>String(v??'').trim();
@@ -6897,7 +6912,7 @@ async function assiseCarica(){
       all.push(...(data||[]));if(!data||data.length<500)break;
       from+=500;if(from>50000)throw new Error('Limite di sicurezza superato');
     }
-    assiseSaved=all;await assiseCaricaPrelievi();assiseRender();
+    assiseSaved=all;assiseGraficoRichiesta++;assiseDisegnaNote(all);await assiseCaricaPrelievi();assiseRender();
   }catch(e){out.textContent='Catalogo non disponibile: '+e.message+'. Non caricare dati finché il database non è pronto.';document.getElementById('assise-count').textContent='';}
 }
 function assiseRender(){
@@ -6935,7 +6950,7 @@ async function assiseAggiornaContatori(){
  }catch(e){if(richiesta===assiseContatoriRichiesta)mostra(null,null,null,'Contatori non disponibili. Riprova con Aggiorna dal database in Ricognizione Assise.');}
 }
 
-// Prelievi Assise v1.1.8: storico persistente, scritture solo tramite RPC.
+// Prelievi Assise v1.1.9: storico persistente, scritture solo tramite RPC.
 let assiseLoans=new Map(), assiseLoansReady=false, assiseLoanError='', assiseLoanForm=null;
 let assiseHistoryKey='', assiseHistoryOffset=0, assiseHistoryToken=0, assiseHistoryBusy=false;
 function assiseOggi(){
@@ -7084,6 +7099,35 @@ async function qrLottoSalva(event){
  }catch(e){msg.textContent='Operazione non confermata: '+e.message+'. Puoi riprovare la stessa richiesta. Per cambiare selezione chiudi e riapri dopo aver aggiornato.';}
  finally{st.busy=false;document.getElementById('qr-lotto-save').disabled=false;}
  function dlgClose(){document.getElementById('qr-lotto-dialog').close();qrLotto=null;}
+}
+let assiseGraficoRichiesta=0;
+function assiseNoteRaggruppa(rows){
+ const counts=new Map();let senza=0;
+ for(const r of rows){const nota=String(r.note||'').trim();if(!nota){senza++;continue;}counts.set(nota,(counts.get(nota)||0)+1);}
+ return {entries:[...counts].sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0],'it')),senza,totale:rows.length};
+}
+function assiseDisegnaNote(rows){
+ const box=document.getElementById('assise-note-chart'),sub=document.getElementById('assise-note-subtitle');if(!box||!sub)return;
+ const {entries,senza,totale}=assiseNoteRaggruppa(rows);
+ sub.textContent=totale+' documenti · '+entries.length+' categorie · '+senza+' senza nota';
+ if(!totale){box.textContent='Nessun documento nel catalogo Assise.';return;}
+ const max=Math.max(senza,...entries.map(e=>e[1]),1);
+ const colors=['#0066cc','#34c759','#ff9500','#ff3b30','#af52de','#5ac8fa','#ffcc00','#ff6b35','#30b0c7','#a2845e'];
+ const bar=(label,n,color)=>'<div class="assise-note-row"><div class="assise-note-label">'+escHtml(label)+'</div><div class="assise-note-track"><div style="height:100%;width:'+(n/max*100)+'%;background:'+color+';border-radius:4px;min-width:4px"></div></div><strong>'+n+'</strong></div>';
+ box.innerHTML=entries.map(([label,n],i)=>bar(label,n,colors[i%colors.length])).join('')+(senza?bar('Senza nota',senza,'var(--text3)'):'');
+}
+async function assiseCaricaGraficoNote(){
+ const token=++assiseGraficoRichiesta,box=document.getElementById('assise-note-chart'),sub=document.getElementById('assise-note-subtitle');if(!box||!sub)return;
+ sub.textContent='Caricamento…';box.textContent='';
+ try{
+  const rows=[];
+  for(let from=0;;from+=500){
+   const {data,error}=await sbClient.from('ricognizione_assise').select('chiave,note').order('chiave').range(from,from+499);
+   if(error)throw error;if(token!==assiseGraficoRichiesta)return;
+   rows.push(...(data||[]));if(!data||data.length<500)break;
+  }
+  assiseDisegnaNote(rows);
+ }catch(e){if(token!==assiseGraficoRichiesta)return;sub.textContent='';box.textContent='Grafico Assise non disponibile. Premi Aggiorna grafico per riprovare.';}
 }
 </script>
 <dialog aria-labelledby="assise-mov-title" id="assise-mov-dialog" class="assise-dialog" oncancel="if(assiseLoanForm?.busy)event.preventDefault()">
