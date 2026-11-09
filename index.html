@@ -1060,6 +1060,16 @@ tbody tr:hover { background: var(--bg); }
 @media (min-width: 1025px) {
   #bottom-nav { display: none; }
 }
+
+.assise-dialog{margin:auto;padding:24px;border:1px solid var(--border);border-radius:14px;width:min(580px,94vw);max-height:90vh;overflow:auto;color:var(--text);background:var(--bg2,#fff)}
+.assise-dialog::backdrop{background:#0f172a80}
+.assise-dialog h2{margin:0 0 8px}.assise-dialog p{margin:10px 0;line-height:1.5}
+.assise-dialog-sub{color:var(--text3);font-size:13px}.assise-dialog label{display:block;margin:14px 0 6px;font-weight:600}
+.assise-dialog input,.assise-dialog textarea{width:100%;padding:10px;border:1px solid var(--border);border-radius:7px;font:inherit;box-sizing:border-box}
+.assise-dialog-actions{display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap;margin-top:18px}
+.assise-dialog [hidden] { display: none !important; }
+.assise-stats { grid-template-columns: repeat(3,minmax(0,1fr)); }
+@media(max-width:600px) { .assise-stats { grid-template-columns:1fr; } }
 </style>
 </head>
 <body>
@@ -1197,6 +1207,7 @@ tbody tr:hover { background: var(--bg); }
           <p class="page-subtitle">Panoramica dell'archivio</p>
         </div>
       </div>
+      <h2 style="font-size:18px;margin:8px 0 12px">Archivio principale</h2>
       <div class="stats-grid">
         <div class="stat-card">
           <div class="stat-icon">
@@ -1227,6 +1238,25 @@ tbody tr:hover { background: var(--bg); }
           <div class="stat-label">Posizioni</div>
         </div>
       </div>
+<h2 style="font-size:18px;margin:8px 0 12px">Ricognizione Assise</h2><div class="stats-grid assise-stats"><div class="stat-card">
+          <div class="stat-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+          </div>
+          <div class="stat-value" id="dash-assise-totali">—</div>
+          <div class="stat-label">Documenti Totali</div>
+        </div><div class="stat-card">
+          <div class="stat-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+          </div>
+          <div class="stat-value" id="dash-assise-prelievi">—</div>
+          <div class="stat-label">In Prelievo</div>
+        </div><div class="stat-card">
+          <div class="stat-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          </div>
+          <div class="stat-value" id="dash-assise-disponibili">—</div>
+          <div class="stat-label">Disponibili</div>
+        </div></div><p id="dash-assise-stato" role="status" style="font-size:12px;color:var(--text3);margin:-8px 0 20px">Caricamento contatori…</p>
       <!-- ── 3 TASTI PRINCIPALI ── -->
       <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:20px">
 
@@ -1327,15 +1357,36 @@ tbody tr:hover { background: var(--bg); }
 
     <!-- ============ FASCICOLI ============ -->
     <div class="page" id="page-assise">
-      <div class="page-header"><div><h1 class="page-title">Ricognizione Assise</h1><p class="page-subtitle">Catalogo separato dall'archivio principale · v1.1.3</p></div></div>
+      <div class="page-header"><div><h1 class="page-title">Ricognizione Assise</h1><p class="page-subtitle">Catalogo separato dall'archivio principale · v1.1.5</p></div></div>
+<h2 style="font-size:18px;margin:8px 0 12px">Ricognizione Assise</h2><div class="stats-grid assise-stats"><div class="stat-card">
+          <div class="stat-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+          </div>
+          <div class="stat-value" id="page-assise-stat-totali">—</div>
+          <div class="stat-label">Documenti Totali</div>
+        </div><div class="stat-card">
+          <div class="stat-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+          </div>
+          <div class="stat-value" id="page-assise-stat-prelievi">—</div>
+          <div class="stat-label">In Prelievo</div>
+        </div><div class="stat-card">
+          <div class="stat-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          </div>
+          <div class="stat-value" id="page-assise-stat-disponibili">—</div>
+          <div class="stat-label">Disponibili</div>
+        </div></div><p id="page-assise-stat-stato" role="status" style="font-size:12px;color:var(--text3);margin:-8px 0 20px">Caricamento contatori…</p>
       <div class="card" style="padding:20px;margin-bottom:16px">
         <h3 style="margin-bottom:10px">Ricerca documenti</h3>
         <input id="assise-q" type="search" placeholder="Cerca RG, sentenza, irrevocabilità, gruppo, note..." oninput="assiseRender()" style="width:100%;padding:12px;border:1px solid var(--border);border-radius:8px">
         <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:10px;align-items:center">
           <select id="assise-area" onchange="assiseRender()" style="padding:10px;border:1px solid var(--border);border-radius:8px"><option value="">Tutte le partizioni</option><option>Fascicoli</option><option>Liqidazioni</option><option>Sentenze</option></select>
           <button class="btn btn-secondary" onclick="assiseCarica()">Aggiorna dal database</button>
+          <select id="assise-stato-filtro" aria-label="Filtra prelievi" onchange="assiseRender()" style="padding:10px;border:1px solid var(--border);border-radius:8px"><option value="">Tutti gli stati</option><option value="aperti">In prelievo</option></select>
           <span id="assise-count" style="font-size:13px;color:var(--text3)"></span>
         </div>
+        <p id="assise-prelievi-avviso" role="status" style="font-size:13px;margin-top:10px"></p>
         <div id="assise-risultati" style="overflow-x:auto;margin-top:14px">Apri questa sezione per caricare il catalogo.</div>
       </div>
       <div class="card" style="padding:20px">
@@ -3044,6 +3095,7 @@ function goTo(page) {
   document.getElementById('page-' + page).classList.add('active');
   document.querySelectorAll(`[data-page="${page}"]`).forEach(n => n.classList.add('active'));
   
+  if (page === 'dashboard') assiseAggiornaContatori();
   if (page === 'assise') assiseCarica();
   if (page === 'fascicoli') renderFascicoli();
   if (page === 'armadi') loadArmadi();
@@ -3057,6 +3109,7 @@ function goTo(page) {
 // DASHBOARD
 // =============================================
 function updateDashboard() {
+  assiseAggiornaContatori();
   const totali = allFascicoli.length;
   const inPrelievo = allFascicoli.filter(f => f.stato === 'in_prestito').length;
   const disponibili = allFascicoli.filter(f => f.stato === 'disponibile').length;
@@ -6716,7 +6769,7 @@ window.addEventListener('DOMContentLoaded', async () => {
   sessionStorage.removeItem('archivio_token');
 });
 
-// RICOGNIZIONE ASSISE v1.1.3 - identità per contenuto, indipendente dalla riga.
+// RICOGNIZIONE ASSISE v1.1.5 - identità per contenuto, indipendente dalla riga.
 let assiseRows=[], assiseSaved=[], assiseReady=false, assiseBusy=false, assiseAnalysis=0;
 const assiseEsc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const assiseNorm=v=>String(v??'').trim();
@@ -6819,6 +6872,7 @@ async function assiseSalva(){
   finally{assiseBusy=false;btn.disabled=false;document.getElementById('assise-file').disabled=false;}
 }
 async function assiseCarica(){
+  assiseAggiornaContatori();
   const out=document.getElementById('assise-risultati');
   if(!out)return;
   out.textContent='Caricamento dal database…';
@@ -6830,17 +6884,158 @@ async function assiseCarica(){
       all.push(...(data||[]));if(!data||data.length<500)break;
       from+=500;if(from>50000)throw new Error('Limite di sicurezza superato');
     }
-    assiseSaved=all;assiseRender();
+    assiseSaved=all;await assiseCaricaPrelievi();assiseRender();
   }catch(e){out.textContent='Catalogo non disponibile: '+e.message+'. Non caricare dati finché il database non è pronto.';document.getElementById('assise-count').textContent='';}
 }
 function assiseRender(){
   const q=(document.getElementById('assise-q')?.value||'').toLocaleLowerCase('it').trim(),area=document.getElementById('assise-area')?.value||'';
-  const rows=assiseSaved.filter(r=>(!area||r.area===area)&&(!q||[r.rg,r.sentenza,r.irrevocabilita,r.atti_archivio,r.gruppo,r.note,r.area].some(v=>String(v??'').toLocaleLowerCase('it').includes(q))));
+  const soloAperti=document.getElementById('assise-stato-filtro')?.value==='aperti'&&assiseLoansReady;
+  const rows=assiseSaved.filter(r=>(!soloAperti||assiseLoans.has(r.chiave))&&(!area||r.area===area)&&(!q||[r.rg,r.sentenza,r.irrevocabilita,r.atti_archivio,r.gruppo,r.note,r.area].some(v=>String(v??'').toLocaleLowerCase('it').includes(q))));
   document.getElementById('assise-count').textContent=rows.length+' risultati · '+assiseSaved.length+' documenti nel catalogo';
-  document.getElementById('assise-risultati').innerHTML='<table><thead><tr><th>Partizione</th><th>RG</th><th>Sentenza</th><th>Irrevocabilità</th><th>Atti in archivio</th><th>Archivio / Gruppo</th><th>Note</th></tr></thead><tbody>'+
-    rows.slice(0,250).map(r=>'<tr>'+[r.area,r.rg,r.sentenza,r.irrevocabilita,r.atti_archivio,r.gruppo,r.note].map(v=>'<td>'+assiseEsc(v||'—')+'</td>').join('')+'</tr>').join('')+
+  document.getElementById('assise-risultati').innerHTML='<table><thead><tr><th>Partizione</th><th>RG</th><th>Sentenza</th><th>Irrevocabilità</th><th>Atti in archivio</th><th>Archivio / Gruppo</th><th>Note</th><th>Stato / Chi ritira</th><th>Azioni</th></tr></thead><tbody>'+
+    rows.slice(0,250).map(r=>'<tr>'+[r.area,r.rg,r.sentenza,r.irrevocabilita,r.atti_archivio,r.gruppo,r.note].map(v=>'<td>'+assiseEsc(v||'—')+'</td>').join('')+assiseAzioni(r)+'</tr>').join('')+
     '</tbody></table>'+(rows.length>250?'<p>Visualizzati i primi 250 risultati. Restringi la ricerca.</p>':'');
 }
+
+// Contatori separati Assise: richieste di sola lettura, indipendenti dai filtri.
+let assiseContatoriRichiesta=0;
+async function assiseAggiornaContatori(){
+ const richiesta=++assiseContatoriRichiesta;
+ const mostra=(tot,pre,disp,msg)=>{
+  for(const prefix of ['dash-assise','page-assise-stat']){
+   for(const [k,v] of Object.entries({totali:tot,prelievi:pre,disponibili:disp})){
+    const el=document.getElementById(prefix+'-'+k);if(el)el.textContent=v==null?'—':v.toLocaleString('it-IT');
+   }
+   const el=document.getElementById(prefix+'-stato');if(el)el.textContent=msg;
+  }
+ };
+ mostra(null,null,null,'Aggiornamento contatori…');
+ try{
+  const [catalogo,prelievi]=await Promise.all([
+   sbClient.from('ricognizione_assise').select('chiave',{count:'exact',head:true}),
+   sbClient.from('assise_prelievi').select('id',{count:'exact',head:true}).is('restituito_il',null)
+  ]);
+  if(richiesta!==assiseContatoriRichiesta)return;
+  const tot=catalogo.error?null:catalogo.count,pre=prelievi.error?null:prelievi.count;
+  const valido=Number.isInteger(tot)&&Number.isInteger(pre)&&pre<=tot;
+  mostra(tot,pre,valido?tot-pre:null,valido?'Intero catalogo Assise · Disponibili: senza prelievo aperto registrato.':'Alcuni contatori non sono disponibili. Riprova con Aggiorna dal database in Ricognizione Assise.');
+ }catch(e){if(richiesta===assiseContatoriRichiesta)mostra(null,null,null,'Contatori non disponibili. Riprova con Aggiorna dal database in Ricognizione Assise.');}
+}
+
+// Prelievi Assise v1.1.5: storico persistente, scritture solo tramite RPC.
+let assiseLoans=new Map(), assiseLoansReady=false, assiseLoanError='', assiseLoanForm=null;
+let assiseHistoryKey='', assiseHistoryOffset=0, assiseHistoryToken=0, assiseHistoryBusy=false;
+function assiseOggi(){
+ const p=Object.fromEntries(new Intl.DateTimeFormat('en-CA',{timeZone:'Europe/Rome',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date()).map(x=>[x.type,x.value]));
+ return p.year+'-'+p.month+'-'+p.day;
+}
+function assiseDataBreve(v){return v?String(v).slice(0,10).split('-').reverse().join('/'):'—';}
+async function assiseCaricaPrelievi(){
+ assiseAggiornaContatori();
+ assiseLoansReady=false;assiseLoans=new Map();assiseLoanError='';
+ try{
+  const all=[];
+  for(let from=0;;from+=500){
+   const {data,error}=await sbClient.from('assise_prelievi').select('*').is('restituito_il',null).order('id').range(from,from+499);
+   if(error)throw error;
+   all.push(...(data||[]));if(!data||data.length<500)break;
+   if(from>=50000)throw new Error('Troppi prelievi da caricare.');
+  }
+  assiseLoans=new Map(all.map(r=>[r.chiave,r]));assiseLoansReady=true;
+ }catch(e){assiseLoanError='Prelievi non disponibili: '+e.message+'. La ricerca del catalogo resta disponibile.';}
+ const el=document.getElementById('assise-prelievi-avviso');if(el)el.textContent=assiseLoanError||'Lo stato indica i prelievi registrati in questa sezione.';
+ const filtro=document.getElementById('assise-stato-filtro');if(filtro)filtro.disabled=!assiseLoansReady;
+}
+function assiseAzioni(r){
+ const idx=assiseSaved.indexOf(r),p=assiseLoans.get(r.chiave);
+ if(!assiseLoansReady)return '<td>Stato non disponibile</td><td>—</td>';
+ const stato=p?'<strong style="color:#a34c00">In prelievo</strong><br>'+assiseEsc(p.ritirato_da)+'<br><small>Dal '+assiseDataBreve(p.data_prelievo)+'</small>':'<span style="color:#08794d">Disponibile</span>';
+ return '<td>'+stato+'</td><td><div style="display:flex;gap:6px;flex-wrap:wrap">'+
+ '<button class="btn btn-secondary" type="button" onclick="assiseApriMovimento('+idx+')">'+(p?'Registra restituzione':'Registra prelievo')+'</button>'+
+ '<button class="btn btn-secondary" type="button" onclick="assiseApriStorico('+idx+')">Storico</button></div></td>';
+}
+function assiseApriMovimento(idx){
+ if(!assiseLoansReady)return;
+ const r=assiseSaved[idx];if(!r)return;
+ const p=assiseLoans.get(r.chiave);
+ assiseLoanForm={r,p,id:p?.id||crypto.randomUUID(),busy:false};
+ document.getElementById('assise-mov-title').textContent=p?'Registra restituzione':'Registra prelievo';
+ document.getElementById('assise-mov-doc').textContent=r.area+' · RG '+(r.rg||'—')+' · Sentenza '+(r.sentenza||'—');
+ document.getElementById('assise-mov-persona-box').hidden=!!p;
+ document.getElementById('assise-mov-persona').required=!p;
+ document.getElementById('assise-mov-persona').value='';
+ document.getElementById('assise-mov-info').textContent=p?'Prelevato da '+p.ritirato_da+' il '+assiseDataBreve(p.data_prelievo):'Indica la persona a cui viene consegnato questo documento.';
+ document.getElementById('assise-mov-data-label').textContent=p?'Data restituzione':'Data prelievo';
+ const date=document.getElementById('assise-mov-data');date.value=assiseOggi();date.max=assiseOggi();date.min=p?.data_prelievo||'';
+ document.getElementById('assise-mov-note').value='';
+ document.getElementById('assise-mov-msg').textContent='';
+ document.getElementById('assise-mov-save').disabled=false;
+ document.getElementById('assise-mov-cancel').disabled=false;
+ document.getElementById('assise-mov-dialog').showModal();
+}
+function assiseChiudiMovimento(){if(assiseLoanForm?.busy)return;document.getElementById('assise-mov-dialog').close();assiseLoanForm=null;}
+async function assiseSalvaMovimento(event){
+ event.preventDefault();const state=assiseLoanForm;if(!state||state.busy)return;
+ const form=document.getElementById('assise-mov-form');if(!form.reportValidity())return;
+ const persona=document.getElementById('assise-mov-persona').value.trim();
+ const data=document.getElementById('assise-mov-data').value,note=document.getElementById('assise-mov-note').value;
+ const msg=document.getElementById('assise-mov-msg');
+ if(!state.p&&!persona){msg.textContent='Inserisci chi ritira il documento.';return;}
+ state.busy=true;document.getElementById('assise-mov-save').disabled=true;document.getElementById('assise-mov-cancel').disabled=true;msg.textContent='Salvataggio…';
+ try{
+  const params=state.p?{p_id:state.id,p_data:data,p_note:note}:{p_id:state.id,p_chiave:state.r.chiave,p_ritirato_da:persona,p_data:data,p_note:note};
+  const {error}=await sbClient.rpc(state.p?'assise_registra_restituzione_114':'assise_registra_prelievo_114',params);
+  if(error)throw error;
+  document.getElementById('assise-mov-dialog').close();assiseLoanForm=null;
+  await assiseCaricaPrelievi();assiseRender();
+  document.getElementById('assise-stato').textContent=(state.p?'Restituzione registrata.':'Prelievo registrato.')+(assiseLoansReady?'':' Aggiornare il catalogo per rileggere lo stato.');
+ }catch(e){msg.textContent='Operazione non confermata: '+e.message+'. Se la connessione si è interrotta puoi riprovare; la stessa richiesta non crea un secondo prelievo.';}
+ finally{state.busy=false;document.getElementById('assise-mov-save').disabled=false;document.getElementById('assise-mov-cancel').disabled=false;}
+}
+function assiseApriStorico(idx){
+ const r=assiseSaved[idx];if(!r)return;
+ assiseHistoryKey=r.chiave;assiseHistoryOffset=0;assiseHistoryToken++;assiseHistoryBusy=false;
+ document.getElementById('assise-history-doc').textContent=r.area+' · RG '+(r.rg||'—')+' · Sentenza '+(r.sentenza||'—');
+ document.getElementById('assise-history-body').innerHTML='';document.getElementById('assise-history-msg').textContent='';
+ document.getElementById('assise-history-dialog').showModal();assiseCaricaStorico();
+}
+function assiseChiudiStorico(){assiseHistoryToken++;assiseHistoryBusy=false;document.getElementById('assise-history-dialog').close();}
+async function assiseCaricaStorico(){
+ if(assiseHistoryBusy)return;assiseHistoryBusy=true;
+ const token=assiseHistoryToken,offset=assiseHistoryOffset,more=document.getElementById('assise-history-more'),msg=document.getElementById('assise-history-msg');
+ more.disabled=true;msg.textContent='Caricamento…';
+ try{
+  const {data,error}=await sbClient.from('assise_prelievi').select('*').eq('chiave',assiseHistoryKey).order('registrato_il',{ascending:false}).order('id').range(offset,offset+19);
+  if(token!==assiseHistoryToken)return;if(error)throw error;
+  const rows=data||[];
+  document.getElementById('assise-history-body').insertAdjacentHTML('beforeend',rows.map(p=>'<article style="border:1px solid var(--border);border-radius:8px;padding:14px;margin:10px 0">'+
+  '<strong>'+assiseEsc(p.ritirato_da)+'</strong> · '+(p.restituito_il?'Restituito':'In prelievo')+
+  '<p>Prelievo: '+assiseDataBreve(p.data_prelievo)+'<br><small>Registrato da '+assiseEsc(p.registrato_nome)+' · '+assiseEsc(new Date(p.registrato_il).toLocaleString('it-IT',{timeZone:'Europe/Rome'}))+'</small></p>'+
+  (p.note_prelievo?'<p style="white-space:pre-wrap">Note prelievo: '+assiseEsc(p.note_prelievo)+'</p>':'')+
+  (p.restituito_il?'<p>Restituzione: '+assiseDataBreve(p.data_restituzione)+'<br><small>Registrata da '+assiseEsc(p.restituito_nome)+' · '+assiseEsc(new Date(p.restituito_il).toLocaleString('it-IT',{timeZone:'Europe/Rome'}))+'</small></p>':'')+
+  (p.note_restituzione?'<p style="white-space:pre-wrap">Note restituzione: '+assiseEsc(p.note_restituzione)+'</p>':'')+'</article>').join(''));
+  assiseHistoryOffset+=rows.length;more.hidden=rows.length<20;msg.textContent=offset===0&&!rows.length?'Nessun prelievo registrato per questo documento.':'';
+ }catch(e){if(token===assiseHistoryToken){msg.textContent='Storico non disponibile: '+e.message;more.hidden=false;}}
+ finally{if(token===assiseHistoryToken){assiseHistoryBusy=false;more.disabled=false;}}
+}
+
 </script>
+<dialog aria-labelledby="assise-mov-title" id="assise-mov-dialog" class="assise-dialog" oncancel="if(assiseLoanForm?.busy)event.preventDefault()">
+ <form id="assise-mov-form" onsubmit="assiseSalvaMovimento(event)">
+  <h2 id="assise-mov-title">Registra prelievo</h2><p id="assise-mov-doc" class="assise-dialog-sub"></p>
+  <p id="assise-mov-info"></p>
+  <div id="assise-mov-persona-box"><label for="assise-mov-persona">Chi ritira</label><input id="assise-mov-persona" maxlength="200" required autocomplete="off" placeholder="Nome e cognome / ufficio"></div>
+  <label id="assise-mov-data-label" for="assise-mov-data">Data prelievo</label><input type="date" id="assise-mov-data" required>
+  <label for="assise-mov-note">Note (facoltative)</label><textarea id="assise-mov-note" maxlength="2000" rows="3"></textarea>
+  <p id="assise-mov-msg" role="status" aria-live="polite"></p>
+  <div class="assise-dialog-actions"><button type="button" id="assise-mov-cancel" class="btn btn-secondary" onclick="assiseChiudiMovimento()">Annulla</button><button id="assise-mov-save" class="btn btn-primary" type="submit">Conferma registrazione</button></div>
+ </form>
+</dialog>
+<dialog aria-labelledby="assise-history-title" id="assise-history-dialog" class="assise-dialog" oncancel="assiseHistoryToken++;assiseHistoryBusy=false">
+ <h2 id="assise-history-title">Storico prelievi</h2><p id="assise-history-doc" class="assise-dialog-sub"></p>
+ <div id="assise-history-body"></div><p id="assise-history-msg" role="status"></p>
+ <div class="assise-dialog-actions"><button type="button" class="btn btn-secondary" id="assise-history-more" onclick="assiseCaricaStorico()">Carica altri</button><button type="button" class="btn btn-primary" onclick="assiseChiudiStorico()">Chiudi</button></div>
+</dialog>
+
 </body>
 </html>
