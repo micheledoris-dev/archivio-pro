@@ -1135,7 +1135,7 @@ tbody tr:hover { background: var(--bg); }
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <rect x="2" y="2" width="20" height="20" rx="3"/><path d="M7 8h10M7 12h6M7 16h8"/>
       </svg>
-      <span class="sidebar-brand-text">Archivio Pro<small style="display:block;font-size:11px;font-weight:400;color:var(--text3)">Versione 1.1.9</small></span>
+      <span class="sidebar-brand-text">Archivio Pro<small style="display:block;font-size:11px;font-weight:400;color:var(--text3)">Versione 1.1.10</small></span>
     </div>
     <div class="sidebar-nav">
       <div class="nav-item active" data-page="dashboard" onclick="goTo('dashboard')">
@@ -1208,7 +1208,7 @@ tbody tr:hover { background: var(--bg); }
     <div class="page active" id="page-dashboard">
       <div class="page-header">
         <div>
-          <h1 class="page-title">Scrivania</h1><p style="font-size:12px;color:var(--text3);margin-top:4px">Archivio Pro · Versione 1.1.9</p>
+          <h1 class="page-title">Scrivania</h1><p style="font-size:12px;color:var(--text3);margin-top:4px">Archivio Pro · Versione 1.1.10</p>
           <p class="page-subtitle">Panoramica dell'archivio</p>
         </div>
       </div>
@@ -1371,7 +1371,7 @@ tbody tr:hover { background: var(--bg); }
 
     <!-- ============ FASCICOLI ============ -->
     <div class="page" id="page-assise">
-      <div class="page-header"><div><h1 class="page-title">Ricognizione Assise</h1><p class="page-subtitle">Catalogo separato dall'archivio principale · v1.1.9</p></div></div>
+      <div class="page-header"><div><h1 class="page-title">Ricognizione Assise</h1><p class="page-subtitle">Catalogo separato dall'archivio principale · v1.1.10</p></div></div>
 <h2 style="font-size:18px;margin:8px 0 12px">Ricognizione Assise</h2><div class="stats-grid assise-stats"><div class="stat-card">
           <div class="stat-icon">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
@@ -1396,7 +1396,7 @@ tbody tr:hover { background: var(--bg); }
         <input id="assise-q" type="search" placeholder="Cerca RG, sentenza, irrevocabilità, gruppo, note..." oninput="assiseRender()" style="width:100%;padding:12px;border:1px solid var(--border);border-radius:8px">
         <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:10px;align-items:center">
           <select id="assise-area" onchange="assiseRender()" style="padding:10px;border:1px solid var(--border);border-radius:8px"><option value="">Tutte le partizioni</option><option>Fascicoli</option><option>Liqidazioni</option><option>Sentenze</option></select>
-          <button class="btn btn-secondary" onclick="assiseCarica()">Aggiorna dal database</button>
+          <button class="btn btn-secondary" onclick="assiseCarica()">Aggiorna dal database</button><button type="button" class="btn btn-primary" onclick="assiseApriRicercaPrelievo()">Preleva documento Assise</button>
           <select id="assise-stato-filtro" aria-label="Filtra prelievi" onchange="assiseRender()" style="padding:10px;border:1px solid var(--border);border-radius:8px"><option value="">Tutti gli stati</option><option value="aperti">In prelievo</option></select>
           <span id="assise-count" style="font-size:13px;color:var(--text3)"></span>
         </div>
@@ -6797,7 +6797,7 @@ window.addEventListener('DOMContentLoaded', async () => {
   sessionStorage.removeItem('archivio_token');
 });
 
-// RICOGNIZIONE ASSISE v1.1.9 - identità per contenuto, indipendente dalla riga.
+// RICOGNIZIONE ASSISE v1.1.10 - identità per contenuto, indipendente dalla riga.
 let assiseRows=[], assiseSaved=[], assiseReady=false, assiseBusy=false, assiseAnalysis=0;
 const assiseEsc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const assiseNorm=v=>String(v??'').trim();
@@ -6950,7 +6950,7 @@ async function assiseAggiornaContatori(){
  }catch(e){if(richiesta===assiseContatoriRichiesta)mostra(null,null,null,'Contatori non disponibili. Riprova con Aggiorna dal database in Ricognizione Assise.');}
 }
 
-// Prelievi Assise v1.1.9: storico persistente, scritture solo tramite RPC.
+// Prelievi Assise v1.1.10: storico persistente, scritture solo tramite RPC.
 let assiseLoans=new Map(), assiseLoansReady=false, assiseLoanError='', assiseLoanForm=null;
 let assiseHistoryKey='', assiseHistoryOffset=0, assiseHistoryToken=0, assiseHistoryBusy=false;
 function assiseOggi(){
@@ -6996,6 +6996,7 @@ function assiseApriMovimento(idx){
  document.getElementById('assise-mov-data-label').textContent=p?'Data restituzione':'Data prelievo';
  const date=document.getElementById('assise-mov-data');date.value=assiseOggi();date.max=assiseOggi();date.min=p?.data_prelievo||'';
  document.getElementById('assise-mov-note').value='';
+ document.getElementById('assise-mov-motivi').hidden=!!p;document.getElementById('assise-mov-motivi').disabled=!!p;document.getElementById('assise-mov-motivo').value='';document.getElementById('assise-mov-altro').value='';assiseMotivoCambio();
  document.getElementById('assise-mov-msg').textContent='';
  document.getElementById('assise-mov-save').disabled=false;
  document.getElementById('assise-mov-cancel').disabled=false;
@@ -7006,7 +7007,14 @@ async function assiseSalvaMovimento(event){
  event.preventDefault();const state=assiseLoanForm;if(!state||state.busy)return;
  const form=document.getElementById('assise-mov-form');if(!form.reportValidity())return;
  const persona=document.getElementById('assise-mov-persona').value.trim();
- const data=document.getElementById('assise-mov-data').value,note=document.getElementById('assise-mov-note').value;
+ const data=document.getElementById('assise-mov-data').value;let note=document.getElementById('assise-mov-note').value;
+ if(!state.p){
+  const motivo=document.getElementById('assise-mov-motivo').value,altro=document.getElementById('assise-mov-altro').value.trim();
+  if(!motivo||(motivo==='Altro'&&!altro)){document.getElementById('assise-mov-msg').textContent='Indica la motivazione del prelievo.';return;}
+  note='Motivazione: '+(motivo==='Altro'?altro:motivo)+(note?'\nNote: '+note:'');
+ }
+ if(note.length>2000){document.getElementById('assise-mov-msg').textContent='Motivazione e note insieme non possono superare 2000 caratteri.';return;}
+
  const msg=document.getElementById('assise-mov-msg');
  if(!state.p&&!persona){msg.textContent='Inserisci chi ritira il documento.';return;}
  state.busy=true;document.getElementById('assise-mov-save').disabled=true;document.getElementById('assise-mov-cancel').disabled=true;msg.textContent='Salvataggio…';
@@ -7129,6 +7137,39 @@ async function assiseCaricaGraficoNote(){
   assiseDisegnaNote(rows);
  }catch(e){if(token!==assiseGraficoRichiesta)return;sub.textContent='';box.textContent='Grafico Assise non disponibile. Premi Aggiorna grafico per riprovare.';}
 }
+function assiseNumeroNormalizzato(v){
+ const m=String(v||'').trim().match(/^(\d+)\s*\/\s*(\d{2}|\d{4})$/);
+ return m?String(Number(m[1]))+'/'+(m[2].length===2?'20'+m[2]:m[2]):String(v||'').trim().toLowerCase();
+}
+async function assiseApriRicercaPrelievo(){
+ const d=document.getElementById('assise-cerca-prelievo');
+ document.getElementById('assise-pre-numero').value='';document.getElementById('assise-pre-anno').value='';
+ document.getElementById('assise-pre-esiti').textContent='Caricamento catalogo…';
+ document.getElementById('assise-pre-campi').disabled=true;d.showModal();
+ assiseLoansReady=false;await assiseCarica();
+ if(!assiseLoansReady){document.getElementById('assise-pre-esiti').textContent='Prelievi non disponibili. Chiudi e controlla il messaggio nel catalogo Assise.';return;}
+ document.getElementById('assise-pre-campi').disabled=false;
+ document.getElementById('assise-pre-esiti').textContent='Inserisci numero e anno per cercare.';
+ document.getElementById('assise-pre-numero').focus();
+}
+function assiseCercaPerPrelievo(event){
+ event.preventDefault();
+ const numero=document.getElementById('assise-pre-numero').value.trim(),anno=document.getElementById('assise-pre-anno').value.trim();
+ const campo=document.getElementById('assise-pre-tipo').value,area=document.getElementById('assise-pre-area').value;
+ const out=document.getElementById('assise-pre-esiti');
+ if(!/^\d+$/.test(numero)||!/^\d{4}$/.test(anno)){out.textContent='Inserisci il numero e l’anno a quattro cifre.';return;}
+ const key=assiseNumeroNormalizzato(numero+'/'+anno);
+ const rows=assiseSaved.map((r,i)=>({r,i})).filter(({r})=>['Fascicoli','Sentenze'].includes(r.area)&&(!area||r.area===area)&&assiseNumeroNormalizzato(r[campo])===key);
+ out.innerHTML='<p>'+rows.length+' documenti trovati. Scegli la voce da prelevare.</p>'+rows.map(({r,i})=>{
+ const p=assiseLoans.get(r.chiave);
+ return '<article style="border:1px solid var(--border);padding:12px;border-radius:8px;margin:10px 0"><strong>'+assiseEsc(r.area)+' · Sentenza '+assiseEsc(r.sentenza||'—')+'</strong><p>RG '+assiseEsc(r.rg||'—')+'<br>Archivio / Gruppo: '+assiseEsc(r.gruppo||'—')+'</p>'+(r.note?'<p>'+assiseEsc(r.note)+'</p>':'')+(p?'<p>In prelievo: '+assiseEsc(p.ritirato_da)+'</p>':'<button type="button" class="btn btn-primary" onclick="assiseScegliPrelievo('+i+')">Preleva questo documento</button>')+'</article>';
+ }).join('');
+}
+function assiseScegliPrelievo(i){document.getElementById('assise-cerca-prelievo').close();assiseApriMovimento(i);}
+function assiseMotivoCambio(){
+ const altro=document.getElementById('assise-mov-motivo').value==='Altro';
+ const el=document.getElementById('assise-mov-altro');el.hidden=!altro;el.required=altro;el.disabled=!altro;
+}
 </script>
 <dialog aria-labelledby="assise-mov-title" id="assise-mov-dialog" class="assise-dialog" oncancel="if(assiseLoanForm?.busy)event.preventDefault()">
  <form id="assise-mov-form" onsubmit="assiseSalvaMovimento(event)">
@@ -7136,6 +7177,9 @@ async function assiseCaricaGraficoNote(){
   <p id="assise-mov-info"></p>
   <div id="assise-mov-persona-box"><label for="assise-mov-persona">Chi ritira</label><input id="assise-mov-persona" maxlength="200" required autocomplete="off" placeholder="Nome e cognome / ufficio"></div>
   <label id="assise-mov-data-label" for="assise-mov-data">Data prelievo</label><input type="date" id="assise-mov-data" required>
+  <fieldset id="assise-mov-motivi" style="border:0;padding:0;margin:14px 0"><label for="assise-mov-motivo">Motivazione obbligatoria</label>
+  <select id="assise-mov-motivo" required onchange="assiseMotivoCambio()" style="width:100%;padding:12px;border:1px solid var(--border);border-radius:8px"><option value="">Scegli la motivazione</option><option>Irrevocabilità</option><option>Impugnazione</option><option>In prestito</option><option>Altro</option></select>
+  <label class="sr-only" for="assise-mov-altro">Descrivi il motivo se hai scelto Altro</label><textarea id="assise-mov-altro" placeholder="Descrivi il motivo…" maxlength="500" hidden disabled></textarea></fieldset>
   <label for="assise-mov-note">Note (facoltative)</label><textarea id="assise-mov-note" maxlength="2000" rows="3"></textarea>
   <p id="assise-mov-msg" role="status" aria-live="polite"></p>
   <div class="assise-dialog-actions"><button type="button" id="assise-mov-cancel" class="btn btn-secondary" onclick="assiseChiudiMovimento()">Annulla</button><button id="assise-mov-save" class="btn btn-primary" type="submit">Conferma registrazione</button></div>
@@ -7161,5 +7205,12 @@ async function assiseCaricaGraficoNote(){
 </fieldset><p id="qr-lotto-msg" role="status" aria-live="polite"></p>
 <div class="assise-dialog-actions"><button type="button" class="btn btn-secondary" onclick="qrLottoChiudi()">Chiudi</button><button id="qr-lotto-save" class="btn btn-primary" type="submit">Conferma prelievo</button></div>
 </form></dialog>
-</body>
+<dialog id="assise-cerca-prelievo" class="assise-dialog" aria-labelledby="assise-pre-title">
+<h2 id="assise-pre-title">Preleva documento Assise</h2>
+<form onsubmit="assiseCercaPerPrelievo(event)"><fieldset id="assise-pre-campi" style="border:0;padding:0">
+<label for="assise-pre-tipo">Cerca per</label><select id="assise-pre-tipo"><option value="sentenza">Numero sentenza</option><option value="rg">RG</option></select>
+<label for="assise-pre-area">Documenti</label><select id="assise-pre-area"><option value="">Fascicoli e sentenze</option><option>Fascicoli</option><option>Sentenze</option></select>
+<div style="display:grid;grid-template-columns:2fr 1fr;gap:12px"><div><label for="assise-pre-numero">Numero</label><input id="assise-pre-numero" inputmode="numeric" pattern="[0-9]+" required></div><div><label for="assise-pre-anno">Anno</label><input id="assise-pre-anno" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" placeholder="2024" required></div></div>
+<button type="submit" class="btn btn-primary" style="margin:14px 0">Cerca documento</button></fieldset></form>
+<div id="assise-pre-esiti" role="status"></div><div class="assise-dialog-actions"><button type="button" class="btn btn-secondary" onclick="document.getElementById('assise-cerca-prelievo').close()">Chiudi</button></div></dialog></body>
 </html>
