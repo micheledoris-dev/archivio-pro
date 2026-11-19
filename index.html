@@ -1076,7 +1076,7 @@ tbody tr:hover { background: var(--bg); }
 .assise-note-track { background:var(--surface2); height:20px; border-radius:4px; }
 @media(max-width:600px) { .assise-note-row { grid-template-columns:minmax(0,1fr) 38px;gap:6px; } .assise-note-label {grid-column:1/-1;text-align:left;} }
 
-/* Scheda fascicolo v1.1.12 */
+/* Scheda fascicolo v1.1.13 */
 .numero-dettaglio {background:none;border:0;padding:2px 3px;color:var(--primary,#2563eb);font:inherit;font-weight:700;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
 .numero-dettaglio:focus-visible,.dettaglio-operatore:focus-visible {outline:2px solid #2563eb;outline-offset:3px}
 #dettaglio-fascicolo-dialog {width:min(690px,calc(100vw - 28px));max-height:87vh;overflow:auto;border:1px solid var(--border);border-radius:14px;padding:22px;background:var(--surface,#fff);color:var(--text,#111827);box-shadow:0 22px 80px #0004}
@@ -1179,7 +1179,7 @@ tbody tr:hover { background: var(--bg); }
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <rect x="2" y="2" width="20" height="20" rx="3"/><path d="M7 8h10M7 12h6M7 16h8"/>
       </svg>
-      <span class="sidebar-brand-text">Archivio Pro<small style="display:block;font-size:11px;font-weight:400;color:var(--text3)">Versione 1.1.12</small></span>
+      <span class="sidebar-brand-text">Archivio Pro<small style="display:block;font-size:11px;font-weight:400;color:var(--text3)">Versione 1.1.13</small></span>
     </div>
     <div class="sidebar-nav">
       <div class="nav-item active" data-page="dashboard" onclick="goTo('dashboard')">
@@ -1252,7 +1252,7 @@ tbody tr:hover { background: var(--bg); }
     <div class="page active" id="page-dashboard">
       <div class="page-header">
         <div>
-          <h1 class="page-title">Scrivania</h1><p style="font-size:12px;color:var(--text3);margin-top:4px">Archivio Pro · Versione 1.1.12</p>
+          <h1 class="page-title">Scrivania</h1><p style="font-size:12px;color:var(--text3);margin-top:4px">Archivio Pro · Versione 1.1.13</p>
           <p class="page-subtitle">Panoramica dell'archivio</p>
         </div>
       </div>
@@ -3399,7 +3399,7 @@ function stampaSelezionati() {
     </table>`;
   window.print();
 }
-// V1.1.12 — Stampa A4 della scheda completa per un solo fascicolo selezionato.
+// V1.1.13 — Stampa A4 della scheda completa per un solo fascicolo selezionato.
 // Recupera lo storico direttamente da Supabase; non modifica i dati.
 let stampaSchedaInCorso = false;
 async function stampaSchedaFascicolo(f) {
@@ -3442,7 +3442,7 @@ async function stampaSchedaFascicolo(f) {
       </section>
       <section class="scheda-print-sezione"><h2>Storico prelievi e restituzioni (${movimenti.length})</h2>${cronologia}
         <p class="scheda-print-avviso">Sono riportati i movimenti presenti nella tabella prelievi al momento della stampa. Sono esclusi eventuali movimenti eliminati o conservati in altri archivi.</p>
-      </section><footer class="scheda-print-footer">Archivio Pro · Versione 1.1.12 · Documento di consultazione</footer>
+      </section><footer class="scheda-print-footer">Archivio Pro · Versione 1.1.13 · Documento di consultazione</footer>
     </div>`;
     document.body.classList.add('stampa-scheda-attiva');
     // Il browser usa la normale finestra Stampa, anche per «Salva come PDF».
@@ -3456,29 +3456,35 @@ async function stampaSchedaFascicolo(f) {
 }
 window.addEventListener('afterprint', () => document.body.classList.remove('stampa-scheda-attiva'));
 
+// v1.1.13 — Le corrispondenze esatte del numero di sentenza hanno sempre priorità.
+// Segue il numero che inizia con la ricerca, poi quello che la contiene;
+// infine le corrispondenze negli altri campi. A parità di priorità, ordine stabile.
+function cercaFascicoliOrdinati(query) {
+  const q = String(query || '').trim().toLocaleLowerCase('it');
+  if (!q) return allFascicoli;
+  const risultati = [];
+  allFascicoli.forEach((f, indice) => {
+    const numero = String(f.numero ?? '').trim().toLocaleLowerCase('it');
+    const extra = [f.richiesta, f.rgnr, f.anno, f.note, getPosizioneFascicolo(f)]
+      .some(v => String(v ?? '').toLocaleLowerCase('it').includes(q));
+    let priorita = -1;
+    if (numero === q) priorita = 0;
+    else if (numero.startsWith(q)) priorita = 1;
+    else if (numero.includes(q)) priorita = 2;
+    else if (extra) priorita = 3;
+    if (priorita !== -1) risultati.push({f, priorita, indice});
+  });
+  risultati.sort((a, b) => a.priorita - b.priorita || a.indice - b.indice);
+  return risultati.map(r => r.f);
+}
+
 function filterFascicoliMobile(q) {
-  q = q.toLowerCase();
-  if (!q) { renderFascicoliCards(allFascicoli); return; }
-  const filtered = allFascicoli.filter(f =>
-    f.numero.toLowerCase().includes(q) ||
-    (f.richiesta || '').toLowerCase().includes(q) ||
-    (f.rgnr || '').toLowerCase().includes(q) ||
-    String(f.anno).includes(q) ||
-    (f.note || '').toLowerCase().includes(q)
-  );
-  renderFascicoliCards(filtered);
+  renderFascicoliCards(cercaFascicoliOrdinati(q));
 }
 
 function filterFascicoli() {
-  const q = document.getElementById('search-fascicoli').value.toLowerCase();
-  if (!q) { renderFascicoli(); return; }
-  const filtered = allFascicoli.filter(f =>
-    f.numero.toLowerCase().includes(q) ||
-    f.richiesta.toLowerCase().includes(q) ||
-    (f.note || '').toLowerCase().includes(q) ||
-    String(f.anno).includes(q) ||
-    getPosizioneFascicolo(f).toLowerCase().includes(q)
-  );
+  const input = document.getElementById('search-fascicoli');
+  const filtered = cercaFascicoliOrdinati(input ? input.value : '');
   renderFascicoli(filtered);
 }
 
@@ -6543,7 +6549,7 @@ function formatDate(dateStr) {
 }
 
 
-// === Versione 1.1.12: scheda fascicolo in sola lettura ===
+// === Versione 1.1.13: scheda fascicolo in sola lettura ===
 let dettaglioFascicoloRichiesta = 0;
 function dettaglioData(valore) {
   if (!valore) return '—';
