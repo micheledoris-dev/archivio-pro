@@ -1076,7 +1076,7 @@ tbody tr:hover { background: var(--bg); }
 .assise-note-track { background:var(--surface2); height:20px; border-radius:4px; }
 @media(max-width:600px) { .assise-note-row { grid-template-columns:minmax(0,1fr) 38px;gap:6px; } .assise-note-label {grid-column:1/-1;text-align:left;} }
 
-/* Scheda fascicolo v1.1.11 */
+/* Scheda fascicolo v1.1.12 */
 .numero-dettaglio {background:none;border:0;padding:2px 3px;color:var(--primary,#2563eb);font:inherit;font-weight:700;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
 .numero-dettaglio:focus-visible,.dettaglio-operatore:focus-visible {outline:2px solid #2563eb;outline-offset:3px}
 #dettaglio-fascicolo-dialog {width:min(690px,calc(100vw - 28px));max-height:87vh;overflow:auto;border:1px solid var(--border);border-radius:14px;padding:22px;background:var(--surface,#fff);color:var(--text,#111827);box-shadow:0 22px 80px #0004}
@@ -1093,6 +1093,32 @@ tbody tr:hover { background: var(--bg); }
 .dettaglio-avviso {margin-top:12px;font-size:12px;color:var(--text3)}
 .dettaglio-errore {color:#b91c1c;margin-top:16px}
 @media(max-width:520px){#dettaglio-fascicolo-dialog{padding:14px}.dettaglio-riga>span{flex-basis:35%}}
+
+/* Scheda fascicolo A4 - solo quando si stampa un fascicolo singolo */
+@media print {
+  body.stampa-scheda-attiva #print-area { display:block !important; }
+}
+.scheda-print { box-sizing:border-box; width:210mm; min-height:297mm; padding:17mm 18mm 16mm; background:#fff; color:#18212c; font-family:Arial,Helvetica,sans-serif; font-size:10pt; }
+.scheda-print * { box-sizing:border-box; }
+.scheda-print-header { display:flex; justify-content:space-between; align-items:flex-start; gap:10mm; padding-bottom:8mm; border-bottom:2px solid #26384d; margin-bottom:8mm; }
+.scheda-print-marchio {font-size:8pt; letter-spacing:1px; font-weight:700; color:#52657c; margin-bottom:3mm;}
+.scheda-print-header h1 { font-size:17pt; line-height:1.25; margin:0 0 3mm; color:#152539; }
+.scheda-print-header p { margin:0; color:#52657c; font-size:9pt; }
+.scheda-print-data {font-size:8.5pt; white-space:nowrap; color:#52657c; padding-top:2mm;}
+.scheda-print-sezione {border:1px solid #d1d9e2; border-radius:3mm; padding:5mm 6mm; margin-bottom:7mm; break-inside:avoid-page; }
+.scheda-print-sezione h2 {font-size:12pt; margin:0 0 4mm; color:#152539;}
+.scheda-print-riga { display:flex; justify-content:space-between; gap:10mm; padding:2.6mm 0; border-bottom:1px solid #e0e5ea; align-items:baseline; }
+.scheda-print-riga:last-child { border-bottom:none; }
+.scheda-print-riga > span { color:#5e6d80; flex:0 0 40%; }
+.scheda-print-riga > strong { font-weight:600; text-align:right; overflow-wrap:anywhere; flex:1; }
+.scheda-print-movimento {break-inside:avoid-page; padding:3mm 0 4mm; border-top:1px solid #c9d3de;}
+.scheda-print-movimento-testa { display:flex; justify-content:space-between; margin-bottom:2mm; gap:8mm; font-size:10pt; }
+.scheda-print-movimento-testa > span { color:#805000; }
+.scheda-print-avviso {color:#64748b; font-size:8pt; line-height:1.5; margin:5mm 0 0;}
+.scheda-print-vuoto {font-style:italic; color:#64748b;}
+.scheda-print-footer {font-size:8pt; border-top:1px solid #d1d9e2; padding-top:4mm; color:#64748b; margin-top:8mm;}
+@media print { .scheda-print { print-color-adjust:exact; -webkit-print-color-adjust:exact; } }
+
 </style>
 </head>
 <body>
@@ -1153,7 +1179,7 @@ tbody tr:hover { background: var(--bg); }
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <rect x="2" y="2" width="20" height="20" rx="3"/><path d="M7 8h10M7 12h6M7 16h8"/>
       </svg>
-      <span class="sidebar-brand-text">Archivio Pro<small style="display:block;font-size:11px;font-weight:400;color:var(--text3)">Versione 1.1.11</small></span>
+      <span class="sidebar-brand-text">Archivio Pro<small style="display:block;font-size:11px;font-weight:400;color:var(--text3)">Versione 1.1.12</small></span>
     </div>
     <div class="sidebar-nav">
       <div class="nav-item active" data-page="dashboard" onclick="goTo('dashboard')">
@@ -1226,7 +1252,7 @@ tbody tr:hover { background: var(--bg); }
     <div class="page active" id="page-dashboard">
       <div class="page-header">
         <div>
-          <h1 class="page-title">Scrivania</h1><p style="font-size:12px;color:var(--text3);margin-top:4px">Archivio Pro · Versione 1.1.11</p>
+          <h1 class="page-title">Scrivania</h1><p style="font-size:12px;color:var(--text3);margin-top:4px">Archivio Pro · Versione 1.1.12</p>
           <p class="page-subtitle">Panoramica dell'archivio</p>
         </div>
       </div>
@@ -3338,6 +3364,10 @@ function aggiornaBarraStampa() {
 function stampaSelezionati() {
   const selezionati = allFascicoli.filter(f => selectedFascicoliIds.has(f.id));
   if (selezionati.length === 0) return;
+  if (selezionati.length === 1) {
+    stampaSchedaFascicolo(selezionati[0]);
+    return;
+  }
   const now = new Date().toLocaleDateString('it-IT', { day:'2-digit', month:'long', year:'numeric' });
   const righe = selezionati.map((f, i) => {
     const posCodice = getPosizioneFascicolo(f);
@@ -3369,6 +3399,63 @@ function stampaSelezionati() {
     </table>`;
   window.print();
 }
+// V1.1.12 — Stampa A4 della scheda completa per un solo fascicolo selezionato.
+// Recupera lo storico direttamente da Supabase; non modifica i dati.
+let stampaSchedaInCorso = false;
+async function stampaSchedaFascicolo(f) {
+  if (stampaSchedaInCorso) return;
+  stampaSchedaInCorso = true;
+  const btn = document.getElementById('btn-stampa-sel');
+  const precedente = btn ? btn.disabled : false;
+  if (btn) btn.disabled = true;
+  try {
+    // Non stampare informazioni parziali se la richiesta allo storico fallisce.
+    const movimenti = await api('prelievi', {
+      params: `select=*&fascicolo_id=eq.${encodeURIComponent(f.id)}&order=created_at.asc`
+    }) || [];
+    const today = new Date().toLocaleDateString('it-IT', {day:'2-digit',month:'2-digit',year:'numeric'});
+    const stato = f.stato === 'disponibile' ? 'Disponibile' : 'In prelievo';
+    const valore = (v) => escHtml(v == null || v === '' ? '—' : String(v));
+    const riga = (label, v) => `<div class="scheda-print-riga"><span>${escHtml(label)}</span><strong>${valore(v)}</strong></div>`;
+    const cronologia = movimenti.length ? movimenti.map((p, idx) => {
+      const inCorso = ['in_corso','in corso'].includes(p.stato);
+      return `<section class="scheda-print-movimento">
+        <div class="scheda-print-movimento-testa"><strong>${idx+1}. Prelievo del ${dettaglioData(p.data_prelievo)}</strong><span>${inCorso ? 'In corso' : 'Concluso'}</span></div>
+        ${riga('Operatore', p.prelevato_da)}
+        ${riga('Motivazione', p.motivazione_libera || p.motivazione)}
+        ${riga('Note', p.note)}
+        ${riga('Restituzione', p.data_restituzione ? dettaglioData(p.data_restituzione) : 'Non registrata')}
+        ${inCorso ? riga('Tempo dal prelievo', dettaglioGiorni(p.data_prelievo)) : ''}
+      </section>`;
+    }).join('') : '<p class="scheda-print-vuoto">Nessun prelievo registrato per questo fascicolo.</p>';
+    const area = document.getElementById('print-area');
+    area.innerHTML = `<div class="scheda-print">
+      <header class="scheda-print-header"><div><div class="scheda-print-marchio">TRIBUNALE DI VERONA · ARCHIVIO PRO</div><h1>Scheda fascicolo — Sentenza ${valore(f.numero)}/${valore(f.anno)}</h1><p>Dettaglio e cronologia dei movimenti registrati</p></div><div class="scheda-print-data">Stampato il ${today}</div></header>
+      <section class="scheda-print-sezione"><h2>Dati del fascicolo</h2>
+        ${riga('Numero sentenza', f.numero)}
+        ${riga('Anno', f.anno)}
+        ${riga('RGNR', f.rgnr)}
+        ${riga('RGT', f.richiesta)}
+        ${riga('Posizione', getPosizioneFascicolo(f))}
+        ${riga('Stato', stato)}
+        ${riga('Note fascicolo', f.note)}
+      </section>
+      <section class="scheda-print-sezione"><h2>Storico prelievi e restituzioni (${movimenti.length})</h2>${cronologia}
+        <p class="scheda-print-avviso">Sono riportati i movimenti presenti nella tabella prelievi al momento della stampa. Sono esclusi eventuali movimenti eliminati o conservati in altri archivi.</p>
+      </section><footer class="scheda-print-footer">Archivio Pro · Versione 1.1.12 · Documento di consultazione</footer>
+    </div>`;
+    document.body.classList.add('stampa-scheda-attiva');
+    // Il browser usa la normale finestra Stampa, anche per «Salva come PDF».
+    window.print();
+  } catch (e) {
+    showToast('Impossibile stampare la scheda: storico non disponibile. ' + e.message, 'error');
+  } finally {
+    stampaSchedaInCorso = false;
+    if (btn) btn.disabled = precedente;
+  }
+}
+window.addEventListener('afterprint', () => document.body.classList.remove('stampa-scheda-attiva'));
+
 function filterFascicoliMobile(q) {
   q = q.toLowerCase();
   if (!q) { renderFascicoliCards(allFascicoli); return; }
@@ -6456,7 +6543,7 @@ function formatDate(dateStr) {
 }
 
 
-// === Versione 1.1.11: scheda fascicolo in sola lettura ===
+// === Versione 1.1.12: scheda fascicolo in sola lettura ===
 let dettaglioFascicoloRichiesta = 0;
 function dettaglioData(valore) {
   if (!valore) return '—';
