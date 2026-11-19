@@ -1075,6 +1075,24 @@ tbody tr:hover { background: var(--bg); }
 .assise-note-label { text-align:right; overflow-wrap:anywhere; }
 .assise-note-track { background:var(--surface2); height:20px; border-radius:4px; }
 @media(max-width:600px) { .assise-note-row { grid-template-columns:minmax(0,1fr) 38px;gap:6px; } .assise-note-label {grid-column:1/-1;text-align:left;} }
+
+/* Scheda fascicolo v1.1.11 */
+.numero-dettaglio {background:none;border:0;padding:2px 3px;color:var(--primary,#2563eb);font:inherit;font-weight:700;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+.numero-dettaglio:focus-visible,.dettaglio-operatore:focus-visible {outline:2px solid #2563eb;outline-offset:3px}
+#dettaglio-fascicolo-dialog {width:min(690px,calc(100vw - 28px));max-height:87vh;overflow:auto;border:1px solid var(--border);border-radius:14px;padding:22px;background:var(--surface,#fff);color:var(--text,#111827);box-shadow:0 22px 80px #0004}
+#dettaglio-fascicolo-dialog::backdrop {background:#09172c99}
+.dettaglio-sezione {margin-top:17px;border:1px solid var(--border);border-radius:10px;padding:14px}
+.dettaglio-sezione h3 {margin:0 0 12px;font-size:15px}
+.dettaglio-riga {display:flex;align-items:flex-start;justify-content:space-between;gap:15px;padding:7px 0;border-bottom:1px solid var(--border);font-size:13px}
+.dettaglio-riga:last-child {border-bottom:0}
+.dettaglio-riga>span {color:var(--text3);flex:0 0 38%}
+.dettaglio-riga>strong {text-align:right;overflow-wrap:anywhere}
+.dettaglio-movimento {padding:12px 0;border-top:1px solid var(--border)}
+.dettaglio-movimento-head {display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:8px}
+.dettaglio-operatore {font:inherit;font-weight:700;background:none;border:0;color:var(--primary,#2563eb);text-decoration:underline;cursor:pointer}
+.dettaglio-avviso {margin-top:12px;font-size:12px;color:var(--text3)}
+.dettaglio-errore {color:#b91c1c;margin-top:16px}
+@media(max-width:520px){#dettaglio-fascicolo-dialog{padding:14px}.dettaglio-riga>span{flex-basis:35%}}
 </style>
 </head>
 <body>
@@ -1135,7 +1153,7 @@ tbody tr:hover { background: var(--bg); }
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <rect x="2" y="2" width="20" height="20" rx="3"/><path d="M7 8h10M7 12h6M7 16h8"/>
       </svg>
-      <span class="sidebar-brand-text">Archivio Pro<small style="display:block;font-size:11px;font-weight:400;color:var(--text3)">Versione 1.1.10</small></span>
+      <span class="sidebar-brand-text">Archivio Pro<small style="display:block;font-size:11px;font-weight:400;color:var(--text3)">Versione 1.1.11</small></span>
     </div>
     <div class="sidebar-nav">
       <div class="nav-item active" data-page="dashboard" onclick="goTo('dashboard')">
@@ -1208,7 +1226,7 @@ tbody tr:hover { background: var(--bg); }
     <div class="page active" id="page-dashboard">
       <div class="page-header">
         <div>
-          <h1 class="page-title">Scrivania</h1><p style="font-size:12px;color:var(--text3);margin-top:4px">Archivio Pro · Versione 1.1.10</p>
+          <h1 class="page-title">Scrivania</h1><p style="font-size:12px;color:var(--text3);margin-top:4px">Archivio Pro · Versione 1.1.11</p>
           <p class="page-subtitle">Panoramica dell'archivio</p>
         </div>
       </div>
@@ -3204,7 +3222,7 @@ function renderFascicoli(list = null) {
     
     return `<tr data-id="${f.id}" class="${selectedFascicoliIds.has(f.id) ? 'selected-row' : ''}">
       <td><input type="checkbox" class="cb-fascicolo" ${selectedFascicoliIds.has(f.id) ? 'checked' : ''} onchange="toggleSelezione('${f.id}', this.checked)"></td>
-      <td><strong>${escHtml(f.numero)}</strong></td>
+      <td><button type="button" class="numero-dettaglio" onclick="apriDettaglioFascicolo('${f.id}')" title="Apri scheda fascicolo e storico">${escHtml(f.numero)}</button></td>
       <td style="color:var(--text3);font-size:12px">${escHtml(f.rgnr || '—')}</td>
       <td>${f.anno}</td>
       <td>${escHtml(f.richiesta)}</td>
@@ -3246,10 +3264,10 @@ function renderFascicoliCards(data) {
     const isSelected = selectedFascicoliIds.has(f.id);
     return `<div class="fascicolo-card${isSelected ? ' selected' : ''}" data-id="${f.id}">
       <div class="fascicolo-card-header">
-        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;flex:1">
-          <input type="checkbox" class="cb-fascicolo" ${isSelected ? 'checked' : ''} onchange="toggleSelezione('${f.id}', this.checked)">
-          <span class="fascicolo-card-numero">${escHtml(f.numero)}</span>
-        </label>
+        <div style="display:flex;align-items:center;gap:8px;flex:1">
+          <input type="checkbox" class="cb-fascicolo" aria-label="Seleziona sentenza ${escHtml(f.numero)}" ${isSelected ? 'checked' : ''} onchange="toggleSelezione('${f.id}', this.checked)">
+          <button type="button" class="numero-dettaglio fascicolo-card-numero" onclick="apriDettaglioFascicolo('${f.id}')" title="Apri scheda fascicolo e storico">${escHtml(f.numero)}</button>
+        </div>
         ${badge}
       </div>
       ${fascicoloRitiratoDa(f)}
@@ -6437,6 +6455,89 @@ function formatDate(dateStr) {
   return `${d}/${m}/${y}`;
 }
 
+
+// === Versione 1.1.11: scheda fascicolo in sola lettura ===
+let dettaglioFascicoloRichiesta = 0;
+function dettaglioData(valore) {
+  if (!valore) return '—';
+  const data = String(valore).slice(0, 10);
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(data);
+  return match ? `${match[3]}/${match[2]}/${match[1]}` : escHtml(valore);
+}
+function dettaglioGiorni(dataPrelievo) {
+  if (!dataPrelievo) return '—';
+  const start = new Date(String(dataPrelievo).slice(0,10) + 'T12:00:00');
+  const now = new Date();
+  if (Number.isNaN(start.getTime())) return '—';
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 12);
+  return Math.max(0, Math.floor((today.getTime() - start.getTime())/86400000)) + ' giorni';
+}
+function dettaglioRiga(etichetta, valore) {
+  return `<div class="dettaglio-riga"><span>${escHtml(etichetta)}</span><strong>${valore == null || valore === '' ? '—' : valore}</strong></div>`;
+}
+async function apriDettaglioFascicolo(id) {
+  const f = allFascicoli.find(x => x.id === id);
+  if (!f) return showToast('Fascicolo non trovato', 'error');
+  const token = ++dettaglioFascicoloRichiesta;
+  const dialog = document.getElementById('dettaglio-fascicolo-dialog');
+  document.getElementById('dettaglio-fascicolo-title').textContent = `Sentenza ${f.numero}/${f.anno}`;
+  const body = document.getElementById('dettaglio-fascicolo-body');
+  body.innerHTML = '<p role="status">Caricamento dello storico dal database…</p>';
+  if (!dialog.open) dialog.showModal();
+  const stato = f.stato === 'disponibile' ? '<span class="badge badge-green">Disponibile</span>' : '<span class="badge badge-orange">In prelievo</span>';
+  const dati = `<section class="dettaglio-sezione"><h3>Dati del fascicolo</h3>
+    ${dettaglioRiga('Numero sentenza', escHtml(f.numero))}
+    ${dettaglioRiga('Anno', escHtml(f.anno))}
+    ${dettaglioRiga('RGNR', escHtml(f.rgnr || '—'))}
+    ${dettaglioRiga('RGT', escHtml(f.richiesta || '—'))}
+    ${dettaglioRiga('Posizione', escHtml(getPosizioneFascicolo(f)))}
+    ${dettaglioRiga('Stato', stato)}
+    ${dettaglioRiga('Note fascicolo', escHtml(f.note || '—'))}</section>`;
+  try {
+    // Richiesta fresca per non dipendere dalla cache dei prelievi della pagina.
+    const movimenti = await api('prelievi', {params: `select=*&fascicolo_id=eq.${encodeURIComponent(id)}&order=created_at.asc`}) || [];
+    if (token !== dettaglioFascicoloRichiesta || !dialog.open) return;
+    const cronologia = movimenti.length ? movimenti.map(p => {
+      const aperto = ['in_corso','in corso'].includes(p.stato);
+      const operatore = escHtml(p.prelevato_da || 'Non indicato');
+      const operatorePulsante = p.prelevato_da
+        ? `<button class="dettaglio-operatore" type="button" data-operatore="${escHtml(p.prelevato_da)}" title="Visualizza i fascicoli in possesso di questo operatore">${operatore}</button>`
+        : operatore;
+      return `<article class="dettaglio-movimento">
+        <div class="dettaglio-movimento-head"><strong>Prelievo del ${dettaglioData(p.data_prelievo)}</strong>${aperto ? '<span class="badge badge-orange">In corso</span>' : '<span class="badge badge-green">Concluso</span>'}</div>
+        ${dettaglioRiga('Operatore', operatorePulsante)}
+        ${dettaglioRiga('Motivazione', escHtml(p.motivazione_libera || p.motivazione || '—'))}
+        ${dettaglioRiga('Note', escHtml(p.note || '—'))}
+        ${dettaglioRiga('Restituzione', p.data_restituzione ? dettaglioData(p.data_restituzione) : 'Non registrata')}
+        ${aperto ? dettaglioRiga('Tempo dal prelievo', dettaglioGiorni(p.data_prelievo)) : ''}
+      </article>`;
+    }).join('') : '<p>Nessun prelievo registrato per questo fascicolo.</p>';
+    body.innerHTML = dati + `<section class="dettaglio-sezione"><h3>Storico prelievi e restituzioni (${movimenti.length})</h3>${cronologia}<p class="dettaglio-avviso">Sono mostrati i movimenti presenti nella tabella prelievi. Non include eventuali registrazioni eliminate o conservate in altri archivi.</p></section><section class="dettaglio-sezione" id="dettaglio-operatore-risultati" hidden></section>`;
+    body.querySelectorAll('[data-operatore]').forEach(btn => btn.addEventListener('click', () => mostraFascicoliOperatore(btn.dataset.operatore)));
+  } catch(e) {
+    if (token !== dettaglioFascicoloRichiesta || !dialog.open) return;
+    body.innerHTML = dati + `<p class="dettaglio-errore" role="alert">Impossibile caricare lo storico: ${escHtml(e.message)}. Verifica i permessi di lettura in Supabase.</p>`;
+  }
+}
+async function mostraFascicoliOperatore(nome) {
+  const pane = document.getElementById('dettaglio-operatore-risultati');
+  if (!pane) return;
+  pane.hidden = false;
+  pane.innerHTML = `<h3>Fascicoli in possesso di ${escHtml(nome)}</h3><p>Caricamento…</p>`;
+  try {
+    // Recupero aggiornato, non modifica nessuna registrazione.
+    const lista = await api('prelievi', {params: 'select=*&stato=eq.in_corso&order=created_at.desc'}) || [];
+    if (!pane.isConnected || !document.getElementById('dettaglio-fascicolo-dialog').open) return;
+    const match = lista.filter(p => (p.prelevato_da || '').trim().toLocaleLowerCase('it') === nome.trim().toLocaleLowerCase('it'));
+    pane.innerHTML = `<h3>Fascicoli in possesso di ${escHtml(nome)} (${match.length})</h3>` + (match.length ? match.map(p => {
+      const f = allFascicoli.find(x => x.id === p.fascicolo_id);
+      return `<div class="dettaglio-riga"><span>${f ? `Sentenza ${escHtml(f.numero)}/${escHtml(f.anno)}` : 'Fascicolo non presente nell’elenco'}</span><strong>${dettaglioData(p.data_prelievo)} · ${dettaglioGiorni(p.data_prelievo)}</strong></div>`;
+    }).join('') : '<p>Nessun prelievo attivo associato a questo nome.</p>');
+  } catch(e) {
+    pane.innerHTML = `<h3>Fascicoli in possesso di ${escHtml(nome)}</h3><p role="alert">Impossibile consultare i prelievi: ${escHtml(e.message)}</p>`;
+  }
+}
+
 // Close modals on overlay click
 document.querySelectorAll('.modal-overlay').forEach(overlay => {
   overlay.addEventListener('click', e => {
@@ -7212,5 +7313,14 @@ function assiseMotivoCambio(){
 <label for="assise-pre-area">Documenti</label><select id="assise-pre-area"><option value="">Fascicoli e sentenze</option><option>Fascicoli</option><option>Sentenze</option></select>
 <div style="display:grid;grid-template-columns:2fr 1fr;gap:12px"><div><label for="assise-pre-numero">Numero</label><input id="assise-pre-numero" inputmode="numeric" pattern="[0-9]+" required></div><div><label for="assise-pre-anno">Anno</label><input id="assise-pre-anno" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" placeholder="2024" required></div></div>
 <button type="submit" class="btn btn-primary" style="margin:14px 0">Cerca documento</button></fieldset></form>
-<div id="assise-pre-esiti" role="status"></div><div class="assise-dialog-actions"><button type="button" class="btn btn-secondary" onclick="document.getElementById('assise-cerca-prelievo').close()">Chiudi</button></div></dialog></body>
+<div id="assise-pre-esiti" role="status"></div><div class="assise-dialog-actions"><button type="button" class="btn btn-secondary" onclick="document.getElementById('assise-cerca-prelievo').close()">Chiudi</button></div></dialog>
+<!-- Scheda fascicolo e storico: sola lettura -->
+<dialog id="dettaglio-fascicolo-dialog" aria-labelledby="dettaglio-fascicolo-title" onclose="dettaglioFascicoloRichiesta++">
+  <div style="display:flex;justify-content:space-between;align-items:center;gap:12px">
+    <div><div style="font-size:12px;color:var(--text3)">Scheda fascicolo · sola lettura</div><h2 id="dettaglio-fascicolo-title" style="margin:5px 0">Fascicolo</h2></div>
+    <button type="button" class="btn btn-secondary" onclick="document.getElementById('dettaglio-fascicolo-dialog').close()" aria-label="Chiudi dettaglio fascicolo">Chiudi</button>
+  </div>
+  <div id="dettaglio-fascicolo-body"></div>
+</dialog>
+</body>
 </html>
