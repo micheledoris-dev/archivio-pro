@@ -1076,7 +1076,7 @@ tbody tr:hover { background: var(--bg); }
 .assise-note-track { background:var(--surface2); height:20px; border-radius:4px; }
 @media(max-width:600px) { .assise-note-row { grid-template-columns:minmax(0,1fr) 38px;gap:6px; } .assise-note-label {grid-column:1/-1;text-align:left;} }
 
-/* Scheda fascicolo v1.1.14 */
+/* Scheda fascicolo v1.1.15 */
 .numero-dettaglio {background:none;border:0;padding:2px 3px;color:var(--primary,#2563eb);font:inherit;font-weight:700;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
 .numero-dettaglio:focus-visible,.dettaglio-operatore:focus-visible {outline:2px solid #2563eb;outline-offset:3px}
 #dettaglio-fascicolo-dialog {width:min(690px,calc(100vw - 28px));max-height:87vh;overflow:auto;border:1px solid var(--border);border-radius:14px;padding:22px;background:var(--surface,#fff);color:var(--text,#111827);box-shadow:0 22px 80px #0004}
@@ -1179,7 +1179,7 @@ tbody tr:hover { background: var(--bg); }
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <rect x="2" y="2" width="20" height="20" rx="3"/><path d="M7 8h10M7 12h6M7 16h8"/>
       </svg>
-      <span class="sidebar-brand-text">Archivio Pro<small style="display:block;font-size:11px;font-weight:400;color:var(--text3)">Versione 1.1.14</small></span>
+      <span class="sidebar-brand-text">Archivio Pro<small style="display:block;font-size:11px;font-weight:400;color:var(--text3)">Versione 1.1.15</small></span>
     </div>
     <div class="sidebar-nav">
       <div class="nav-item active" data-page="dashboard" onclick="goTo('dashboard')">
@@ -1252,7 +1252,7 @@ tbody tr:hover { background: var(--bg); }
     <div class="page active" id="page-dashboard">
       <div class="page-header">
         <div>
-          <h1 class="page-title">Scrivania</h1><p style="font-size:12px;color:var(--text3);margin-top:4px">Archivio Pro · Versione 1.1.14</p>
+          <h1 class="page-title">Scrivania</h1><p style="font-size:12px;color:var(--text3);margin-top:4px">Archivio Pro · Versione 1.1.15</p>
           <p class="page-subtitle">Panoramica dell'archivio</p>
         </div>
       </div>
@@ -1392,7 +1392,7 @@ tbody tr:hover { background: var(--bg); }
         </div>
       </div>
 
-      <!-- CRONOLOGIA RICERCHE v1.1.14 -->
+      <!-- CRONOLOGIA RICERCHE v1.1.15 -->
       <section class="card" style="margin-top:14px" aria-labelledby="ricerche-title">
         <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:12px">
           <div class="card-title" id="ricerche-title" style="margin:0">Cronologia ricerche · ultime 50</div>
@@ -3185,7 +3185,7 @@ function goTo(page) {
   if (page === 'utenti') refreshUtenti();
 }
 
-// CRONOLOGIA DELLE RICERCHE v1.1.14
+// CRONOLOGIA DELLE RICERCHE v1.1.15
 // La tabella Supabase 'cronologia_ricerche' va installata tramite il file SQL allegato.
 // Non registriamo singole battute né ricerche vuote. Il database, con RLS,
 // determina quali registrazioni ogni utente è autorizzato a consultare.
@@ -3352,7 +3352,7 @@ function renderFascicoli(list = null) {
       <td style="color:var(--text3);font-size:12px;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${escHtml(f.note || '')}">${escHtml(f.note || '—')}</td>
       <td>
         <div class="actions-cell">
-          ${canLoan ? `<button class="btn-icon" onclick="openPrelievo('${f.id}')" title="Registra prelievo">
+          ${canLoan ? `<button type="button" class="btn btn-primary" style="font-size:12px;padding:7px 10px;background:#0F766E;white-space:nowrap" onclick="apriPrelevaFascicolo('${f.id}')" title="Apri la maschera Preleva Fascicolo">PRELEVA
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
           </button>` : ''}
           <button class="btn-icon" onclick="editFascicolo('${f.id}')" title="Modifica">
@@ -3401,7 +3401,7 @@ function renderFascicoliCards(data) {
       </div>
       ${f.note ? `<div style="font-size:12px;color:var(--text3)">${escHtml(f.note)}</div>` : ''}
       <div class="fascicolo-card-actions">
-        ${canLoan ? `<button class="btn-icon" onclick="openPrelievo('${f.id}')" title="Registra prelievo">
+        ${canLoan ? `<button type="button" class="btn btn-primary" style="font-size:12px;padding:7px 10px;background:#0F766E;white-space:nowrap" onclick="apriPrelevaFascicolo('${f.id}')" title="Apri la maschera Preleva Fascicolo">PRELEVA
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
         </button>` : ''}
         <button class="btn-icon" onclick="editFascicolo('${f.id}')" title="Modifica">
@@ -3494,7 +3494,7 @@ function stampaSelezionati() {
     </table>`;
   window.print();
 }
-// V1.1.14 — Stampa A4 della scheda completa per un solo fascicolo selezionato.
+// V1.1.15 — Stampa A4 della scheda completa per un solo fascicolo selezionato.
 // Recupera lo storico direttamente da Supabase; non modifica i dati.
 let stampaSchedaInCorso = false;
 async function stampaSchedaFascicolo(f) {
@@ -3537,7 +3537,7 @@ async function stampaSchedaFascicolo(f) {
       </section>
       <section class="scheda-print-sezione"><h2>Storico prelievi e restituzioni (${movimenti.length})</h2>${cronologia}
         <p class="scheda-print-avviso">Sono riportati i movimenti presenti nella tabella prelievi al momento della stampa. Sono esclusi eventuali movimenti eliminati o conservati in altri archivi.</p>
-      </section><footer class="scheda-print-footer">Archivio Pro · Versione 1.1.14 · Documento di consultazione</footer>
+      </section><footer class="scheda-print-footer">Archivio Pro · Versione 1.1.15 · Documento di consultazione</footer>
     </div>`;
     document.body.classList.add('stampa-scheda-attiva');
     // Il browser usa la normale finestra Stampa, anche per «Salva come PDF».
@@ -3551,7 +3551,7 @@ async function stampaSchedaFascicolo(f) {
 }
 window.addEventListener('afterprint', () => document.body.classList.remove('stampa-scheda-attiva'));
 
-// v1.1.14 — Le corrispondenze esatte del numero di sentenza hanno sempre priorità.
+// v1.1.15 — Le corrispondenze esatte del numero di sentenza hanno sempre priorità.
 // Segue il numero che inizia con la ricerca, poi quello che la contiene;
 // infine le corrispondenze negli altri campi. A parità di priorità, ordine stabile.
 function cercaFascicoliOrdinati(query) {
@@ -4901,6 +4901,23 @@ function apriPreleva() {
   btn.disabled = true; btn.style.opacity = '.4'; btn.style.cursor = 'not-allowed';
   openModal('modal-preleva');
   setTimeout(() => document.getElementById('pre-numero').focus(), 100);
+}
+
+// Versione 1.1.15 — Dalla ricerca alla maschera PRELEVA già esistente.
+// Non registra il movimento: l'operatore deve scegliere una motivazione e confermare.
+function apriPrelevaFascicolo(fascicoloId) {
+  const f = allFascicoli.find(x => x.id === fascicoloId);
+  if (!f) { showToast('Fascicolo non trovato', 'error'); return; }
+  if (f.stato !== 'disponibile') {
+    showToast('Fascicolo già in prelievo: consulta la scheda per i dettagli', 'error');
+    return;
+  }
+  const dettaglio = document.getElementById('dettaglio-fascicolo-dialog');
+  if (dettaglio?.open) dettaglio.close();
+  apriPreleva();
+  document.getElementById('pre-numero').value = String(f.numero);
+  document.getElementById('pre-anno').value = String(f.anno);
+  cercaPerPrelievo();
 }
 
 function cercaPerPrelievo() {
@@ -6644,7 +6661,7 @@ function formatDate(dateStr) {
 }
 
 
-// === Versione 1.1.14: scheda fascicolo in sola lettura ===
+// === Versione 1.1.15: scheda fascicolo in sola lettura ===
 let dettaglioFascicoloRichiesta = 0;
 function dettaglioData(valore) {
   if (!valore) return '—';
@@ -6673,7 +6690,7 @@ async function apriDettaglioFascicolo(id) {
   body.innerHTML = '<p role="status">Caricamento dello storico dal database…</p>';
   if (!dialog.open) dialog.showModal();
   const stato = f.stato === 'disponibile' ? '<span class="badge badge-green">Disponibile</span>' : '<span class="badge badge-orange">In prelievo</span>';
-  const dati = `<section class="dettaglio-sezione"><h3>Dati del fascicolo</h3>
+  const dati = `${f.stato === 'disponibile' ? `<div style="margin-top:14px"><button type="button" class="btn btn-primary" style="background:#0F766E" onclick="apriPrelevaFascicolo('${f.id}')">PRELEVA QUESTO FASCICOLO</button></div>` : ''}<section class="dettaglio-sezione"><h3>Dati del fascicolo</h3>
     ${dettaglioRiga('Numero sentenza', escHtml(f.numero))}
     ${dettaglioRiga('Anno', escHtml(f.anno))}
     ${dettaglioRiga('RGNR', escHtml(f.rgnr || '—'))}
